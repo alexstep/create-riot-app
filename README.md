@@ -1,7 +1,7 @@
 # create-riot-app (ejected)
 [RiotJS](http://riotjs.com/) startkit, based on [create-react-app](https://github.com/facebookincubator/create-react-app) and  [custom-react-scripts](https://github.com/kitze/custom-react-scripts).
 
-Package included simple app example, webpack dev server with riot-loader and less,sass,stylus,css-components support. ES6 fetures available too.
+Package included simple app example, webpack dev server with riot-loader and less,sass,stylus,css-components support. ES6 features available too.
 
 Just read https://github.com/facebookincubator/create-react-app but replace all "react" word to "riot" :)
 
