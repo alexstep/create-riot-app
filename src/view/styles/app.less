@@ -1,0 +1,100 @@
+@import 'base.less';
+
+@topbar_height:   58px;
+@main_bg:         #5181b8;
+@text_color:      #ffffff;
+
+.fullscreen {
+	min-height: 100vh; height: 100%;
+};
+
+
+html, body {
+	overflow: hidden; //min-height: 100vh; height: 100vh; max-height: 100vh;
+	&.scroll {
+		overflow: auto; max-height: inherit; height: auto;
+	}
+}
+
+
+#splash {
+	.fullscreen();
+	position: fixed; z-index: 9999;
+	top:0; left:0; right: 0; bottom: 0;
+
+	background: url('/img/logo.svg') @main_bg no-repeat center;
+	background-size: 150px auto;
+	@media only screen and (max-width: 680px) {
+		background-size: 30% auto;
+	}
+	&:before {
+		content: 'Загрузка...';
+		color: @text_color;
+		text-transform: uppercase; font-weight: 200;
+		font-size: 21px;
+
+		text-align: center;
+		display: block;  width: 100%;
+		position: absolute; bottom: 30%; margin-left: 5px;
+		transition:opacity 0.4s linear;
+	}
+
+	transition:opacity 0.7s linear;
+	&.hide {
+		&:before { opacity: 0; }
+
+		@media only screen and (min-width: 680px) {
+			opacity: 0;
+		}
+
+		@media only screen and (max-width: 680px) {
+			animation: hide_splash 1s linear;
+
+			@keyframes hide_splash {
+				0% {
+				}
+				40% {
+					background-position:center 122px;
+					opacity: 1;
+				}
+				80% {
+					background-position:center 122px;
+					background-size: 45% auto;
+				}
+				90% {
+					background-position:center 122px;
+					background-size: 45% auto;
+					opacity: 0;
+				}
+				100% {
+					background-position:center 122px;
+					background-size: 45% auto;
+					opacity: 0;
+				}
+			}
+		}
+
+	} // hide
+
+}
+
+
+
+#app {
+	.fullscreen();
+	min-height: 100vh;
+	background: #fff;
+	position: relative;
+}
+
+.screen {
+	height: calc(100vh ~"-" @topbar_height);
+	width: 100vw;
+	overflow: scroll;
+}
+
+
+@import './components/drawer.less';
+@import './components/groups.less';
+
+

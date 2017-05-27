@@ -1,0 +1,27 @@
+
+// Desktop
+#screen_groups {	
+@media only screen and (min-width: 680px) {
+.groups-list {
+	background: #f0f0f0; min-height: 100vh; 
+	text-align: center;
+	.group {
+		text-align: left;
+		background: #fff;
+		margin:10px;
+		border-radius: 1px;
+		box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+
+		padding: 20px;
+		height: 200px; width: 320px;
+		display: inline-block;
+		b { max-width: 200px; white-space: inherit;}
+
+		&:hover {
+			background: #f9f9f9;
+			box-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+		}
+	}
+}
+}// media only screen and (max-width: 600px) {
+}
