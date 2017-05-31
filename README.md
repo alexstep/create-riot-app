@@ -27,6 +27,7 @@ npm run build
 ```
 
 
+
 ### 📝 Configuration options
 
 Modify the ```.env``` file in the root of the generated project, and add any of the configuration options below 👇 to enable that feature.
@@ -49,6 +50,7 @@ The generated project comes with SASS, LESS, and CSS modules support by default,
 #### Others
 - ```PORT=3015``` - change default port (supported in CRA by default)
 - ```OPEN_BROWSER=false``` - don't open browser after running webpack server
+
 
 
 
