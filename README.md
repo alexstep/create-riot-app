@@ -1,4 +1,4 @@
-# create-riot-app (ejected)
+# ⏏ create-riot-app
 [![Code Climate](https://codeclimate.com/github/alexstep/create-riot-app-ejected.png)](https://codeclimate.com/github/alexstep/create-riot-app-ejected)
 [![Dependencies](https://david-dm.org/alexstep/create-riot-app-ejected/dev-status.svg)](https://david-dm.org/alexstep/create-riot-app-ejected?type=dev)
 
@@ -9,7 +9,7 @@ Package included simple app example, webpack dev server with riot-loader and les
 Just read https://github.com/facebookincubator/create-react-app but replace all "react" word to "riot" :)
 
 
-## Start dev-server
+## ⚙ Start dev-server
 ```
 git clone https://github.com/alexstep/create-riot-app-ejected my-riot-app
 cd my-riot-app
@@ -21,14 +21,14 @@ npm start
 go to http://localhost:9999
 
 
-## Build for production
+## ⚡ Build for production
 ```
 npm run build
 ```
 
 
 
-### 📝 Configuration options
+### ✎ Configuration options
 
 Modify the ```.env``` file in the root of the generated project, and add any of the configuration options below 👇 to enable that feature.
 
@@ -44,7 +44,7 @@ The generated project comes with SASS, LESS, and CSS modules support by default,
 - ```APP_BABEL_STAGE_0=true``` - enable stage-0 Babel preset
 - ```APP_DECORATORS=true``` - enable decorators support
 
-> ⚠️ Please note that the Babel features are highly experimental (especially stage-0) and still not a part of the ES specification.
+> ⚠ Please note that the Babel features are highly experimental (especially stage-0) and still not a part of the ES specification.
 > Use them at your own risk of breaking backwards compatibility if they don't make the final version of the spec.
 
 #### Others
@@ -54,7 +54,7 @@ The generated project comes with SASS, LESS, and CSS modules support by default,
 
 
 
-## Contribute
+## ⚇ Contribute
 
 Fork and send pull-request. Thank you!
 
