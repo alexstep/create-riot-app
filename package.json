@@ -14,7 +14,7 @@
       "src/**/*.{js,tag}"
     ],
     "setupFiles": [
-      "<rootDir>/config/polyfills.js"
+      "<rootDir>/scripts/config/polyfills.js"
     ],
     "testPathIgnorePatterns": [
       "<rootDir>[/\\\\](build|docs|node_modules|scripts)[/\\\\]"
@@ -23,8 +23,8 @@
     "testURL": "http://localhost",
     "transform": {
       "^.+\\.(js|tag)$": "<rootDir>/node_modules/babel-jest",
-      "^.+\\.(styl|sass|less|css)$": "<rootDir>/config/jest/cssTransform.js",
-      "^(?!.*\\.(js|tag|styl|sass|less|css|json)$)": "<rootDir>/config/jest/fileTransform.js"
+      "^.+\\.(styl|sass|less|css)$": "<rootDir>/scripts/config/jest/cssTransform.js",
+      "^(?!.*\\.(js|tag|styl|sass|less|css|json)$)": "<rootDir>/scripts/config/jest/fileTransform.js"
     },
     "transformIgnorePatterns": [
       "[/\\\\]node_modules[/\\\\].+\\.(js|tag)$"
