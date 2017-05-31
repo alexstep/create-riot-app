@@ -48,7 +48,7 @@ The generated project comes with SASS, LESS, and CSS modules support by default,
 > Use them at your own risk of breaking backwards compatibility if they don't make the final version of the spec.
 
 #### Others
-- ```PORT=3015``` - change default port (supported in CRA by default)
+- ```PORT=9999``` - change port
 - ```OPEN_BROWSER=false``` - don't open browser after running webpack server
 
 
