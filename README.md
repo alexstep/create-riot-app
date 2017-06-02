@@ -35,20 +35,13 @@ Modify the ```.env``` file in the root of the generated project, and add any of 
 The generated project comes with SASS, LESS, and CSS modules support by default, but you can remove them at any time by removing the options from the ```.env``` file.
 
 #### Styling
-- ```APP_SASS=true``` - enable SASS support
-- ```APP_LESS=true``` - enable LESS support
-- ```APP_STYLUS=true``` - enable Stylus support
-- ```APP_CSS_MODULES``` - enable CSS modules
+- ```enable_less=true``` - enable LESS support
+- ```enable_sass=true``` - enable SASS support
+- ```enable_stylus=true``` - enable Stylus support
 
-#### Babel
-- ```APP_BABEL_STAGE_0=true``` - enable stage-0 Babel preset
-- ```APP_DECORATORS=true``` - enable decorators support
-
-> ⚠ Please note that the Babel features are highly experimental (especially stage-0) and still not a part of the ES specification.
-> Use them at your own risk of breaking backwards compatibility if they don't make the final version of the spec.
 
 #### Others
-- ```PORT=3015``` - change default port (supported in CRA by default)
+- ```PORT=9999``` - change default port (supported in CRA by default)
 - ```OPEN_BROWSER=false``` - don't open browser after running webpack server
 
 

@@ -18,6 +18,7 @@ import $ from 'jquery'
 
 		this.drawer_open = false
 		this.toggleDrawer = function(e){
+
 			if (this.drawer_open) {
 				this.drawer_open = false
 			} else {
@@ -25,7 +26,8 @@ import $ from 'jquery'
 				this.drawer_open = true
 			}
 
-			this.$drawer_wrap.toggleClass('show');
+			this.update()
+
 			if (e) { e.preventDefault() }
 		}
 
@@ -134,7 +136,7 @@ import $ from 'jquery'
 		}
 	</script>
 
-	<div class="drawer-wrap">
+	<div class={'drawer-wrap':true, show:this.drawer_open}>
 		<a onclick={toggleDrawer} href="#toggle_drawer" class="toggle-drawer" draggable="false"><i></i></a>
 
 		<div id="drawer">

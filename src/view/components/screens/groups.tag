@@ -1,6 +1,6 @@
-import $ from 'jquery'
 <groups>
-	<script type="es6">
+	<script>
+	// <script type="es6">
 		this.loading   = true
 		this.groups    = []
 
@@ -23,7 +23,7 @@ import $ from 'jquery'
 		<spinner if={loading} text="Loading items..."></spinner>
 
 		<div class="groups-list">
-			<a if={groups.length} each={group in groups } href="/group/{group.id}" onclick={selectGroup} class="ripple group">
+			<a if={groups.length} each={group in groups } href="/groups/" onclick={selectGroup} class="ripple group">
 				<div class="img-wrap"><img src="{group.photo_100}" ></div>
 				<b>{group.name}</b>
 				<span class="items" if={group.items}>{group.items} </span>
