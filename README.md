@@ -31,12 +31,14 @@ go to http://localhost:9999
 npm test
 npm test -- --coverage
 ```
+[read more](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#running-tests) about testing
 
 Add flow type checker.
 ```
 npm install flow-bin
 npm run flow
 ```
+Write in head your js files //@flow weak to enable flow checker
 
 
 ## ⚗ Build for production
@@ -47,8 +49,8 @@ npm run build
 Check build result
 ```
 npm run check_build
-
 ```
+
 
 ## ☁ Deploy
 
@@ -72,11 +74,11 @@ The generated project comes with LESS support by default, but you can add SASS o
 - ```enable_sass=true``` - enable SASS support
 - ```enable_stylus=true``` - enable Stylus support
 
-
 #### Others
 - ```PORT=9999``` - change port
 - ```OPEN_BROWSER=false``` - don't open browser after running webpack server
 
+[Read more](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#adding-custom-environment-variables) about .env files
 
 
 
