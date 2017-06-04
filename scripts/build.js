@@ -38,54 +38,63 @@ if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
 // This lets us display how much they changed later.
 measureFileSizesBeforeBuild(paths.appBuild)
   .then(previousFileSizes => {
-    // Remove all content but keep the directory so that
-    // if you're in it, you don't end up in Trash
+	// Remove all content but keep the directory so that
+	// if you're in it, you don't end up in Trash
 	fs.emptyDirSync(paths.appBuild)
-    // Merge with the public folder
+	// Merge with the public folder
 	copyPublicFolder()
-    // Start the webpack build
+	// Start the webpack build
 	return build(previousFileSizes)
 })
   .then(
-    ({ stats, previousFileSizes, warnings }) => {
-	if (warnings.length) {
-		console.log(chalk.yellow('Compiled with warnings.\n'))
-		console.log(warnings.join('\n\n'))
-		console.log(
-          '\nSearch for the ' +
-            chalk.underline(chalk.yellow('keywords')) +
-            ' to learn more about each warning.'
-        )
-		console.log(
-          'To ignore, add ' +
-            chalk.cyan('// eslint-disable-next-line') +
-            ' to the line before.\n'
-        )
-	} else {
-		console.log(chalk.green('Compiled successfully.\n'))
+	({ stats, previousFileSizes, warnings }) => {
+		if (warnings.length) {
+			console.log(chalk.yellow('Compiled with warnings.\n'))
+			console.log(warnings.join('\n\n'))
+			console.log(
+		  '\nSearch for the ' +
+			chalk.underline(chalk.yellow('keywords')) +
+			' to learn more about each warning.'
+		)
+			console.log(
+		  'To ignore, add ' +
+			chalk.cyan('// eslint-disable-next-line') +
+			' to the line before.\n'
+		)
+		} else {
+			console.log(chalk.green('Compiled successfully.\n'))
+		}
+
+		console.log('File sizes after gzip:\n')
+		printFileSizesAfterBuild(stats, previousFileSizes, paths.appBuild)
+		console.log()
+
+		const appPackage  = require(paths.appPackageJson)
+		const publicUrl   = paths.publicUrl
+		const publicPath  = config.output.publicPath
+		const buildFolder = path.relative(process.cwd(), paths.appBuild)
+		printHostingInstructions(
+			appPackage,
+			publicUrl,
+			publicPath,
+			buildFolder,
+			useYarn
+		)
+
+		console.log('You may also serve it locally with a static server:')
+		if (useYarn) {
+			console.log('   Run ' + chalk.cyan('yarnpkg check_build') + '')
+		} else {
+			console.log('   Run ' + chalk.cyan('npm run check_build') +  '')
+		}
+		console.log('   And open in browser http://localhost:9000')
+		console.log()
+	},
+	err => {
+		console.log(chalk.red('Failed to compile.\n'))
+		console.log((err.message || err) + '\n')
+		process.exit(1)
 	}
-
-	console.log('File sizes after gzip:\n')
-	printFileSizesAfterBuild(stats, previousFileSizes, paths.appBuild)
-	console.log()
-
-	const appPackage  = require(paths.appPackageJson)
-	const publicUrl   = paths.publicUrl
-	const publicPath  = config.output.publicPath
-	const buildFolder = path.relative(process.cwd(), paths.appBuild)
-	printHostingInstructions(
-        appPackage,
-        publicUrl,
-        publicPath,
-        buildFolder,
-        useYarn
-      )
-},
-    err => {
-	console.log(chalk.red('Failed to compile.\n'))
-	console.log((err.message || err) + '\n')
-	process.exit(1)
-}
   )
 
 // Create the production build and print the deployment instructions.
@@ -104,11 +113,11 @@ function build(previousFileSizes) {
 			}
 			if (process.env.CI && messages.warnings.length) {
 				console.log(
-          chalk.yellow(
-            '\nTreating warnings as errors because process.env.CI = true.\n' +
-              'Most CI servers set it automatically.\n'
-          )
-        )
+		  chalk.yellow(
+			'\nTreating warnings as errors because process.env.CI = true.\n' +
+			  'Most CI servers set it automatically.\n'
+		  )
+		)
 				return reject(new Error(messages.warnings.join('\n\n')))
 			}
 			return resolve({

@@ -1,8 +1,7 @@
 <groups>
-	<script>
-	// <script type="es6">
-		this.loading   = true
-		this.groups    = []
+	<script type="es6">
+		this.loading = true
+		this.groups  = []
 
 		this.on('mount', ()=>{
 			setTimeout(this.loadData, 2000)
@@ -11,9 +10,10 @@
 		this.loadData = ()=>{
 			for(let i=0; i < 30; i++){
 				this.groups.push(
-					{id:i, name:'Group '+i, items:Math.ceil(Math.random()*1000)*i }
+					{id:i, name:`Group ${i}`, items:Math.ceil(Math.random()*1000)*i }
 				)
 			}
+
 			this.loading = false
 			this.update()
 		}

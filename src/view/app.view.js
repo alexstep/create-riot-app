@@ -30,7 +30,7 @@ export default class View {
 		this.routing()
 
 		// Init sounds
-		this.sound  = require('./sounds.js')({sounds_path:'/sounds/'})
+		this.sound = require('./sounds.js')({sounds_path:'./sounds/'})
 
 		// append roboto font if not avaible
 		if (!this.isFontAvaible('Roboto')) {
@@ -44,7 +44,12 @@ export default class View {
 	}
 
 	routing() {
+		// route.base('#')
 		route.base('/')
+		if (['http:','https:'].indexOf(window.location.protocol)==-1) {
+			alert('Riot route base is "/"  - you need run app on server url for correct routing. or change riot base(and links) to # ')
+		}
+
 		route.start(true)
 	}
 

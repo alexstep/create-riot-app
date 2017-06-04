@@ -101,9 +101,6 @@ let webpack_dev_config = {
 		// https://github.com/facebookincubator/create-react-app/issues/290
 		extensions: ['.js', '.json', '.jsx'],
 		alias: {
-			// Support React Native Web
-			// https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
-			'react-native': 'react-native-web',
 		},
 		plugins: [
 			// Prevents users from importing files from outside of src/ (or node_modules/).
@@ -150,6 +147,7 @@ let webpack_dev_config = {
 					/\.css$/,
 					/\.less$/,
 					/\.json$/,
+					/\.svg$/,
 					/\.bmp$/,
 					/\.gif$/,
 					/\.jpe?g$/,
@@ -161,6 +159,16 @@ let webpack_dev_config = {
 				},
 			},
 
+			// SVG loader
+			// https://github.com/webpack-contrib/svg-inline-loader
+			// load svg as plain/html
+			// example usage:
+			//  import myiconhtml from '../icons/myicon.svg'
+			//  this.root.innerHTML = require('../../icons/' + this.opts.src)
+			{
+				test: /\.svg$/,
+				loader: 'svg-inline-loader'
+			},
 
 			// "url" loader works like "file" loader except that it embeds assets
 			// smaller than specified limit in bytes as data URLs to avoid requests.
@@ -174,16 +182,19 @@ let webpack_dev_config = {
 				},
 			},
 
+
+			// Riot tag compiler
 			{
 			   test: /\.tag$/,
-			   // enforce: 'pre',
+			   enforce: 'pre',
 			   include: paths.appSrc,
 			   exclude: /node_modules/,
 			   use: [
 				  {
 					 loader: require.resolve('riot-tag-loader'),
 					 options: {
-						hot:   true,
+						type: 'es6',
+    					hot:   true,
 						debug: true,
 						// add here all the other riot-compiler options
 						// http://riotjs.com/guide/compiler/
@@ -204,7 +215,7 @@ let webpack_dev_config = {
 					// This is a feature of `babel-loader` for webpack (not Babel itself).
 					// It enables caching results in ./node_modules/.cache/babel-loader/
 					// directory for faster rebuilds.
-					cacheDirectory: false,
+					cacheDirectory: true,
 				},
 			},
 
@@ -253,7 +264,6 @@ let webpack_dev_config = {
 	plugins: [
 		new webpack.ProvidePlugin({
 			riot:  'riot',
-			route: 'riot-route'
 		}),
 
 		// Makes some environment variables available in index.html.
@@ -326,5 +336,35 @@ if (process.env.enable_less){
 	})
 }
 
+
+// SASS loader
+if (process.env.enable_sass){
+	webpack_dev_config.module.rules.push({
+		test: /\.(scss|sass)$/,
+		use: [
+			// creates style nodes from JS strings
+			{ loader: 'style-loader' },
+			// translates CSS into CommonJS
+			{ loader: 'css-loader'   },
+			// compiles Sass to CSS
+			{ loader: 'sass-loader'  }
+		]
+	})
+}
+
+// STYLUS loader
+if (process.env.enable_stylus){
+	webpack_dev_config.module.rules.push({
+		test: /\.styl$/,
+		use: [
+			// creates style nodes from JS strings
+			{ loader: 'style-loader' },
+			// translates CSS into CommonJS
+			{ loader: 'css-loader'   },
+			// compiles stylus
+			{ loader: 'stylus-loader'  }
+		]
+	})
+}
 
 module.exports = webpack_dev_config

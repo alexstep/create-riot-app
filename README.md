@@ -2,9 +2,10 @@
 [![Code Climate](https://codeclimate.com/github/alexstep/create-riot-app-ejected.png)](https://codeclimate.com/github/alexstep/create-riot-app-ejected)
 [![Dependencies](https://david-dm.org/alexstep/create-riot-app-ejected/dev-status.svg)](https://david-dm.org/alexstep/create-riot-app-ejected?type=dev)
 
-[RiotJS](https://github.com/riot/riot) startkit, based on [create-react-app](https://github.com/facebookincubator/create-react-app) and  [custom-react-scripts](https://github.com/kitze/custom-react-scripts).
+[RiotJS](https://github.com/riot/riot) startkit, based on [create-react-app](https://github.com/facebookincubator/create-react-app) and  [react-scripts](https://github.com/facebookincubator/create-react-app/tree/master/packages/react-scripts).
 
-Package included simple app example, webpack dev server with riot-loader and less,sass,stylus,css-components support. ES6 features available too.
+Package included simple app example, webpack dev server with *riot hot reload* and less, sass, stylus support. ES6 features available too.
+Jest with riot support for testing. ES6 and eslint in riot tag.
 
 Just read https://github.com/facebookincubator/create-react-app but replace all "react" word to "riot" :)
 
@@ -24,6 +25,12 @@ go to http://localhost:9999
 ## ⚡ Build for production
 ```
 npm run build
+```
+
+Check build result
+```
+npm run check_build
+
 ```
 
 

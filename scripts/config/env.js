@@ -1,5 +1,8 @@
 'use strict'
 
+// App env options prefix regex
+const APP_ENV = /^APP_/i
+
 const fs    = require('fs')
 const path  = require('path')
 const paths = require('./paths')
@@ -56,8 +59,6 @@ process.env.NODE_PATH = (process.env.NODE_PATH || '')
 
 // Grab NODE_ENV and APP_ENV_* environment variables and prepare them to be
 // injected into the application via DefinePlugin in Webpack configuration.
-const APP_ENV = /^APP_/i
-
 function getClientEnvironment(publicUrl) {
 	const raw = Object.keys(process.env).filter(key => APP_ENV.test(key)).reduce((env, key) => {
 		env[key] = process.env[key]

@@ -1,6 +1,7 @@
 import route from 'riot-route'
 import $ from 'jquery'
 
+
 <drawer>
 	<script>
 		this.user_info = {
@@ -156,13 +157,13 @@ import $ from 'jquery'
 			<ul class="menu-items">
 				<li class={selected:(App.view.screen=='dashboard')}>
 					<a onclick={menuItemClick} href="/dashboard/">
-						<svg class="icon"><use xlink:href="#dashboard"></use></svg>
+						<icon src="dashboard.svg" />
 						Dashboard
 					</a>
 				</li>
 				<li class={selected:(App.view.screen=='groups')}>
 					<a onclick={menuItemClick} href="/groups/">
-						<svg class="icon"><use xlink:href="#group"></use></svg>
+						<icon src="group.svg" />
 						List
 					</a>
 				</li>
@@ -170,19 +171,13 @@ import $ from 'jquery'
 
 				<li class={selected:(App.view.screen=='settings')}>
 					<a onclick={menuItemClick} href="/settings/">
-						<svg class="icon"><use xlink:href="#settings"></use></svg>
+						<icon src="settings.svg" />
 						Settings
 					</a>
 				</li>
-				<!-- <li class={selected:(App.view.screen=='pay')}>
-					<a onclick={menuItemClick} href="/pay/">
-						<svg class="icon"><use xlink:href="#payment"></use></svg>
-						Баланс
-					</a>
-				</li> -->
 				<li class={selected:(App.view.screen=='logout'), logout:true}>
 					<a onclick={menuItemClick} href="#">
-						<svg class="icon"><use xlink:href="#logout"></use></svg>
+						<icon src="logout.svg" />
 						Exit
 					</a>
 				</li>
@@ -255,7 +250,7 @@ import $ from 'jquery'
 				.menu-items {
 					height:  calc(100vh ~"-" @header_height);
 					a {
-						.icon {
+						icon svg {
 							width: 25px; height: 25px;
 						}
 					}
