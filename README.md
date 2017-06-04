@@ -62,7 +62,7 @@ npm run deploy
 
 Modify the ```.env``` file in the root of the generated project, and add any of the configuration options below 👇 to enable that feature.
 
-The generated project comes with SASS, LESS, and CSS modules support by default, but you can remove them at any time by removing the options from the ```.env``` file.
+The generated project comes with LESS support by default, but you can add SASS or Stylus at any time by edit the options from the ```.env``` file.
 
 #### Styling
 - ```enable_less=true``` - enable LESS support
