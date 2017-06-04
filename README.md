@@ -4,9 +4,7 @@
 
 [RiotJS](https://github.com/riot/riot) startkit, based on [create-react-app](https://github.com/facebookincubator/create-react-app) and  [react-scripts](https://github.com/facebookincubator/create-react-app/tree/master/packages/react-scripts).
 
-
-[See the video](https://www.youtube.com/watch?v=dU2TsHzQA60)
-
+[![See the video](https://j.gifs.com/VmEVBB.gif)](https://www.youtube.com/watch?v=dU2TsHzQA60)
 
 Package included simple app example, webpack dev server with *riot hot reload* and less, sass, stylus support. ES6 features available too.
 Jest with riot support for testing. ES6 and eslint in riot tag.
