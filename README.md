@@ -48,7 +48,7 @@ The generated project comes with SASS, LESS, and CSS modules support by default,
 
 
 #### Others
-- ```PORT=9999``` - change default port (supported in CRA by default)
+- ```PORT=9999``` - change port
 - ```OPEN_BROWSER=false``` - don't open browser after running webpack server
 
 
