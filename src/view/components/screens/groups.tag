@@ -4,6 +4,7 @@
 		this.groups  = []
 
 		this.on('mount', ()=>{
+			this.loading++
 			setTimeout(this.loadData, 2000)
 		})
 

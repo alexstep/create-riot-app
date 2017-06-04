@@ -15,3 +15,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 	console.log('')
 })
+
+// Enable SW in production
+// https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#making-a-progressive-web-app
+// serviceWorkerRegistration.register()

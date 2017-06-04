@@ -1,4 +1,8 @@
+// @flow weak
 
+//
+// ♬ Simple module to make sound effects
+//
 module.exports = function(conf){
 	let sounds_path = conf.sounds_path ? conf.sounds_path : '/sounds/'
 
@@ -10,6 +14,7 @@ module.exports = function(conf){
 		if (!filename) { return }
 
 		if (typeof sounds[filename] === 'undefined') {
+			// $FlowFixMe
 			sounds[filename]        = new Audio()
 			sounds[filename].src    = sounds_path+filename
 		}

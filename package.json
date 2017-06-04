@@ -11,9 +11,13 @@
   "scripts"     : {
     "start"       : "node scripts/start.js",
     "build"       : "node scripts/build.js",
+    "check_build" : "serve -s build -p 9000",
+    "deploy"      : "firebase deploy",
+
+    "test"        : "node scripts/test.js --env=jsdom",
+    "coverage"    : "npm test -- --coverage",
     "eslint"      : "eslint --ext=.js,.tag ./src",
-    "check_build" : "pushstate-server build 9000",
-    "test"        : "node scripts/test.js --env=jsdom"
+    "flow"        : "flow"
   },
 
 
@@ -75,7 +79,7 @@
 
     "jest"                                : "20.0.3",
 
-    "pushstate-server"                    : "^3.0.0",
+    "serve"                               : "^5.2.1",
 
     "webpack"                             : "2.6.1",
     "webpack-dev-server"                  : "2.4.5",

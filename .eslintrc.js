@@ -20,7 +20,7 @@ module.exports = {
         '$':         true
     },
 
-    'plugins': ['riot'],
+    'plugins': ['riot','flowtype'],
 
     'rules': {
         'indent': [

@@ -4,13 +4,14 @@
 
 [RiotJS](https://github.com/riot/riot) startkit, based on [create-react-app](https://github.com/facebookincubator/create-react-app) and  [react-scripts](https://github.com/facebookincubator/create-react-app/tree/master/packages/react-scripts).
 
+
 Package included simple app example, webpack dev server with *riot hot reload* and less, sass, stylus support. ES6 features available too.
 Jest with riot support for testing. ES6 and eslint in riot tag.
 
-Just read https://github.com/facebookincubator/create-react-app but replace all "react" word to "riot" :)
+Just read https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md but replace all "react" word to "riot" :)
 
 
-## ⚙ Start dev-server
+## ⚡ Start dev-server
 ```
 git clone https://github.com/alexstep/create-riot-app-ejected my-riot-app
 cd my-riot-app
@@ -22,7 +23,20 @@ npm start
 go to http://localhost:9999
 
 
-## ⚡ Build for production
+## ✔ Testing
+```
+npm test
+npm test -- --coverage
+```
+
+Add flow type checker.
+```
+npm install flow-bin
+npm run flow
+```
+
+
+## ⚗ Build for production
 ```
 npm run build
 ```
@@ -33,9 +47,18 @@ npm run check_build
 
 ```
 
+## ☁ Deploy
+
+For example deploy app to [firebase](firebase.google.com)
+```
+npm install -g firebase-tools
+firebase login
+firebase init
+npm run deploy
+```
 
 
-### ✎ Configuration options
+### ⚙ Configuration options
 
 Modify the ```.env``` file in the root of the generated project, and add any of the configuration options below 👇 to enable that feature.
 
@@ -54,7 +77,7 @@ The generated project comes with SASS, LESS, and CSS modules support by default,
 
 
 
-## ⚇ Contribute
+## ☺ Contribute
 
 Fork and send pull-request. Thank you!
 

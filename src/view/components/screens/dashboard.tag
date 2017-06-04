@@ -6,7 +6,7 @@
 	</script>
 	<div class="screen screen-dashboard" id="screen_dashboard">
 
-		<h1>Dashboard</h1>
+		<h1>Dashboard !!!</h1>
 	</div>
 
 	<style type="less">
