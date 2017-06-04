@@ -2,9 +2,10 @@
 [![Code Climate](https://codeclimate.com/github/alexstep/create-riot-app-ejected.png)](https://codeclimate.com/github/alexstep/create-riot-app-ejected)
 [![Dependencies](https://david-dm.org/alexstep/create-riot-app-ejected/dev-status.svg)](https://david-dm.org/alexstep/create-riot-app-ejected?type=dev)
 
-[RiotJS](https://github.com/riot/riot) startkit, based on [create-react-app](https://github.com/facebookincubator/create-react-app) and  [custom-react-scripts](https://github.com/kitze/custom-react-scripts).
+[RiotJS](https://github.com/riot/riot) startkit, based on [create-react-app](https://github.com/facebookincubator/create-react-app) and  [react-scripts](https://github.com/facebookincubator/create-react-app/tree/master/packages/react-scripts).
 
-Package included simple app example, webpack dev server with riot-loader and less,sass,stylus,css-components support. ES6 features available too.
+Package included simple app example, webpack dev server with *riot hot reload* and less, sass, stylus support. ES6 features available too.
+Jest with riot support for testing. ES6 and eslint in riot tag.
 
 Just read https://github.com/facebookincubator/create-react-app but replace all "react" word to "riot" :)
 
@@ -26,6 +27,12 @@ go to http://localhost:9999
 npm run build
 ```
 
+Check build result
+```
+npm run check_build
+
+```
+
 
 
 ### ✎ Configuration options
@@ -35,17 +42,10 @@ Modify the ```.env``` file in the root of the generated project, and add any of 
 The generated project comes with SASS, LESS, and CSS modules support by default, but you can remove them at any time by removing the options from the ```.env``` file.
 
 #### Styling
-- ```APP_SASS=true``` - enable SASS support
-- ```APP_LESS=true``` - enable LESS support
-- ```APP_STYLUS=true``` - enable Stylus support
-- ```APP_CSS_MODULES``` - enable CSS modules
+- ```enable_less=true``` - enable LESS support
+- ```enable_sass=true``` - enable SASS support
+- ```enable_stylus=true``` - enable Stylus support
 
-#### Babel
-- ```APP_BABEL_STAGE_0=true``` - enable stage-0 Babel preset
-- ```APP_DECORATORS=true``` - enable decorators support
-
-> ⚠ Please note that the Babel features are highly experimental (especially stage-0) and still not a part of the ES specification.
-> Use them at your own risk of breaking backwards compatibility if they don't make the final version of the spec.
 
 #### Others
 - ```PORT=9999``` - change port

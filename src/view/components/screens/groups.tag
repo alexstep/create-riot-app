@@ -1,8 +1,7 @@
-import $ from 'jquery'
 <groups>
 	<script type="es6">
-		this.loading   = true
-		this.groups    = []
+		this.loading = true
+		this.groups  = []
 
 		this.on('mount', ()=>{
 			setTimeout(this.loadData, 2000)
@@ -11,9 +10,10 @@ import $ from 'jquery'
 		this.loadData = ()=>{
 			for(let i=0; i < 30; i++){
 				this.groups.push(
-					{id:i, name:'Group '+i, items:Math.ceil(Math.random()*1000)*i }
+					{id:i, name:`Group ${i}`, items:Math.ceil(Math.random()*1000)*i }
 				)
 			}
+
 			this.loading = false
 			this.update()
 		}
@@ -23,7 +23,7 @@ import $ from 'jquery'
 		<spinner if={loading} text="Loading items..."></spinner>
 
 		<div class="groups-list">
-			<a if={groups.length} each={group in groups } href="/group/{group.id}" onclick={selectGroup} class="ripple group">
+			<a if={groups.length} each={group in groups } href="/groups/" onclick={selectGroup} class="ripple group">
 				<div class="img-wrap"><img src="{group.photo_100}" ></div>
 				<b>{group.name}</b>
 				<span class="items" if={group.items}>{group.items} </span>

@@ -17,13 +17,13 @@ module.exports = function(conf){
 		sounds[filename].volume = volume
 		sounds[filename].pause()
 		sounds[filename].currentTime = 0
-		sounds[filename].play()
-	}
 
+		setTimeout(()=>{
+			if (sounds[filename].paused) {
+				sounds[filename].play()
+			}
+		}, 1)
 
-	let preload = ['tick.ogg','select.ogg','card.ogg']
-	for(let i in preload){
-		play(preload[i], 0.00001)
 	}
 
 	return {
@@ -36,7 +36,9 @@ module.exports = function(conf){
 				sounds[filename].volume = volume
 				sounds[filename].pause()
 				sounds[filename].currentTime = 0.02
+
 				sounds[filename].play()
+
 			} else {
 				play('tick.ogg', volume)
 			}

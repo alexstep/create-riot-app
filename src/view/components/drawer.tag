@@ -1,6 +1,7 @@
 import route from 'riot-route'
 import $ from 'jquery'
 
+
 <drawer>
 	<script>
 		this.user_info = {
@@ -18,6 +19,7 @@ import $ from 'jquery'
 
 		this.drawer_open = false
 		this.toggleDrawer = function(e){
+
 			if (this.drawer_open) {
 				this.drawer_open = false
 			} else {
@@ -25,7 +27,8 @@ import $ from 'jquery'
 				this.drawer_open = true
 			}
 
-			this.$drawer_wrap.toggleClass('show');
+			this.update()
+
 			if (e) { e.preventDefault() }
 		}
 
@@ -134,7 +137,7 @@ import $ from 'jquery'
 		}
 	</script>
 
-	<div class="drawer-wrap">
+	<div class={'drawer-wrap':true, show:this.drawer_open}>
 		<a onclick={toggleDrawer} href="#toggle_drawer" class="toggle-drawer" draggable="false"><i></i></a>
 
 		<div id="drawer">
@@ -154,13 +157,13 @@ import $ from 'jquery'
 			<ul class="menu-items">
 				<li class={selected:(App.view.screen=='dashboard')}>
 					<a onclick={menuItemClick} href="/dashboard/">
-						<svg class="icon"><use xlink:href="#dashboard"></use></svg>
+						<icon src="dashboard.svg" />
 						Dashboard
 					</a>
 				</li>
 				<li class={selected:(App.view.screen=='groups')}>
 					<a onclick={menuItemClick} href="/groups/">
-						<svg class="icon"><use xlink:href="#group"></use></svg>
+						<icon src="group.svg" />
 						List
 					</a>
 				</li>
@@ -168,19 +171,13 @@ import $ from 'jquery'
 
 				<li class={selected:(App.view.screen=='settings')}>
 					<a onclick={menuItemClick} href="/settings/">
-						<svg class="icon"><use xlink:href="#settings"></use></svg>
+						<icon src="settings.svg" />
 						Settings
 					</a>
 				</li>
-				<!-- <li class={selected:(App.view.screen=='pay')}>
-					<a onclick={menuItemClick} href="/pay/">
-						<svg class="icon"><use xlink:href="#payment"></use></svg>
-						Баланс
-					</a>
-				</li> -->
 				<li class={selected:(App.view.screen=='logout'), logout:true}>
 					<a onclick={menuItemClick} href="#">
-						<svg class="icon"><use xlink:href="#logout"></use></svg>
+						<icon src="logout.svg" />
 						Exit
 					</a>
 				</li>
@@ -253,7 +250,7 @@ import $ from 'jquery'
 				.menu-items {
 					height:  calc(100vh ~"-" @header_height);
 					a {
-						.icon {
+						icon svg {
 							width: 25px; height: 25px;
 						}
 					}

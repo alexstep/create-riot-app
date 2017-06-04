@@ -1,35 +1,41 @@
 /*
- * View Init
+ * Init client/window
+ * mount tags
  */
-import './styles/app.less'
+
+// Enable HMR in dev mode
+if (process.env.NODE_ENV=='development') {
+	require('riot-hot-reload')
+}
 
 import riot  from 'riot'
 import route from 'riot-route'
-import $     from 'jquery'
+
+import $ from 'jquery'
+
+import './styles/app.less'
 
 export default class View {
-	constructor() {
-	}
 
 	start(){
-		console.group('View::init')
-
+		// create observable App.view.state
 		this.state = {}
 		riot.observable(this.state)
 
+		// import and mount all tags
 		this.importTags()
-
 		riot.mount('*')
 
+		// enable router
 		this.routing()
 
+		// Init sounds
+		this.sound = require('./sounds.js')({sounds_path:'./sounds/'})
+
+		// append roboto font if not avaible
 		if (!this.isFontAvaible('Roboto')) {
 			$('body').append('<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900&amp;subset=cyrillic" rel="stylesheet">')
 		}
-
-		this.sound  = require('./sounds.js')({sounds_path:'/sounds/'})
-
-		console.groupEnd('View::init')
 	}
 
 	importTags() {
@@ -38,7 +44,12 @@ export default class View {
 	}
 
 	routing() {
+		// route.base('#')
 		route.base('/')
+		if (['http:','https:'].indexOf(window.location.protocol)==-1) {
+			alert('Riot route base is "/"  - you need run app on server url for correct routing. or change riot base(and links) to # ')
+		}
+
 		route.start(true)
 	}
 
@@ -81,13 +92,13 @@ export default class View {
 	topbarScrollHide(){
 		$(window).scrollTop(0)
 
-		if ($(window).width() > 1000) {
+		if ($(window).width() > 800) {
 			return false
 		}
 
 		setTimeout(()=>{
 			let $scroll_screen = $('.screen[data-topbar="scroll"]')
-			if ($scroll_screen.length==0) {
+			if ($scroll_screen.length===0) {
 				$('body').removeClass('scroll')
 				return
 			}
