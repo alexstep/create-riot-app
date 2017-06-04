@@ -74,6 +74,7 @@ The generated project comes with LESS support by default, but you can add SASS o
 - ```enable_stylus=true``` - enable Stylus support
 
 #### Others
+- ```HTTPS=true``` - enable https in localhost
 - ```PORT=9999``` - change port
 - ```OPEN_BROWSER=false``` - don't open browser after running webpack server
 
