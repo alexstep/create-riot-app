@@ -393,5 +393,36 @@ if (process.env.enable_less){
 	})
 }
 
+// SASS loader
+if (process.env.enable_sass){
+	webpack_prod_config.module.rules.push({
+		test: /\.(scss|sass)$/,
+		use: [
+			// creates style nodes from JS strings
+			{ loader: 'style-loader' },
+			// translates CSS into CommonJS
+			{ loader: 'css-loader'   },
+			// compiles Sass to CSS
+			{ loader: 'sass-loader'  }
+		]
+	})
+}
+
+// STYLUS loader
+if (process.env.enable_stylus){
+	webpack_prod_config.module.rules.push({
+		test: /\.styl$/,
+		use: [
+			// creates style nodes from JS strings
+			{ loader: 'style-loader' },
+			// translates CSS into CommonJS
+			{ loader: 'css-loader'   },
+			// compiles stylus
+			{ loader: 'stylus-loader'  }
+		]
+	})
+}
+
+
 
 module.exports = webpack_prod_config
