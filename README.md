@@ -38,7 +38,7 @@ Add flow type checker.
 npm install flow-bin
 npm run flow
 ```
-Write in head your js files //@flow weak to enable flow checker
+Write in head your js files `//@flow weak` to enable flow checker
 
 
 ## ⚗ Build for production
