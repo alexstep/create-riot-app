@@ -30,7 +30,7 @@ export default class View {
 		this.routing()
 
 		// Init sounds
-		this.sound = require('./sounds.js')({sounds_path:'./sounds/'})
+		this.sound = require('./sounds.js')({sounds_path:'/sounds/'})
 
 		// append roboto font if not avaible
 		if (!this.isFontAvaible('Roboto')) {

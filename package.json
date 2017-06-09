@@ -1,12 +1,11 @@
 {
   "name"        : "create-riot-app",
-  "description" : "RiotJS startkit based on create-react-app",
-  "version"     : "0.1.0",
-  "author"      : "AlexStep <to@alexstep.com>",
+  "description" : "RiotJS application",
+  "version"     : "0.1.1",
+  "author"      : "name <email@example.com>",
   "private"     : true,
 
   "homepage": "./",
-
 
   "scripts"     : {
     "start"       : "node scripts/start.js",
