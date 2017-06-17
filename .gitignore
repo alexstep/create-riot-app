@@ -9,6 +9,8 @@
 # production
 /build
 
+/public/static/meta
+
 # misc
 .DS_Store
 .env.local

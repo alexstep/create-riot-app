@@ -41,6 +41,19 @@ npm run flow
 Write in head your js files `//@flow weak` to enable flow checker
 
 
+## ⚛ Favicons and meta-information
+Edit "meta" section in package.json ([see manifest format description](https://developer.mozilla.org/en-US/docs/Web/Manifest))
+Put your app icon in ./src/favicon_source.png
+and run
+```
+npm run favicons
+```
+manifest.json , browserconfig.xml, favicons and other meta-files will be generated and put to ./public/static/meta/ folder.
+
+Also you can change some options in ./scripts/config/favicons.config.js
+
+
+
 ## ⚗ Build for production
 ```
 npm run build
