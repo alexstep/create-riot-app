@@ -23,21 +23,26 @@ module.exports = {
     'plugins': ['riot','flowtype'],
 
     'rules': {
+    	// http://eslint.org/docs/rules/indent#options
         'indent': [
             'warn',
-            'tab'
+            'tab' // 2
         ],
         'linebreak-style': [
             'warn',
             'unix'
         ],
+
+        // http://eslint.org/docs/rules/quotes#options
         'quotes': [
             'warn',
-            'single'
+            'single' // 'double'
         ],
+
+        // http://eslint.org/docs/2.0.0/rules/semi#options
         'semi': [
             'warn',
-            'never'
+            'never' // 'always'
         ]
     }
 }
