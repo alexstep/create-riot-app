@@ -24,6 +24,18 @@ const publicUrl = ''
 
 // Get environment variables to inject into our app.
 const env = getClientEnvironment(publicUrl)
+let htmlReplacements = env.raw
+
+// Read favicons html
+const metaconf = require('./favicons.config.js')
+
+htmlReplacements.META_INFORMATION = ''
+try {
+	htmlReplacements.META_INFORMATION = fs.readFileSync(metaconf.files_dest+metaconf.html_filename)
+} catch(e) {
+	htmlReplacements.META_INFORMATION = ''
+}
+
 
 
 // This is the development configuration.
@@ -270,7 +282,7 @@ let webpack_dev_config = {
 		// The public URL is available as %PUBLIC_URL% in index.html, e.g.:
 		// <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
 		// In development, this will be an empty string.
-		new InterpolateHtmlPlugin(env.raw),
+		new InterpolateHtmlPlugin(htmlReplacements),
 
 		// Generates an `index.html` file with the <script> injected.
 		new HtmlWebpackPlugin({
