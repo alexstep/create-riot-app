@@ -74,7 +74,7 @@ firebase login
 firebase init
 npm run deploy
 ```
-
+[Read more](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#azure) about deploy
 
 ### ⚙ Configuration options
 
@@ -94,6 +94,9 @@ The generated project comes with LESS support by default, but you can add SASS o
 
 [Read more](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#adding-custom-environment-variables) about .env files
 
+#### Tabs or Spaces?
+You can change codestyle rules in .eslintrc.js and run
+`npm run eslint_fix` for format all files
 
 
 ## ☺ Contribute
