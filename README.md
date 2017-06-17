@@ -48,7 +48,8 @@ and run
 ```
 npm run favicons
 ```
-manifest.json , browserconfig.xml, favicons and other meta-files will be generated and put to ./public/static/meta/ folder/
+manifest.json , browserconfig.xml, favicons and other meta-files will be generated and put to ./public/static/meta/ folder.
+
 Also you can change some options in ./scripts/config/favicons.config.js
 
 
