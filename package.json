@@ -22,15 +22,15 @@
 
     "favicons"    : "node scripts/favicons.js",
 
-    "build"       : "node scripts/build.js",
-    "check_build" : "serve -s build -p 9000",
-
-    "deploy"      : "firebase deploy",
-
     "test"        : "node scripts/test.js --env=jsdom",
     "coverage"    : "npm test -- --coverage",
     "eslint"      : "eslint --ext=.js,.tag ./src",
-    "flow"        : "flow"
+    "flow"        : "flow",
+
+    "build"       : "node scripts/build.js",
+    "check_build" : "serve -s build -p 9000",
+
+    "deploy"      : "firebase deploy"
   },
 
 
