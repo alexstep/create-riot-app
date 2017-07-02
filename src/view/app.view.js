@@ -10,7 +10,6 @@ if (process.env.NODE_ENV=='development') {
 
 import riot  from 'riot'
 import route from 'riot-route'
-`
 
 import $ from 'jquery'
 
