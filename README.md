@@ -26,10 +26,16 @@ npm start
 go to http://localhost:9999
 
 
-## ✔ Testing
+## ✔ Testing and linting
+Package included Jest, for testing riot tags.
+See [riot tag test example](https://github.com/alexstep/create-riot-app-ejected/blob/master/src/view/components/screens/groups.test.js) 
 ```
 npm test
 npm test -- --coverage
+npm run coverage
+#also
+npm run eslint
+npm run lesslint
 ```
 [read more](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#running-tests) about testing
 
