@@ -48,7 +48,7 @@
     "*.css"   : ["stylelint"]
   },
 
-  "pre-commit"    : ["lint-staged", "coverage"],
+  "pre-commit"    : ["lint-staged"],
 
   "jest": {
     "collectCoverageFrom": [
