@@ -84,8 +84,8 @@ export default class View {
 
 
 		return monoWidth !== getWidth(font + ',monospace') ||
-		  sansWidth !== getWidth(font + ',sans-serif') ||
-		  serifWidth !== getWidth(font + ',serif')
+			sansWidth !== getWidth(font + ',sans-serif') ||
+			serifWidth !== getWidth(font + ',serif')
 	}
 
 

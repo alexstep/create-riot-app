@@ -12,7 +12,7 @@ import Swipe from './swipe'
 		}
 
 		this.on('mount',()=>{
-			let swipe = new Swipe( {
+			new Swipe( {
 				wrapper       : $('.drawer-wrap'),
 				drawer        : $('#drawer'),
 				overlay       : $('.drawer-overlay'),

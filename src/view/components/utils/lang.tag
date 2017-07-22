@@ -2,7 +2,7 @@
 	<script>
 		this.text = ''
 		this.on('mount',()=>{
-			var lang = App.view.lang
+			let lang = App.view.lang
 
 			this.text = lang.i18n.localise( this.opts.word )
 			this.update()
