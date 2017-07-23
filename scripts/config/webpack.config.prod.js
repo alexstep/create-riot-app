@@ -57,9 +57,9 @@ const cssFilename = 'static/css/[name].[contenthash:8].css'
 // However, our output is structured with css, js and media folders.
 // To have this structure working with relative paths, we have to use custom options.
 const extractTextPluginOptions = shouldUseRelativeAssetPaths
-  ? // Making sure that the publicPath goes back to to build folder.
+	? // Making sure that the publicPath goes back to to build folder.
 	{ publicPath: Array(cssFilename.split('/').length).join('../') }
-  : {}
+	: {}
 
 // This is the production configuration.
 // It compiles slowly and is focused on producing a fast and minimal bundle.
@@ -81,8 +81,8 @@ let webpack_prod_config = {
 		// Generated JS file names (with nested folders).
 		// There will be one main bundle, and one file per asynchronous chunk.
 		// We don't currently advertise code splitting but Webpack supports it.
-		filename: 'static/js/[name].[chunkhash:8].js',
-		chunkFilename: 'static/js/[name].[chunkhash:8].chunk.js',
+		filename      : 'static/js/[name].[chunkhash : 8].js',
+		chunkFilename : 'static/js/[name].[chunkhash : 8].chunk.js',
 
 		// We inferred the "public path" (such as / or /my-project) from homepage.
 		publicPath: publicPath,
@@ -178,48 +178,45 @@ let webpack_prod_config = {
 			//  import myiconhtml from '../icons/myicon.svg'
 			//  this.root.innerHTML = require('../../icons/' + this.opts.src)
 			{
-				test: /\.svg$/,
-				loader: 'svg-inline-loader'
+				test   : /\.svg$/,
+				loader : 'svg-inline-loader'
 			},
 
 			// "url" loader works just like "file" loader but it also embeds
 			// assets smaller than specified size as data URLs to avoid requests.
 			{
-				test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
-				loader: require.resolve('url-loader'),
+				test   : [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+				loader : require.resolve('url-loader'),
 				options: {
-					limit: 10000,
-					name: 'static/media/[name].[hash:8].[ext]',
+					limit : 10000,
+					name  : 'static/media/[name].[hash : 8].[ext]',
 				},
 			},
 
 			// Riot tag compiler
 			{
-			   test: /\.tag$/,
-			   enforce: 'pre',
-			   include: paths.appSrc,
-			   exclude: /node_modules/,
-			   use: [
-				  {
-					 loader: require.resolve('riot-tag-loader'),
-					 options: {
-						type: 'es6',
-						debug: false,
+				test    : /\.tag$/,
+				enforce : 'pre',
+				include : paths.appSrc,
+				exclude : /node_modules/,
+				use: [{
+					loader: require.resolve('riot-tag-loader'),
+					options: {
+						type  : 'es6',
+						debug : false,
 						// add here all the other riot-compiler options
 						// http://riotjs.com/guide/compiler/
 						// template: 'pug' for example
-					 }
-				  }
-			   ]
+					}
+				}]
 			},
 
 			// Process JS with Babel.
 			{
-				test:    /\.(js|tag)$/,
-				include: paths.appSrc,
-				loader:  require.resolve('babel-loader'),
-				options: { presets: 'es2015-riot' }
-
+				test    : /\.(js|tag)$/,
+				include : paths.appSrc,
+				loader  : require.resolve('babel-loader'),
+				options : { presets: 'es2015-riot' }
 			},
 
 			// The notation here is somewhat confusing.
@@ -242,9 +239,9 @@ let webpack_prod_config = {
 						{
 							loader: require.resolve('css-loader'),
 							options: {
-								importLoaders: 1,
-								minimize: true,
-								sourceMap: true,
+								importLoaders : 1,
+								minimize      : true,
+								sourceMap     : true,
 							},
 						},
 						{
@@ -293,19 +290,19 @@ let webpack_prod_config = {
 
 		// Generates an `index.html` file with the <script> injected.
 		new HtmlWebpackPlugin({
-			inject:   true,
-			template: paths.appHtml,
-			minify: {
-				removeComments:                true,
-				collapseWhitespace:            true,
-				removeRedundantAttributes:     true,
-				useShortDoctype:               true,
-				removeEmptyAttributes:         true,
-				removeStyleLinkTypeAttributes: true,
-				keepClosingSlash:              true,
-				minifyJS:                      true,
-				minifyCSS:                     true,
-				minifyURLs:                    true,
+			inject   : true,
+			template : paths.appHtml,
+			minify   : {
+				removeComments                : true,
+				collapseWhitespace            : true,
+				removeRedundantAttributes     : true,
+				useShortDoctype               : true,
+				removeEmptyAttributes         : true,
+				removeStyleLinkTypeAttributes : true,
+				keepClosingSlash              : true,
+				minifyJS                      : true,
+				minifyCSS                     : true,
+				minifyURLs                    : true,
 			},
 		}),
 
@@ -383,12 +380,11 @@ let webpack_prod_config = {
 	// Some libraries import Node modules but don't use them in the browser.
 	// Tell Webpack to provide empty mocks for them so importing them works.
 	node: {
-		fs:  'empty',
-		net: 'empty',
-		tls: 'empty',
+		fs   : 'empty',
+		net  : 'empty',
+		tls  : 'empty',
 	},
 }
-
 
 
 // LESS loader
