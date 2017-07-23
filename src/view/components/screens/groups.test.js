@@ -1,11 +1,11 @@
 import * as riot from 'riot'
-import groups from './groups.tag'
+import './groups.tag'
 
 let tag
 
 describe('groups', () => {
 	beforeAll( () => {
-        // create mounting point
+		// create mounting point
 		const elem = document.createElement('groups')
 
 		// elem.setAttribute('name', 'world')

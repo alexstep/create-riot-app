@@ -1,5 +1,5 @@
 import Hammer from 'hammerjs'
-import $ from 'jquery'
+import 'jquery'
 
 export default class Swipe {
 
@@ -45,8 +45,7 @@ export default class Swipe {
 
 		this.panning = true
 
-		let velocityX = e.velocityX
-		let x         = e.center.x
+		let x = e.center.x
 
 		if (this.start_x) {
 			x += this.drawer_width - this.start_x
