@@ -52,10 +52,10 @@ dotenvFiles.forEach(dotenvFile => {
 // We also resolve them to make sure all tools using them work consistently.
 const appDirectory = fs.realpathSync(process.cwd())
 process.env.NODE_PATH = (process.env.NODE_PATH || '')
-  .split(path.delimiter)
-  .filter(folder => folder && !path.isAbsolute(folder))
-  .map(folder => path.resolve(appDirectory, folder))
-  .join(path.delimiter)
+	.split(path.delimiter)
+	.filter(folder => folder && !path.isAbsolute(folder))
+	.map(folder => path.resolve(appDirectory, folder))
+	.join(path.delimiter)
 
 // Grab NODE_ENV and APP_ENV_* environment variables and prepare them to be
 // injected into the application via DefinePlugin in Webpack configuration.
@@ -64,16 +64,16 @@ function getClientEnvironment(publicUrl) {
 		env[key] = process.env[key]
 		return env
 	},
-		{
-			// Useful for determining whether we’re running in production mode.
-			// Most importantly, it switches React into the correct mode.
-			NODE_ENV: process.env.NODE_ENV || 'development',
-			// Useful for resolving the correct path to static assets in `public`.
-			// For example, <img src={process.env.PUBLIC_URL + '/img/logo.png'} />.
-			// This should only be used as an escape hatch. Normally you would put
-			// images into the `src` and `import` them in code to get their paths.
-			PUBLIC_URL: publicUrl,
-		}
+	{
+		// Useful for determining whether we’re running in production mode.
+		// Most importantly, it switches React into the correct mode.
+		NODE_ENV: process.env.NODE_ENV || 'development',
+		// Useful for resolving the correct path to static assets in `public`.
+		// For example, <img src={process.env.PUBLIC_URL + '/img/logo.png'} />.
+		// This should only be used as an escape hatch. Normally you would put
+		// images into the `src` and `import` them in code to get their paths.
+		PUBLIC_URL: publicUrl,
+	}
 	)
 
 	// Stringify all values so we can feed into Webpack DefinePlugin

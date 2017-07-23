@@ -37,7 +37,6 @@ try {
 }
 
 
-
 // This is the development configuration.
 // It is focused on developer experience and fast rebuilds.
 // The production configuration is different and lives in a separate file.
@@ -189,41 +188,39 @@ let webpack_dev_config = {
 				test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
 				loader: require.resolve('url-loader'),
 				options: {
-					limit: 10000,
-					name: 'static/media/[name].[hash:8].[ext]',
+					limit : 10000,
+					name  : 'static/media/[name].[hash : 8].[ext]',
 				},
 			},
 
 
 			// Riot tag compiler
 			{
-			   test: /\.tag$/,
-			   enforce: 'pre',
-			   include: paths.appSrc,
-			   exclude: /node_modules/,
-			   use: [
-				  {
-					 loader: require.resolve('riot-tag-loader'),
-					 options: {
-						type: 'es6',
-    					hot:   true,
-						debug: true,
+				test    : /\.tag$/,
+				enforce : 'pre',
+				include : paths.appSrc,
+				exclude : /node_modules/,
+				use: [{
+					loader: require.resolve('riot-tag-loader'),
+					options: {
+						type  : 'es6',
+						hot   : true,
+						debug : true,
 						// add here all the other riot-compiler options
 						// http://riotjs.com/guide/compiler/
 						// template: 'pug' for example
-					 }
-				  }
-			   ]
+					}
+				}]
 			},
 
 			// Process JS with Babel.
 			{
-				test: /\.(js|tag)$/,
-				include: paths.appSrc,
-				enforce: 'post',
-				loader: require.resolve('babel-loader'),
+				test    : /\.(js|tag)$/,
+				include : paths.appSrc,
+				enforce : 'post',
+				loader  : require.resolve('babel-loader'),
 				options: {
-					 presets: 'es2015-riot',
+					presets: 'es2015-riot',
 					// This is a feature of `babel-loader` for webpack (not Babel itself).
 					// It enables caching results in ./node_modules/.cache/babel-loader/
 					// directory for faster rebuilds.
