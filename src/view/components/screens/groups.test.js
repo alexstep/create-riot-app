@@ -20,4 +20,8 @@ describe('groups', () => {
 	it('should the tag has function loadData', () => {
 		console.log( tag.loadData )
 	})
+	it('should the loadData() load data :)', async () => {
+		const data = await tag.loadData()
+		console.log( 'data exist:', data[0].id )
+	})
 })

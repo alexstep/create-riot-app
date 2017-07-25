@@ -1,7 +1,7 @@
 module.exports = {
 	'env': {
-        'browser'  : true,
-        'commonjs' : true,
+        'browser'  : true ,
+        'commonjs' : true ,
         'es6'      : true
     },
 
@@ -17,10 +17,10 @@ module.exports = {
     },
 
     'globals': {
-        'riot'      : true,
-        '__dirname' : true,
-        'process'   : true,
-        'App'       : true,
+        'riot'      : true ,
+        '__dirname' : true ,
+        'process'   : true ,
+        'App'       : true ,
         '$'         : true
     },
 
@@ -28,34 +28,34 @@ module.exports = {
 
     'rules': {
     	// http://eslint.org/docs/rules/indent#options
-		'no-tabs'                     : 0,
-		'no-invalid-this'             : 1,
-		'no-multi-spaces'             : 0,
-		'comma-spacing'               : 0,
-		'space-before-function-paren' : 0,
-		'space-before-blocks'         : 0,
-		'guard-for-in'                : 0,
-		'max-len'                     : 0,
-		'key-spacing'                 : 0,
-		'comma-dangle'                : 0,
-		'block-spacing'               : 0,
-		'camelcase'                   : 0,
-		'no-unused'                   : 0,
-		'padded-blocks'               : 0,
-		'require-jsdoc'               : 0,
-		'arrow-parens'                : 0,
-		'brace-style'                 : 0,
-		'object-curly-spacing'        : 0,
-		'keyword-spacing'             : 0,
+		'no-tabs'                     : 0 ,
+		'no-invalid-this'             : 0 ,
+		'no-multi-spaces'             : 0 ,
+		'comma-spacing'               : 0 ,
+		'space-before-function-paren' : 0 ,
+		'space-before-blocks'         : 0 ,
+		'guard-for-in'                : 0 ,
+		'max-len'                     : 0 ,
+		'key-spacing'                 : 0 ,
+		'comma-dangle'                : 0 ,
+		'block-spacing'               : 0 ,
+		'camelcase'                   : 0 ,
+		'no-unused'                   : 0 ,
+		'padded-blocks'               : 0 ,
+		'require-jsdoc'               : 0 ,
+		'arrow-parens'                : 0 ,
+		'brace-style'                 : 0 ,
+		'object-curly-spacing'        : 0 ,
+		'keyword-spacing'             : 0 ,
 
-		'no-trailing-spaces':1,
-		'no-multiple-empty-lines':1,
+		'no-trailing-spaces':1      ,
+		'no-multiple-empty-lines':1 ,
 
 		'no-unused-vars': [
 			'warn',
 			{
-				'vars'               : 'all',
-				'args'               : 'after-used',
+				'vars'               : 'all'        ,
+				'args'               : 'after-used' ,
 				'ignoreRestSiblings' : false
 			}
 		],

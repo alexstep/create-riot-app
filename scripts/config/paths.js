@@ -33,7 +33,7 @@ const getPublicUrl = appPackageJson => envPublicUrl || require(appPackageJson).h
 function getServedPath(appPackageJson) {
 	const publicUrl = getPublicUrl(appPackageJson)
 	const servedUrl = envPublicUrl ||
-    (publicUrl ? url.parse(publicUrl).pathname : '/')
+	(publicUrl ? url.parse(publicUrl).pathname : '/')
 	return ensureSlash(servedUrl, true)
 }
 
@@ -48,6 +48,7 @@ module.exports = {
 	appSrc         : resolveApp('src'),
 	yarnLockFile   : resolveApp('yarn.lock'),
 	testsSetup     : resolveApp('src/setupTests.js'),
+	myModules      : ['./src/', './src/model/'],
 	appNodeModules : resolveApp('node_modules'),
 	publicUrl      : getPublicUrl(resolveApp('package.json')),
 	servedPath     : getServedPath(resolveApp('package.json')),
