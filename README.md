@@ -13,6 +13,16 @@ Just read https://github.com/facebookincubator/create-react-app/blob/master/pack
 
 [![See the video](https://j.gifs.com/VmEVBB.gif)](https://www.youtube.com/watch?v=dU2TsHzQA60)
 
+## Features
+* Automove [critical css to head](https://vuejsdevelopers.com/2017/07/24/critical-css-webpack/)
+* Hot .tag reload
+* Realtime code linting
+* Async/await (ES2017).
+* Exponentiation Operator (ES2016).
+* Object Rest/Spread Properties (stage 3 proposal).
+* Dynamic import() (stage 3 proposal)
+* Jest for .tag testing
+* Pre-commit testing
 
 
 ## ⚡ Start dev-server
@@ -29,7 +39,7 @@ go to http://localhost:9999
 
 ## ✔ Testing and linting
 Package included Jest, for testing riot tags.
-See [riot tag test example](https://github.com/alexstep/create-riot-app-ejected/blob/master/src/view/components/screens/groups.test.js) 
+See [riot tag test example](https://github.com/alexstep/create-riot-app-ejected/blob/master/src/view/components/screens/groups.test.js)
 ```
 npm test
 npm test -- --coverage

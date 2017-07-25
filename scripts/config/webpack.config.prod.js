@@ -11,9 +11,12 @@ const InterpolateHtmlPlugin   = require('react-dev-utils/InterpolateHtmlPlugin')
 const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin')
 const eslintFormatter         = require('react-dev-utils/eslintFormatter')
 const ModuleScopePlugin       = require('react-dev-utils/ModuleScopePlugin')
+const HtmlCriticalPlugin      = require("html-critical-webpack-plugin");
 
 const paths                   = require('./paths')
 const getClientEnvironment    = require('./env')
+
+
 
 // Webpack uses `publicPath` to determine where the app is being served from.
 // It requires a trailing slash, or the file assets will get an incorrect path.
@@ -315,6 +318,25 @@ let webpack_prod_config = {
 			},
 		}),
 
+		new HtmlCriticalPlugin({
+			 /* The path of the Webpack bundle */
+			base:      paths.appBuild,
+			src:       'index.html',
+			dest:      'index.html',
+
+			inline:    true,
+			minify:    true,
+			extract:   true,
+
+			/* iPhone 6 dimensions, use whatever you like*/
+			width:     375,
+			height:    565,
+
+			penthouse: {
+				blockJSRequests: false,
+			}
+		}),
+
 		// Makes some environment variables available to the JS code, for example:
 		// if (process.env.NODE_ENV === 'production') { ... }. See `./env.js`.
 		// It is absolutely essential that NODE_ENV was set to production here.
@@ -400,14 +422,15 @@ let webpack_prod_config = {
 if (process.env.enable_less){
 	webpack_prod_config.module.rules.push({
 		test: /\.less$/,
-		use: [
-			// creates style nodes from JS strings
-			{ loader: 'style-loader' },
-			// translates CSS into CommonJS
-			{ loader: 'css-loader'   },
-			// compiles Less to CSS
-			{ loader: 'less-loader'  }
-		]
+		use: ExtractTextPlugin.extract({
+			fallback: 'style-loader',
+			use: [
+				// translates CSS into CommonJS
+				{ loader: 'css-loader'   },
+				// compiles Less to CSS
+				{ loader: 'less-loader'  }
+			]
+		})
 	})
 }
 
@@ -415,14 +438,15 @@ if (process.env.enable_less){
 if (process.env.enable_sass){
 	webpack_prod_config.module.rules.push({
 		test: /\.(scss|sass)$/,
-		use: [
-			// creates style nodes from JS strings
-			{ loader: 'style-loader' },
-			// translates CSS into CommonJS
-			{ loader: 'css-loader'   },
-			// compiles Sass to CSS
-			{ loader: 'sass-loader'  }
-		]
+		use: ExtractTextPlugin.extract({
+			fallback: 'style-loader',
+			use: [
+				// translates CSS into CommonJS
+				{ loader: 'css-loader'   },
+				// compiles Sass to CSS
+				{ loader: 'sass-loader'  }
+			]
+		})
 	})
 }
 
@@ -430,14 +454,15 @@ if (process.env.enable_sass){
 if (process.env.enable_stylus){
 	webpack_prod_config.module.rules.push({
 		test: /\.styl$/,
-		use: [
-			// creates style nodes from JS strings
-			{ loader: 'style-loader' },
-			// translates CSS into CommonJS
-			{ loader: 'css-loader'   },
-			// compiles stylus
-			{ loader: 'stylus-loader'  }
-		]
+		use: ExtractTextPlugin.extract({
+			fallback: 'style-loader',
+			use: [
+				// translates CSS into CommonJS
+				{ loader: 'css-loader'   },
+				// compiles stylus
+				{ loader: 'stylus-loader'  }
+			]
+		})
 	})
 }
 

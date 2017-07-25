@@ -7,7 +7,10 @@ import Api from 'demo.api'
 
 		this.on('mount', ()=>{
 			this.loading++
-			setTimeout(this.loadData, 2000)
+
+			// timeout just for example
+			// so you can see the loader
+			setTimeout(this.loadData, 1000)
 		})
 
 		// Async / await example
