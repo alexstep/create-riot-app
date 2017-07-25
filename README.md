@@ -33,6 +33,11 @@ git clone https://github.com/alexstep/create-riot-app-ejected my-riot-app
 cd my-riot-app
 ```
 ```
+yarn
+yarn start
+```
+or
+```
 npm install
 npm start
 ```
@@ -74,6 +79,10 @@ Also you can change some options in ./scripts/config/favicons.config.js
 
 
 ## ⚗ Build for production
+```
+yarn build
+```
+or
 ```
 npm run build
 ```
