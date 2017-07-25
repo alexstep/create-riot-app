@@ -1,3 +1,5 @@
+import Api from 'demo.api'
+
 <groups>
 	<script type="es6">
 		this.loading = true
@@ -5,18 +7,20 @@
 
 		this.on('mount', ()=>{
 			this.loading++
-			setTimeout(this.loadData, 2000)
+
+			// timeout just for example
+			// so you can see the loader
+			setTimeout(this.loadData, 1000)
 		})
 
-		this.loadData = ()=>{
-			for(let i=0; i < 30; i++){
-				this.groups.push(
-					{id:i, name:`Group ${i}`, items:Math.ceil(Math.random()*1000)*i }
-				)
-			}
+		// Async / await example
+		this.loadData = async ()=>{
+			this.groups = ( await Api.get('photos') ).slice(0,10)
 
 			this.loading = false
 			this.update()
+
+			return this.groups
 		}
 	</script>
 
@@ -25,9 +29,9 @@
 
 		<div class="groups-list">
 			<a if={groups.length} each={group in groups } href="/groups/" onclick={selectGroup} class="ripple group">
-				<div class="img-wrap"><img src="{group.photo_100}" ></div>
-				<b>{group.name}</b>
-				<span class="items" if={group.items}>{group.items} </span>
+				<div class="img-wrap"><img src="{group.thumbnailUrl}" ></div>
+				<b>{group.title}</b>
+				<span class="items" if={group.albumId}>album: {group.albumId}</span>
 			</a>
 		</div>
 

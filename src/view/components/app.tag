@@ -1,6 +1,6 @@
 import route from 'riot-route'
-<app>
 
+<app>
 	<script>
 		this.on('mount',()=>{
 			route((screen, action, other)=>{
@@ -9,7 +9,7 @@ import route from 'riot-route'
 				this.topbar_title = screen
 				this.update()
 
-				riot.mount(this.refs.mount_point, screen)
+				riot.mount(this.refs.mount_point, screen, {route:{screen:screen, action:action, other:other}})
 
 				App.view.topbarScrollHide()
 			})
