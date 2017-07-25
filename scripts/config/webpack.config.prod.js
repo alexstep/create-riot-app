@@ -398,7 +398,7 @@ let webpack_prod_config = {
 }
 
 if (!process.env.TRAVIS_BUILD){
-	webpack_prod_config.module.plugins.push(new HtmlCriticalPlugin({
+	webpack_prod_config.plugins.push(new HtmlCriticalPlugin({
 		 /* The path of the Webpack bundle */
 		base : paths.appBuild ,
 		src  : 'index.html'   ,
