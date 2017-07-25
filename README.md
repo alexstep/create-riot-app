@@ -4,6 +4,7 @@
 [![npm](https://img.shields.io/npm/v/npm.svg)]()
 [![Dependencies](https://david-dm.org/alexstep/create-riot-app-ejected/dev-status.svg)](https://david-dm.org/alexstep/create-riot-app-ejected?type=dev)
 [![Join the chat at https://gitter.im/create-riot-app/](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/create-riot-app/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [RiotJS](https://github.com/riot/riot) startkit, based on [create-react-app](https://github.com/facebookincubator/create-react-app) and  [react-scripts](https://github.com/facebookincubator/create-react-app/tree/master/packages/react-scripts).
 
 
