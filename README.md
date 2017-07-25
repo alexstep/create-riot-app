@@ -22,6 +22,7 @@ Just read https://github.com/facebookincubator/create-react-app/blob/master/pack
 * Object Rest/Spread Properties (stage 3 proposal).
 * Dynamic import() (stage 3 proposal)
 * Jest for .tag testing
+* Generate all favicons and manifest.json
 * Pre-commit testing
 
 
