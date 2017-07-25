@@ -47,9 +47,8 @@ module.exports = {
 		'brace-style'                 : 0 ,
 		'object-curly-spacing'        : 0 ,
 		'keyword-spacing'             : 0 ,
-
-		'no-trailing-spaces':1      ,
-		'no-multiple-empty-lines':1 ,
+		'no-trailing-spaces'          : 1 ,
+		'no-multiple-empty-lines'     : 1 ,
 
 		'no-unused-vars': [
 			'warn',
