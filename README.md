@@ -85,14 +85,31 @@ npm run check_build
 
 
 ## ☁ Deploy
+```
+npm run deploy
+```
+Publish ./build folder to [IPFS](https://github.com/alexstep/ipscend) by defaults.
 
-For example deploy app to [firebase](firebase.google.com)
+### Firebase
+For example you can deploy app to [firebase](firebase.google.com)
 ```
 npm install -g firebase-tools
 firebase login
 firebase init
-npm run deploy
+firebase deploy
 ```
+
+### Your server
+Change settings in scripts/ssh_deploy.js
+Add this file to .gitignore
+``` 
+npm i -D ssh-deploy-release
+
+npm run ssh_deploy
+```
+[About tool](https://www.npmjs.com/package/ssh-deploy-release)
+
+
 [Read more](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#azure) about deploy
 
 ### ⚙ Configuration options

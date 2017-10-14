@@ -44,8 +44,8 @@ export default class View {
 	}
 
 	routing() {
-		// route.base('#')
-		route.base('/')
+		route.base('#')
+		// route.base('/')
 		if (['http:','https:'].indexOf(window.location.protocol)==-1) {
 			alert('Riot route base is "/"  - you need run app on server url for correct routing. or change riot base(and links) to # ')
 		}

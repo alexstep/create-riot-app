@@ -9,6 +9,7 @@ const version    = require('../../package.json').version
 
 const source_img = './src/favicon_source.png'
 const files_dest = './public/static/meta/'
+const icons_path = '/static/meta/'
 
 module.exports = {
 
@@ -17,7 +18,7 @@ module.exports = {
 
 
 	settings: {
-		path           : files_dest,          // Path for overriding default icons path. `string`
+		path           : icons_path,          // Path for overriding default icons path. `string`
 		appName        : meta.appName,        // Your application's name. `string`
 		appDescription : meta.appDescription, // Your application's description. `string`
 		developerName  : null,                // Your (or your developer's) name. `string`
