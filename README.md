@@ -1,4 +1,4 @@
-# ⏏ create-riot-app
+# ⏏ create-riot-DApp
 [![travis](https://travis-ci.org/alexstep/create-riot-app-ejected.svg?branch=master)](https://travis-ci.org/alexstep/create-riot-app-ejected/)
 [![Code Climate](https://codeclimate.com/github/alexstep/create-riot-app-ejected.png)](https://codeclimate.com/github/alexstep/create-riot-app-ejected)
 [![npm](https://img.shields.io/npm/v/npm.svg)]()
@@ -30,9 +30,11 @@ Just read https://github.com/facebookincubator/create-react-app/blob/master/pack
 
 ## ⚡ Start dev-server
 ```
-git clone https://github.com/alexstep/create-riot-app-ejected my-riot-app
-cd my-riot-app
+git clone --depth=1 https://github.com/alexstep/create-riot-dapp my-riot-dapp
+cd my-riot-dapp
+rm -rf .git
 ```
+
 ```
 npm install
 npm start
