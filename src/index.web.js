@@ -1,3 +1,4 @@
+// riot route base url set in ./src/view/app.view.js line 47
 import View from './view/app.view.js'
 
 const App = {}
