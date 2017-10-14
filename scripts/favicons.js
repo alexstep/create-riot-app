@@ -2,7 +2,6 @@ const config       = require('./config/favicons.config.js')
 
 const favicons     = require('favicons')
 const fs           = require('fs')
-const path         = require('path')
 const chalk        = require('chalk')
 const clearConsole = require('react-dev-utils/clearConsole')
 

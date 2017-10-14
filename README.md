@@ -7,6 +7,7 @@
 
 [RiotJS](https://github.com/riot/riot) startkit, based on [create-react-app](https://github.com/facebookincubator/create-react-app) and  [react-scripts](https://github.com/facebookincubator/create-react-app/tree/master/packages/react-scripts).
 
+[DEMO](https://ipfs.infura.io/ipfs/QmeYf7fabpUcEtUzb3Xsf5SJPbGGigPE9GTkwhrSS6cgDG/)
 
 Package included simple app example, webpack dev server with **riot hot reload** and less, sass, stylus support. ES6 features available too. Jest with riot support for testing. ES6 and eslint in riot tag.
 
@@ -38,6 +39,8 @@ npm start
 ```
 go to http://localhost:9999
 
+### Note
+Riot route base url set in ./src/view/app.view.js line 47
 
 ## ✔ Testing and linting
 Package included Jest, for testing riot tags.
@@ -85,14 +88,31 @@ npm run check_build
 
 
 ## ☁ Deploy
+```
+npm run deploy
+```
+Publish ./build folder to [IPFS](https://github.com/alexstep/ipscend) by defaults.
 
-For example deploy app to [firebase](firebase.google.com)
+### Firebase
+For example you can deploy app to [firebase](firebase.google.com)
 ```
 npm install -g firebase-tools
 firebase login
 firebase init
-npm run deploy
+firebase deploy
 ```
+
+### Your server
+Change settings in scripts/ssh_deploy.js
+Add this file to .gitignore
+``` 
+npm i -D ssh-deploy-release
+
+npm run ssh_deploy
+```
+[About tool](https://www.npmjs.com/package/ssh-deploy-release)
+
+
 [Read more](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#azure) about deploy
 
 ### ⚙ Configuration options

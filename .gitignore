@@ -1,7 +1,11 @@
 # See https://help.github.com/ignore-files/ for more about ignoring files.
 
+# secret data
+# /scripts/ssh_deploy.js
+
 # dependencies
 /node_modules
+
 
 # testing
 /coverage
