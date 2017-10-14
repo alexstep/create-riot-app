@@ -30,7 +30,7 @@ Just read https://github.com/facebookincubator/create-react-app/blob/master/pack
 
 ## ⚡ Start dev-server
 ```
-git clone --depth=1 https://github.com/alexstep/create-riot-dapp my-riot-dapp
+git clone --depth=1 --branch=v1 https://github.com/alexstep/create-riot-dapp my-riot-dapp
 cd my-riot-dapp
 rm -rf .git
 ```
