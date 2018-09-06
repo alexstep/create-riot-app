@@ -1,5 +1,8 @@
+import SW from 'ServiceWorker/SW'
+
 // riot route base url set in ./src/view/app.view.js line 47
 import View from './view/app.view.js'
+
 
 const App = {}
 window.App = App
@@ -17,6 +20,5 @@ document.addEventListener('DOMContentLoaded', ()=>{
 	console.log('')
 })
 
-// Enable SW in production
-// https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#making-a-progressive-web-app
-// serviceWorkerRegistration.register()
+// Register Service Worker
+if (process.env.DAPP_SW_ACTIVE) SW.register()

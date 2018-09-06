@@ -1,4 +1,4 @@
-import * as riot from 'riot'
+// import riot from 'riot'
 import './groups.tag'
 
 let tag
