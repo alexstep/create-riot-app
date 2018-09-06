@@ -1,0 +1,11 @@
+version: "2.1"
+
+services:
+  dc_ipfs:
+    image: ipfs/go-ipfs
+    container_name: "ipfs_deployer"
+    labels:
+      - "IPFS node for Deploy DApp"
+    volumes:
+      - ../../../build:/go/target
+

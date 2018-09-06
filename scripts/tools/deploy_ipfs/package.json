@@ -1,0 +1,18 @@
+{
+  "name": "deploy_ipscend",
+  "version": "1.0.0",
+  "description": "deploy files to ipfs tool",
+  "repository": "https://github.com/ipfs-shipyard/ipscend",
+  "main": "index.js",
+  "scripts": {
+    "start_ipfs_node":"docker-compose up -d .",
+    "stop_ipfs_node":"docker-compose down .",
+    "deploy": "npm run start_ipfs_node && node ./index.js && sleep 10 && npm run stop_ipfs_node "
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "react-dev-utils": "5"
+  }
+}

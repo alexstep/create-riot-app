@@ -16,7 +16,6 @@ Just read https://github.com/facebookincubator/create-react-app/blob/master/pack
 [![See the video](https://j.gifs.com/VmEVBB.gif)](https://www.youtube.com/watch?v=dU2TsHzQA60)
 
 ## Features
-* Automove [critical css to head](https://vuejsdevelopers.com/2017/07/24/critical-css-webpack/)
 * Hot .tag reload
 * Realtime code linting
 * Async/await (ES2017).
@@ -27,6 +26,9 @@ Just read https://github.com/facebookincubator/create-react-app/blob/master/pack
 * Generate all favicons and manifest.json
 * Pre-commit testing
 
+## Requirements
+nodejs 10
+and optionaly docker-compose, for deploy to ipfs
 
 ## ⚡ Start dev-server
 ```
@@ -67,14 +69,14 @@ Write in head your js files `//@flow weak` to enable flow checker
 
 ## ⚛ Favicons and meta-information
 Edit "meta" section in package.json ([see manifest format description](https://developer.mozilla.org/en-US/docs/Web/Manifest))
-Put your app icon in ./src/favicon_source.png
+Put your app icon in ./src/favicon_source.svg or .png or other image format
 and run
 ```
-npm run favicons
+npm run meta:generate
 ```
 manifest.json , browserconfig.xml, favicons and other meta-files will be generated and put to ./public/static/meta/ folder.
 
-Also you can change some options in ./scripts/config/favicons.config.js
+Also you can change some options in ./scripts/tools/metainfo/config.js
 
 
 
@@ -93,7 +95,9 @@ npm run check_build
 ```
 npm run deploy
 ```
-Publish ./build folder to [IPFS](https://github.com/alexstep/ipscend) by defaults.
+Publish ./build folder to [IPFS](https://ipfs.io) by defaults.
+Need insatlled docker-compose 
+See scripts/tools/deploy_ipfs/docker-compose.yml
 
 ### Firebase
 For example you can deploy app to [firebase](firebase.google.com)
@@ -105,7 +109,7 @@ firebase deploy
 ```
 
 ### Your server
-Change settings in scripts/ssh_deploy.js
+Change settings in scripts/tools/deploy_ssh
 Add this file to .gitignore
 ``` 
 npm i -D ssh-deploy-release
@@ -134,6 +138,18 @@ The generated project comes with LESS support by default, but you can add SASS o
 - ```OPEN_BROWSER=false``` - don't open browser after running webpack server
 
 [Read more](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#adding-custom-environment-variables) about .env files
+
+#### Troubleshoot
+If you have some error on macos
+```
+npm test
+
+Error: EMFILE: too many open files, watch
+Emitted 'error' event at:
+npm ERR! Test failed.  See above for more details.
+```
+try to run ```npm run macos_fixes```
+
 
 #### Tabs or Spaces?
 You can change codestyle rules in .eslintrc.js and run

@@ -1,0 +1,19 @@
+{
+  "name": "deploy_firebase",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "postintall":"npm run login",
+    "login":"firebase login",
+    "start":"firebase init",
+    "deploy":"sh ./deploy.sh",
+    "reset":"rm ./node_modules/firebaseinitied.txt"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "firebase-tools": "^4.0.3"
+  }
+}

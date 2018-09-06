@@ -9,6 +9,7 @@ const InterpolateHtmlPlugin         = require('react-dev-utils/InterpolateHtmlPl
 const WatchMissingNodeModulesPlugin = require('react-dev-utils/WatchMissingNodeModulesPlugin')
 const eslintFormatter               = require('react-dev-utils/eslintFormatter')
 const ModuleScopePlugin             = require('react-dev-utils/ModuleScopePlugin')
+const SWPlugin                      = require('serviceworker-webpack-plugin')
 
 const getClientEnvironment          = require('./env')
 const paths                         = require('./paths')
@@ -27,12 +28,12 @@ const env = getClientEnvironment(publicUrl)
 let htmlReplacements = env.raw
 
 // Read favicons html
-const metaconf = require('./favicons.config.js')
+const metaconf = require('../tools/metainfo/config.js')
 
 htmlReplacements.META_INFORMATION = ''
 try {
-	htmlReplacements.META_INFORMATION = fs.readFileSync(metaconf.files_dest+metaconf.html_filename)
-} catch(e) {
+	htmlReplacements.META_INFORMATION = fs.readFileSync(metaconf.files_dest + metaconf.html_filename)
+} catch (e) {
 	htmlReplacements.META_INFORMATION = ''
 }
 
@@ -220,7 +221,7 @@ let webpack_dev_config = {
 				enforce : 'post',
 				loader  : require.resolve('babel-loader'),
 				options: {
-					presets: 'es2015-riot',
+					// presets: 'es2015-riot',
 					// This is a feature of `babel-loader` for webpack (not Babel itself).
 					// It enables caching results in ./node_modules/.cache/babel-loader/
 					// directory for faster rebuilds.
@@ -273,6 +274,11 @@ let webpack_dev_config = {
 	plugins: [
 		new webpack.ProvidePlugin({
 			riot:  'riot',
+		}),
+
+		new SWPlugin({
+		  entry: paths.appIndexSW,
+		  // filename:  paths.dist_appIndexSW
 		}),
 
 		// Makes some environment variables available in index.html.
