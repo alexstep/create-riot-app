@@ -46,26 +46,6 @@ go to http://localhost:9999
 ### Note
 Riot route base url set in ./src/view/app.view.js line 47
 
-## ✔ Testing and linting
-Package included Jest, for testing riot tags.
-See [riot tag test example](https://github.com/alexstep/create-riot-app-ejected/blob/master/src/view/components/screens/groups.test.js)
-```
-npm test
-npm test -- --coverage
-npm run coverage
-#also
-npm run eslint
-npm run lesslint
-```
-[read more](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#running-tests) about testing
-
-Add flow type checker.
-```
-npm install flow-bin
-npm run flow
-```
-Write in head your js files `//@flow weak` to enable flow checker
-
 
 ## ⚛ Favicons and meta-information
 Edit "meta" section in package.json ([see manifest format description](https://developer.mozilla.org/en-US/docs/Web/Manifest))
@@ -92,14 +72,12 @@ npm run check_build
 
 
 ## ☁ Deploy
+
+
+### Firebase
 ```
 npm run deploy
 ```
-Publish ./build folder to [IPFS](https://ipfs.io) by defaults.
-Need insatlled docker-compose 
-See scripts/tools/deploy_ipfs/docker-compose.yml
-
-### Firebase
 For example you can deploy app to [firebase](firebase.google.com)
 ```
 npm install -g firebase-tools
@@ -111,49 +89,23 @@ firebase deploy
 ### Your server
 Change settings in scripts/tools/deploy_ssh
 Add this file to .gitignore
-``` 
-npm i -D ssh-deploy-release
-
-npm run ssh_deploy
+```
+npm run deploy:ssh
 ```
 [About tool](https://www.npmjs.com/package/ssh-deploy-release)
 
 
-[Read more](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#azure) about deploy
+# IPFS
+```
+npm run deploy:ipfs
+```
+Publish ./dist folder to [IPFS](https://ipfs.io) by defaults.
+Need insatlled docker-composes/tools/deploy_ipfs/docker-compose.yml
+
 
 ### ⚙ Configuration options
 
 Modify the ```.env``` file in the root of the generated project, and add any of the configuration options below 👇 to enable that feature.
-
-The generated project comes with LESS support by default, but you can add SASS or Stylus at any time by edit the options from the ```.env``` file.
-
-#### Styling
-- ```enable_less=true``` - enable LESS support
-- ```enable_sass=true``` - enable SASS support
-- ```enable_stylus=true``` - enable Stylus support
-
-#### Others
-- ```HTTPS=true``` - enable https in localhost
-- ```PORT=9999``` - change port
-- ```OPEN_BROWSER=false``` - don't open browser after running webpack server
-
-[Read more](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#adding-custom-environment-variables) about .env files
-
-#### Troubleshoot
-If you have some error on macos
-```
-npm test
-
-Error: EMFILE: too many open files, watch
-Emitted 'error' event at:
-npm ERR! Test failed.  See above for more details.
-```
-try to run ```npm run macos_fixes```
-
-
-#### Tabs or Spaces?
-You can change codestyle rules in .eslintrc.js and run
-`npm run eslint_fix` for format all files
 
 
 ## ☺ Contribute
