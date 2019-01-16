@@ -11,9 +11,7 @@ import $ from 'jquery'
 
 import './styles/app.less'
 
-if (process.env.NODE_ENV === 'development') {
-  require('riot-hot-reload')
-}
+import 'riot-hot-reload'
 
 export default class View {
   start () {
@@ -29,7 +27,7 @@ export default class View {
     this.routing()
 
     // Init sounds
-    this.sound = require('./sounds.js')({ sounds_path:'/static/sounds/' })
+    this.sound = require('./sounds.js')({ sounds_path:'/sounds/' })
 
     // append roboto font if not avaible
     if (!this.isFontAvaible('Roboto')) {
