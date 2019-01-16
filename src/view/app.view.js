@@ -11,7 +11,7 @@ import $ from 'jquery'
 
 import './styles/app.less'
 
-if (process.env.NODE_ENV == 'development') {
+if (process.env.NODE_ENV === 'development') {
   require('riot-hot-reload')
 }
 
@@ -45,7 +45,7 @@ export default class View {
   routing () {
     route.base('#')
     // route.base('/')
-    if (['http:','https:'].indexOf(window.location.protocol) == -1) {
+    if (['http:','https:'].indexOf(window.location.protocol) === -1) {
       alert('Riot route base is "/"  - you need run app on server url for correct routing. or change riot base(and links) to # ')
     }
 
@@ -83,8 +83,8 @@ export default class View {
 
 
     return monoWidth !== getWidth(font + ',monospace') ||
-			sansWidth !== getWidth(font + ',sans-serif') ||
-			serifWidth !== getWidth(font + ',serif')
+      sansWidth !== getWidth(font + ',sans-serif') ||
+      serifWidth !== getWidth(font + ',serif')
   }
 
 

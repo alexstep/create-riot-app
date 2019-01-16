@@ -18,7 +18,9 @@ export default class Swipe {
     if (this.drawer.width() > 0) {
       this.drawer_width = this.drawer.width()
     }
+  }
 
+  init () {
     new Hammer(this.wrapper[0], { prevent_default: false })
       .on('panstart' , e => this.start(e))
       .on('pan'      , e => this.pan(e))
@@ -54,7 +56,7 @@ export default class Swipe {
     if (x < 0) { x = 0 }
 
 
-    if (e.direction == 4) {
+    if (e.direction === 4) {
       if (x < this.drawer_width * 0.3) {
         this.drawer_open = false
       }
@@ -63,7 +65,7 @@ export default class Swipe {
       }
     }
 
-    if (e.direction == 2) {
+    if (e.direction === 2) {
       if (x < this.drawer_width * 0.7) {
         this.drawer_open = false
       }
@@ -93,7 +95,7 @@ export default class Swipe {
       this.wrapper.removeClass('show')
       this.onCloseCallback()
     }
-    if (e.pointerType == 'touch') {
+    if (e.pointerType === 'touch') {
       this.panning = false
     }
   }

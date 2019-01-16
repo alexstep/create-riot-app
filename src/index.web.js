@@ -8,7 +8,7 @@ const App = {}
 window.App = App
 
 // window.onerror = function(a,b,c){
-// 	alert(JSON.stringify({a:a,b:b,c:c}))
+//  alert(JSON.stringify({a:a,b:b,c:c}))
 // }
 
 document.addEventListener('DOMContentLoaded', () => {
