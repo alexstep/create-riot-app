@@ -1,4 +1,4 @@
-# ⏏ create-riot-DApp
+# ⏏ create-riot-app
 [![travis](https://travis-ci.org/alexstep/create-riot-app-ejected.svg?branch=master)](https://travis-ci.org/alexstep/create-riot-app-ejected/)
 [![Code Climate](https://codeclimate.com/github/alexstep/create-riot-app-ejected.png)](https://codeclimate.com/github/alexstep/create-riot-app-ejected)
 [![npm](https://img.shields.io/npm/v/npm.svg)]()
@@ -32,8 +32,8 @@ and optionaly docker-compose, for deploy to ipfs
 
 ## ⚡ Start dev-server
 ```
-git clone --depth=1 https://github.com/alexstep/create-riot-dapp my-riot-dapp
-cd my-riot-dapp
+git clone --depth=1 https://github.com/alexstep/create-riot-dapp my-riot-app
+cd my-riot-app
 rm -rf .git
 ```
 

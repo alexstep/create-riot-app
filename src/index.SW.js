@@ -2,7 +2,7 @@
 
 // Cache static
 if (process.env.APP_SW_CACHE) {
-	require('ServiceWorker/cache.sw.js')()
+  require('ServiceWorker/cache.sw.js')()
 }
 
 // Push-notifications
