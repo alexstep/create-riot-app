@@ -1,5 +1,5 @@
 # ⏏ create-riot-app
-[![travis](https://travis-ci.org/alexstep/create-riot-app-ejected.svg?branch=master)](https://travis-ci.org/alexstep/create-riot-app-ejected/)
+[![travis](https://travis-ci.org/alexstep/create-riot-app.svg?branch=master)](https://travis-ci.org/alexstep/create-riot-app-ejected/)
 [![Code Climate](https://codeclimate.com/github/alexstep/create-riot-app-ejected.png)](https://codeclimate.com/github/alexstep/create-riot-app-ejected)
 [![npm](https://img.shields.io/npm/v/npm.svg)]()
 [![Dependencies](https://david-dm.org/alexstep/create-riot-app-ejected/dev-status.svg)](https://david-dm.org/alexstep/create-riot-app-ejected?type=dev)
