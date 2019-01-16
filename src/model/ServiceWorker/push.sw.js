@@ -5,7 +5,6 @@
 /* global clients */
 
 module.exports = function () {
-
   self.addEventListener('message', (event) => {
     if (event.data && event.data.pushEnabled) {
       self.registration.showNotification(
@@ -22,7 +21,7 @@ module.exports = function () {
     let url = self.location.hostname
     event.notification.close()
     event.waitUntil(
-      clients.matchAll({type: 'window'}).then( windowClients => {
+      clients.matchAll({ type: 'window' }).then(windowClients => {
         for (let i = 0; i < windowClients.length; i++) {
           let client = windowClients[i]
 

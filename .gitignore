@@ -5,15 +5,12 @@
 
 # dependencies
 /node_modules
-
-
-# testing
-/coverage
+package-lock.json
 
 # production
-/build
+/dist
 
-/public/static/meta
+/src/static/meta
 
 # misc
 .DS_Store

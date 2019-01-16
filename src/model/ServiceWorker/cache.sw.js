@@ -11,7 +11,7 @@ module.exports = function () {
   console.log('SW::Cache CACHE_NAME:', CACHE_NAME)
 
   // caching assets list
-  const {assets} = global.serviceWorkerOption
+  const { assets } = global.serviceWorkerOption
 
   let assetsToCache = [
     ...assets,
@@ -65,9 +65,9 @@ module.exports = function () {
             }
 
             return global.caches.delete(cacheName)
-          }),
+          })
         )
-      }),
+      })
     )
   })
 

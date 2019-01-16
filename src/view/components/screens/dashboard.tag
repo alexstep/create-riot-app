@@ -1,19 +1,19 @@
 <dashboard>
-	<script>
-		this.on('mount',()=>{
+  <script>
+    this.on('mount',() => {
 
-		})
-	</script>
-	<div class="screen screen-dashboard" id="screen_dashboard">
+    })
+  </script>
+  <div class="screen screen-dashboard" id="screen_dashboard">
 
-		<h1>Dashboard !!!</h1>
-	</div>
+    <h1>Dashboard !!!</h1>
+  </div>
 
-	<style type="less">
-		.screen-dashboard {
-			h1 {
-				margin: 20%; text-align: center;
-			}
-		}
-	</style>
+  <style type="less">
+    .screen-dashboard {
+      h1 {
+        margin: 20%; text-align: center;
+      }
+    }
+  </style>
 </dashboard>
