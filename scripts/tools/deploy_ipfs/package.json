@@ -11,8 +11,5 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "react-dev-utils": "5"
-  }
+  "license": "ISC"
 }
