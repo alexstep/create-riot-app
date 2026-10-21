@@ -2,19 +2,18 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { errorBody } from '../contract/schemas';
-import type { AppEnv } from '../server/env';
 import {
   handleProfileGet,
   handleProfilePut,
   handleSessionGet,
-  handleSessionPost,
   handleUploadGet,
   handleUploadList,
   handleUploadPost,
+  itemsOf,
   profileGet,
   profilePut,
   sessionGet,
-  sessionPost,
+  storeDeps,
   uploadGet,
   uploadList,
   uploadPost,
@@ -22,7 +21,6 @@ import {
 import {
   clearSessionCookie,
   clientKey,
-  createSessionStore,
   type SessionStore,
   type SessionUser,
   sessionIdFrom,
@@ -54,24 +52,8 @@ const jsonError = {
   content: { 'application/json': { schema: ErrorBody } },
 } as const;
 
-interface ItemRecord {
-  id: string;
-  title: string;
-  owner: string;
-}
-
-export interface ApiDeps {
-  env: AppEnv;
-  sessions: SessionStore;
-  items: ItemRecord[];
-  contacts: { id: string; email: string; message: string }[];
-}
-
-const state: { deps?: ApiDeps } = {};
-
-function deps(): ApiDeps {
-  if (!state.deps) throw new Error('API state is not attached');
-  return state.deps;
+function deps() {
+  return storeDeps();
 }
 
 function secret(): string {
@@ -285,37 +267,27 @@ export const routes = new OpenAPIHono({
   .openapi(listItems, (c) => {
     const user = signedIn(c);
     if (!user) return c.json({ error: 'Unauthorized' }, 401);
-    return c.json(
-      { items: deps().items.filter((item) => item.owner === user.email) },
-      200,
-    );
+    return c.json({ items: itemsOf(user.email) }, 200);
   })
   .openapi(createItem, async (c) => {
     const user = signedIn(c);
     if (!user) return c.json({ error: 'Unauthorized' }, 401);
     const body = ItemBody.parse(await c.req.json());
-    const item = {
-      id: crypto.randomUUID(),
-      title: body.title,
-      owner: user.email,
-    };
-    deps().items.push(item);
-    return c.json({ id: item.id, title: item.title }, 201);
+    const item = { id: crypto.randomUUID(), title: body.title };
+    itemsOf(user.email).push(item);
+    return c.json(item, 201);
   })
   .openapi(deleteItem, (c) => {
     const user = signedIn(c);
     if (!user) return c.json({ error: 'Unauthorized' }, 401);
     const id = c.req.param('id');
-    const items = deps().items;
-    const index = items.findIndex(
-      (item) => item.id === id && item.owner === user.email,
-    );
+    const items = itemsOf(user.email);
+    const index = items.findIndex((item) => item.id === id);
     const item = items[index];
     if (!item) return c.json({ error: 'Not found' }, 404);
     items.splice(index, 1);
     return c.json({ id: item.id, title: item.title }, 200);
   })
-  .openapi(sessionPost, handleSessionPost)
   .openapi(sessionGet, handleSessionGet)
   .openapi(profileGet, handleProfileGet)
   .openapi(profilePut, handleProfilePut)
@@ -325,17 +297,4 @@ export const routes = new OpenAPIHono({
 
 routes.notFound((c) => c.json({ error: 'Not found' }, 404));
 
-export function attachApi(next: ApiDeps): void {
-  state.deps = next;
-}
-
 export type AppType = typeof routes;
-
-export function createApiState(env: AppEnv): ApiDeps {
-  return {
-    env,
-    sessions: createSessionStore(),
-    items: [],
-    contacts: [],
-  };
-}

@@ -13,12 +13,11 @@ const env = parseEnv({
 });
 
 import { createClient } from '../src/client/api';
-import { nextDelay } from '../src/client/backoff';
 import { shouldHandle, strategy } from '../src/client/cache-policy';
 import { createCaller } from '../src/client/caller';
 import { Hub, memoryCache } from '../src/client/hub';
 import type { FetchLike, HttpResult, ServerMsg } from '../src/client/protocol';
-import { parseFrame, SseParser, sseEvents } from '../src/client/sse';
+import { nextDelay, parseFrame, SseParser, sseEvents } from '../src/client/sse';
 
 const origin = 'http://app.local';
 
@@ -65,7 +64,7 @@ test('caller rejects with the hub error and clears the timeout', async () => {
   const conn = createCaller(fake.port, 50);
   const pending = conn.fetch('http://app.local/api/profile');
   const sent = fake.sent.find((msg) => msg.type === 'http');
-  if (!sent || sent.type !== 'http') throw new Error('missing http call');
+  if (sent?.type !== 'http') throw new Error('missing http call');
   fake.reply({ type: 'http-error', id: sent.id, message: 'boom' });
   await expect(pending).rejects.toThrow('boom');
   fake.reply({
@@ -217,21 +216,16 @@ test('offline GET is the cached response and offline writes fail', async () => {
   hub.stop();
 });
 
-test('a 401 refreshes the session once and a network error does not', async () => {
+test('a 401 logs the hub out and does not create a session', async () => {
   let posts = 0;
-  let authed = false;
   const hub = new Hub({
     origin,
     transport: 'shared-worker',
     fetch: async (input, init) => {
       const url = new URL(String(input));
       const method = init?.method ?? 'GET';
-      if (method === 'POST' && url.pathname === '/api/session') {
-        posts += 1;
-        authed = true;
-        return jsonResponse(url.pathname, method);
-      }
-      if (url.pathname === '/api/profile' && !authed)
+      if (method === 'POST' && url.pathname === '/api/session') posts += 1;
+      if (url.pathname === '/api/profile')
         return new Response('no', { status: 401 });
       return jsonResponse(url.pathname, method);
     },
@@ -242,8 +236,10 @@ test('a 401 refreshes the session once and a network error does not', async () =
     port.push(http('GET', '/api/profile', '1')),
     port.push(http('GET', '/api/profile', '2')),
   ]);
-  expect(posts).toBe(1);
-  expect(tab.messages.some((msg) => msg.type === 'session-lost')).toBe(false);
+  expect(posts).toBe(0);
+  expect(tab.messages.some((msg) => msg.type === 'session-lost')).toBe(true);
+  const snap = tab.messages.filter((msg) => msg.type === 'snapshot').at(-1);
+  expect(snap?.type === 'snapshot' && snap.state.session).toBeNull();
 
   const failing = new Hub({
     origin,
@@ -316,6 +312,16 @@ test('the hub applies a server event without another GET', async () => {
   const dir = await mkdtemp(path.join(tmpdir(), 'riot-hub-'));
   const app = createApp(env, { uploadDir: dir });
   const bridge = bridgeFetch(app);
+  const logged = await app.request('/api/login', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'ada@example.com', password: 'demo' }),
+  });
+  const id = /session=([^;]+)/.exec(
+    logged.headers.get('set-cookie') ?? '',
+  )?.[1];
+  if (!id) throw new Error('missing session');
+  bridge.prime(`session=${id}`);
   const hub = new Hub({
     origin,
     transport: 'shared-worker',
@@ -510,6 +516,9 @@ function bridgeFetch(app: Awaited<ReturnType<typeof createApp>>) {
   return {
     fetch,
     calls,
+    prime(value: string) {
+      cookie = value;
+    },
     get cookie() {
       return cookie;
     },

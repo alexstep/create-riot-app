@@ -6,7 +6,7 @@ import Groups from './components/screens/groups.riot';
 import Settings from './components/screens/settings.riot';
 
 export interface AppScreen {
-  name: 'dashboard' | 'groups' | 'settings' | 'data';
+  name: 'dashboard' | 'groups' | 'settings' | 'records';
   label: string;
   icon: string;
   href: string;
@@ -36,10 +36,10 @@ export const screens: readonly AppScreen[] = [
     component: Settings,
   },
   {
-    name: 'data',
+    name: 'records',
     label: 'Data',
     icon: 'settings.svg',
-    href: '/app/data',
+    href: '/app/records',
     component: Data,
   },
 ];

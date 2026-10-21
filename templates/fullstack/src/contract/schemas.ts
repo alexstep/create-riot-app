@@ -1,4 +1,4 @@
-import { z } from '@hono/zod-openapi';
+import { z } from 'zod';
 
 /** Per-file cap. The route also sets a body limit that includes multipart overhead. */
 export const MAX_FILE_BYTES = 256 * 1024;
@@ -15,85 +15,42 @@ export const ALLOWED_TYPES = [
 
 export type AllowedType = (typeof ALLOWED_TYPES)[number];
 
-export const ErrorBodySchema = z
-  .object({
-    error: z.string(),
-    fields: z.record(z.string(), z.array(z.string())).optional(),
-  })
-  .openapi('ErrorBody');
+export const ErrorBodySchema = z.object({
+  error: z.string(),
+  fields: z.record(z.string(), z.array(z.string())).optional(),
+});
 
-export const UserSchema = z
-  .object({
-    id: z.string(),
-  })
-  .openapi('User');
+export const UserSchema = z.object({
+  id: z.string(),
+});
 
-export const SessionSchema = z
-  .object({
-    user: UserSchema,
-  })
-  .openapi('Session');
+export const SessionSchema = z.object({
+  user: UserSchema,
+});
 
-export const ProfileInputSchema = z
-  .object({
-    name: z.string().trim().min(1, 'Name is required').max(80),
-    email: z.string().trim().email('Enter a valid email').max(120),
-    message: z.string().trim().min(1, 'Message is required').max(500),
-  })
-  .openapi('ProfileInput');
+export const ProfileInputSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required').max(80),
+  email: z.string().trim().email('Enter a valid email').max(120),
+  message: z.string().trim().min(1, 'Message is required').max(500),
+});
 
 export const ProfileSchema = ProfileInputSchema.extend({
   updatedAt: z.number().int(),
   version: z.number().int(),
-}).openapi('Profile');
+});
 
-export const FileMetaSchema = z
-  .object({
-    id: z.string().uuid(),
-    name: z.string(),
-    type: z.string(),
-    size: z.number().int().nonnegative(),
-    createdAt: z.number().int(),
-  })
-  .openapi('FileMeta');
+export const FileMetaSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  type: z.string(),
+  size: z.number().int().nonnegative(),
+  createdAt: z.number().int(),
+});
 
-export const FileListSchema = z
-  .object({
-    files: z.array(FileMetaSchema),
-    version: z.number().int(),
-  })
-  .openapi('FileList');
-
-const FilePartSchema = z
-  .instanceof(File)
-  .refine((file) => file.size > 0, 'File is empty')
-  .refine((file) => file.size <= MAX_FILE_BYTES, 'File exceeds 256 KB')
-  .refine(
-    (file) =>
-      (ALLOWED_TYPES as readonly string[]).includes(mediaType(file.type)),
-    'Unsupported file type',
-  )
-  .openapi({ type: 'string', format: 'binary' });
-
-/**
- * One part arrives as a File. Two or more parts with the same name arrive as
- * File[]. Hono's form parser does that itself. Normalize to an array so the
- * handler has one shape, and document the field as a binary array.
- */
-export const UploadFormSchema = z
-  .object({
-    files: z.preprocess(
-      (value) => {
-        if (value == null) return [];
-        return Array.isArray(value) ? value : [value];
-      },
-      z
-        .array(FilePartSchema)
-        .min(1, 'Choose at least one file')
-        .max(MAX_FILES, 'Too many files'),
-    ),
-  })
-  .openapi('UploadForm');
+export const FileListSchema = z.object({
+  files: z.array(FileMetaSchema),
+  version: z.number().int(),
+});
 
 export const LiveEventSchema = z.discriminatedUnion('type', [
   z.object({
@@ -124,7 +81,6 @@ export type Profile = z.infer<typeof ProfileSchema>;
 export type FileMeta = z.infer<typeof FileMetaSchema>;
 export type FileList = z.infer<typeof FileListSchema>;
 export type LiveEvent = z.infer<typeof LiveEventSchema>;
-export type UploadForm = z.infer<typeof UploadFormSchema>;
 
 /** `text/plain;charset=utf-8` (Bun's multipart parser) is the same type as `text/plain`. */
 export function mediaType(type: string): string {

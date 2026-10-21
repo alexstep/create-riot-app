@@ -23,9 +23,4 @@ The menu opens from the button on the left. On a phone it can be pulled in with 
 
 The default theme follows `prefers-color-scheme`. On Settings, the Light / Dark / System switch stores the choice in `localStorage` and sets `data-theme` on `<html>`.
 
-The image builds the client and serves `dist/` with Bun. Hashed files under `/assets/` are immutable. Other routes fall back to `index.html`.
-
-```bash
-docker build -t riot-spa .
-docker run --rm -p 4173:4173 -e PORT=4173 riot-spa
-```
+Serve the production build locally with `bun run preview`. A container image is not included: a standalone Bun binary is still too large to be a small static image.

@@ -12,16 +12,23 @@ const env = parseEnv({
   PORT: '3000',
 });
 
-async function boot() {
+async function boot(email = 'ada@example.com') {
   const dir = await mkdtemp(path.join(tmpdir(), 'riot-uploads-'));
   const app = createApp(env, { uploadDir: dir });
-  const login = await app.request('/api/session', {
+  const cookie = await login(app, email);
+  return { app, dir, cookie };
+}
+
+async function login(
+  app: ReturnType<typeof createApp>,
+  email: string,
+): Promise<string> {
+  const response = await app.request('/api/login', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: '{}',
+    body: JSON.stringify({ email, password: 'demo' }),
   });
-  const cookie = cookieHeader(login.headers.get('set-cookie'));
-  return { app, dir, cookie };
+  return cookieHeader(response.headers.get('set-cookie'));
 }
 
 function cookieHeader(setCookie: string | null): string {
@@ -29,6 +36,64 @@ function cookieHeader(setCookie: string | null): string {
   if (!sid) throw new Error('session cookie missing');
   return `session=${sid}`;
 }
+
+test('users do not see each others profile, files, or events', async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), 'riot-uploads-'));
+  const app = createApp(env, { uploadDir: dir });
+  const alice = await login(app, 'alice@example.com');
+  const bob = await login(app, 'bob@example.com');
+  const saved = await app.request('/api/profile', {
+    method: 'PUT',
+    headers: { cookie: alice, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Alice',
+      email: 'alice@example.com',
+      message: 'Private',
+    }),
+  });
+  expect(saved.status).toBe(200);
+  const form = new FormData();
+  form.append('files', new File(['alice'], 'note.txt', { type: 'text/plain' }));
+  const uploaded = await app.request('/api/uploads', {
+    method: 'POST',
+    body: form,
+    headers: { cookie: alice },
+  });
+  expect(uploaded.status).toBe(201);
+  const file = (await uploaded.json()).files[0];
+  expect(
+    (await app.request('/api/profile', { headers: { cookie: bob } })).status,
+  ).toBe(404);
+  const bobList = await app.request('/api/uploads', {
+    headers: { cookie: bob },
+  });
+  expect((await bobList.json()).files).toEqual([]);
+  expect(
+    (await app.request(`/api/uploads/${file.id}`, { headers: { cookie: bob } }))
+      .status,
+  ).toBe(404);
+  const stream = await app.request('/api/events', {
+    headers: { cookie: bob, accept: 'text/event-stream' },
+  });
+  const reader = stream.body?.getReader();
+  if (!reader) throw new Error('no body');
+  await reader.read();
+  await app.request('/api/profile', {
+    method: 'PUT',
+    headers: { cookie: alice, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Alice',
+      email: 'alice@example.com',
+      message: 'Again',
+    }),
+  });
+  const next = await Promise.race([
+    reader.read().then(() => 'event'),
+    new Promise((resolve) => setTimeout(() => resolve('quiet'), 40)),
+  ]);
+  expect(next).toBe('quiet');
+  await reader.cancel();
+});
 
 test('profile validation errors are per field', async () => {
   const { app, cookie } = await boot();
@@ -90,12 +155,12 @@ test('upload accepts one file and several, and ignores the client path', async (
   expect(body.files[0].name).toBe('passwd.txt');
   expect(body.files[1].name).toBe('photo.png');
   expect(body.files[0].name).not.toContain('/');
-  const names = await readdir(dir);
-  expect(
-    names
-      .filter((name) => name !== 'manifest.json')
-      .every((name) => /^[0-9a-f-]+\.(txt|png)$/i.test(name)),
-  ).toBe(true);
+  const names = await walkFiles(dir);
+  expect(names.some((name) => name.endsWith('.txt'))).toBe(true);
+  expect(names.some((name) => name.endsWith('.png'))).toBe(true);
+  expect(names.every((name) => /^[0-9a-f-]+\.(txt|png)$/i.test(name))).toBe(
+    true,
+  );
   expect(await readFile(outside, 'utf8')).toBe('secret');
 
   const list = await app.request('/api/uploads', { headers: { cookie } });
@@ -273,12 +338,7 @@ test('sse delivers a profile edit and a resync when the cursor is stale', async 
 test('a cursor older than the ring buffer asks the client to resync', async () => {
   const dir = await mkdtemp(path.join(tmpdir(), 'riot-uploads-'));
   const app = createApp(env, { uploadDir: dir });
-  const login = await app.request('/api/session', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: '{}',
-  });
-  const cookie = cookieHeader(login.headers.get('set-cookie'));
+  const cookie = await login(app, 'ada@example.com');
   // Fill past the buffer by publishing through profile saves. The bus limit is 100.
   for (let i = 0; i < 105; i++) {
     const res = await app.request('/api/profile', {
@@ -303,6 +363,17 @@ test('a cursor older than the ring buffer asks the client to resync', async () =
   await reader.cancel();
   expect(await stat(dir)).toBeTruthy();
 });
+
+async function walkFiles(dir: string): Promise<string[]> {
+  const found: string[] = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    if (entry.name === 'manifest.json') continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) found.push(...(await walkFiles(full)));
+    else found.push(entry.name);
+  }
+  return found;
+}
 
 function pngBytes(): ArrayBuffer {
   return Uint8Array.from([

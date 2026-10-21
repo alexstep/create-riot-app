@@ -56,7 +56,7 @@ The browser talks to this server only through `src/client/api.ts`. See [Data lay
 
 In development and test the docs are public. In production they answer 404 until both `DOCS_USER` and `DOCS_PASSWORD` are set. Those two values turn on HTTP basic auth for `/api/docs` and `/api/openapi.json`.
 
-Sessions are in memory. The cookie is `httpOnly`, `SameSite=Lax`, and `Secure` in production. `SESSION_SECRET` signs the cookie value. `DEMO_PASSWORD` is the only accepted password for the login form. Login is limited to 5 attempts per minute per client. A mutation with a foreign `Origin`, or with `Sec-Fetch-Site` other than `same-origin` or `none`, is rejected. curl and the tests send neither header, so they still work. `POST /api/session` with `{}` opens a demo session for the hub; the login form remains the way a person signs in.
+Sessions are in memory. The cookie is `httpOnly`, `SameSite=Lax`, and `Secure` in production. `SESSION_SECRET` signs the cookie value. `DEMO_PASSWORD` is the only accepted password for the login form. Login is limited to 5 attempts per minute per client. A mutation with a foreign `Origin`, or with `Sec-Fetch-Site` other than `same-origin` or `none`, is rejected. curl and the tests send neither header, so they still work. The hub never signs a person in. A 401 clears the cached session and tells every tab. The login form is the only way to start a session. Profile, files, and the event stream belong to that user.
 
 ## Data layer
 
@@ -78,7 +78,7 @@ Development is one Vite process on port 3000. The `dev` script runs Vite's JavaS
 
 ## Deploy
 
-Ship the Bun process. `bun run build` writes `dist/client` and `dist/server`. `bun run start` runs `dist/server/index.js` on `PORT` (3000) and listens on every interface. Set `SESSION_SECRET`, `DEMO_PASSWORD`, and, when the site has a public https origin, `PUBLIC_ORIGIN` (canonical URLs, and HSTS only then). The process exits if the environment does not match the schema.
+Ship the Bun process. `bun run build` writes `dist/client` and `dist/server`. `bun run start` runs `dist/server/index.js` on `PORT` (3000) and listens on every interface. Set `SESSION_SECRET`, `DEMO_PASSWORD`, and `PUBLIC_ORIGIN`. Production refuses to boot without `PUBLIC_ORIGIN`. HSTS is sent only when that origin is `https`. The process exits if the environment does not match the schema.
 
 `GET /api/health` returns `{ "ok": true }` with no session. Use it for a process check.
 
@@ -88,6 +88,7 @@ Ship the Bun process. `bun run build` writes `dist/client` and `dist/server`. `b
 docker build -t riot-app .
 docker run --rm -p 3000:3000 \
   -e PORT=3000 \
+  -e PUBLIC_ORIGIN=http://localhost:3000 \
   -e SESSION_SECRET=replace-me-with-a-long-random-string \
   -e DEMO_PASSWORD=demo \
   riot-app
@@ -98,6 +99,7 @@ Scalar stays off in that container until both docs variables are set. Then basic
 ```bash
 docker run --rm -p 3000:3000 \
   -e PORT=3000 \
+  -e PUBLIC_ORIGIN=http://localhost:3000 \
   -e SESSION_SECRET=replace-me-with-a-long-random-string \
   -e DEMO_PASSWORD=demo \
   -e DOCS_USER=docs \

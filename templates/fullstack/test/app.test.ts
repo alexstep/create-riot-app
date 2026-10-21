@@ -1,7 +1,10 @@
 import { describe, expect, test } from 'bun:test';
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createApp } from '../src/server/app';
 import { parseEnv } from '../src/server/env';
-import { resolveStatic } from '../src/server/static';
+import { isApiPath, isCabinetPath, resolveStatic } from '../src/server/static';
 
 const env = parseEnv({
   SESSION_SECRET: 'test-session-secret-value',
@@ -50,11 +53,14 @@ describe('pages', () => {
     const robots = await (
       await app.request('http://localhost/robots.txt')
     ).text();
+    expect(robots).toContain('Disallow: /app');
+    expect(robots).toContain('Disallow: /api');
     expect(robots).toContain('Sitemap: http://localhost/sitemap.xml');
     const site = await (
       await app.request('http://localhost/sitemap.xml')
     ).text();
     expect(site).toContain('http://localhost/about');
+    expect(site).not.toContain('/login');
   });
 });
 
@@ -238,4 +244,52 @@ describe('static files', () => {
     expect(resolveStatic('/tmp/assets', '/../etc/passwd')).toBeNull();
     expect(resolveStatic('/tmp/assets', '/..%2F..%2Fetc/passwd')).toBeNull();
   });
+
+  test('api and cabinet prefixes do not swallow shell files', () => {
+    expect(isApiPath('/api')).toBe(true);
+    expect(isApiPath('/api/me')).toBe(true);
+    expect(isApiPath('/apple-touch-icon.png')).toBe(false);
+    expect(isCabinetPath('/app')).toBe(true);
+    expect(isCabinetPath('/app/dashboard')).toBe(true);
+    expect(isCabinetPath('/app.html')).toBe(false);
+  });
+
+  test('every precached shell file is served and the vite manifest is not', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'riot-static-'));
+    const uploads = await mkdtemp(join(tmpdir(), 'riot-uploads-'));
+    await mkdir(join(root, 'assets'), { recursive: true });
+    await mkdir(join(root, '.vite'), { recursive: true });
+    const files = [
+      '/app.html',
+      '/offline.html',
+      '/apple-touch-icon.png',
+      '/assets/app.js',
+    ];
+    for (const file of files) {
+      await writeFile(join(root, file.slice(1)), 'ok');
+    }
+    await writeFile(join(root, '.vite/manifest.json'), '{}');
+    const served = createApp(
+      { ...env, NODE_ENV: 'production', PUBLIC_ORIGIN: 'https://example.com' },
+      { staticRoot: root, uploadDir: uploads },
+    );
+    for (const file of files) {
+      expect((await served.request(`http://localhost${file}`)).status).toBe(
+        200,
+      );
+    }
+    expect(
+      (await served.request('http://localhost/.vite/manifest.json')).status,
+    ).toBe(404);
+  });
+});
+
+test('production requires PUBLIC_ORIGIN', () => {
+  expect(() =>
+    parseEnv({
+      SESSION_SECRET: 'test-session-secret-value',
+      DEMO_PASSWORD: 'demo',
+      NODE_ENV: 'production',
+    }),
+  ).toThrow(/PUBLIC_ORIGIN/);
 });

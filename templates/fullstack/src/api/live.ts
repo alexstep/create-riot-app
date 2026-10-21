@@ -1,58 +1,120 @@
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createRoute, z } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 import { streamSSE } from 'hono/streaming';
 import {
+  ALLOWED_TYPES,
   ErrorBodySchema,
   FileListSchema,
   LiveEventSchema,
   MAX_BODY_BYTES,
+  MAX_FILE_BYTES,
+  MAX_FILES,
   mediaType,
   type Profile,
   ProfileInputSchema,
   ProfileSchema,
   SessionSchema,
-  UploadFormSchema,
 } from '../contract/schemas';
 import { EventBus } from '../server/bus';
 import type { AppEnv } from '../server/env';
 import { contentDisposition, matchesType, UploadStore } from '../server/files';
 import { csrfOk } from '../server/security';
 import {
+  createSessionStore,
   type SessionStore,
   type SessionUser,
   sessionIdFrom,
-  writeSessionCookie,
 } from './session';
 
-type LiveState = {
-  env: AppEnv;
-  sessions: SessionStore;
-  bus: EventBus;
-  uploads: UploadStore;
+const FilePartSchema = z
+  .instanceof(File)
+  .refine((file) => file.size > 0, 'File is empty')
+  .refine((file) => file.size <= MAX_FILE_BYTES, 'File exceeds 256 KB')
+  .refine(
+    (file) =>
+      (ALLOWED_TYPES as readonly string[]).includes(mediaType(file.type)),
+    'Unsupported file type',
+  )
+  .openapi({ type: 'string', format: 'binary' });
+
+const UploadFormSchema = z
+  .object({
+    files: z.preprocess(
+      (value) => {
+        if (value == null) return [];
+        return Array.isArray(value) ? value : [value];
+      },
+      z
+        .array(FilePartSchema)
+        .min(1, 'Choose at least one file')
+        .max(MAX_FILES, 'Too many files'),
+    ),
+  })
+  .openapi('UploadForm');
+
+type ItemRecord = { id: string; title: string };
+
+type UserRecord = {
   profile: Profile | null;
+  items: ItemRecord[];
+  uploads: UploadStore;
+  bus: EventBus;
 };
 
-const state: { current?: LiveState } = {};
+type AppStore = {
+  env: AppEnv;
+  sessions: SessionStore;
+  contacts: { id: string; email: string; message: string }[];
+  users: Map<string, UserRecord>;
+  uploadRoot: string;
+};
 
-export function attachLive(
-  env: AppEnv,
-  sessions: SessionStore,
-  uploadDir: string,
-): void {
-  state.current = {
+const state: { current?: AppStore } = {};
+
+export function attachLive(env: AppEnv, uploadDir: string): AppStore {
+  const current: AppStore = {
     env,
-    sessions,
-    bus: new EventBus(),
-    uploads: new UploadStore(uploadDir),
-    profile: null,
+    sessions: createSessionStore(),
+    contacts: [],
+    users: new Map(),
+    uploadRoot: uploadDir,
   };
+  state.current = current;
+  return current;
 }
 
-function live(): LiveState {
-  if (!state.current) throw new Error('Live state is not attached');
+export function storeDeps(): AppStore {
+  if (!state.current) throw new Error('API state is not attached');
   return state.current;
+}
+
+function live(): AppStore {
+  return storeDeps();
+}
+
+function userKey(email: string): string {
+  return createHash('sha256').update(email).digest('hex').slice(0, 24);
+}
+
+function record(email: string): UserRecord {
+  const current = live();
+  const found = current.users.get(email);
+  if (found) return found;
+  const created: UserRecord = {
+    profile: null,
+    items: [],
+    uploads: new UploadStore(resolve(current.uploadRoot, userKey(email))),
+    bus: new EventBus(),
+  };
+  current.users.set(email, created);
+  return created;
+}
+
+export function itemsOf(email: string): ItemRecord[] {
+  return record(email).items;
 }
 
 function userOf(c: Context): SessionUser | null {
@@ -60,41 +122,24 @@ function userOf(c: Context): SessionUser | null {
   return current.sessions.read(sessionIdFrom(c, current.env.SESSION_SECRET));
 }
 
-function mark(c: Context, topic?: string, version?: number): void {
-  c.header('X-Cursor', String(live().bus.current()));
+function mark(
+  c: Context,
+  data: UserRecord | null,
+  topic?: string,
+  version?: number,
+): void {
+  c.header('X-Cursor', String(data?.bus.current() ?? 0));
   if (topic) c.header('X-Topic', topic);
   if (version != null) c.header('X-Version', String(version));
 }
 
 function blocked(c: Context) {
   if (!csrfOk(c)) {
-    mark(c);
+    mark(c, null);
     return c.json({ error: 'Cross-site request blocked' }, 403);
   }
   return null;
 }
-
-export const sessionPost = createRoute({
-  method: 'post',
-  path: '/session',
-  tags: ['session'],
-  request: {
-    body: {
-      required: true,
-      content: { 'application/json': { schema: z.object({}).strict() } },
-    },
-  },
-  responses: {
-    200: {
-      description: 'Session',
-      content: { 'application/json': { schema: SessionSchema } },
-    },
-    403: {
-      description: 'CSRF',
-      content: { 'application/json': { schema: ErrorBodySchema } },
-    },
-  },
-});
 
 export const sessionGet = createRoute({
   method: 'get',
@@ -260,58 +305,50 @@ export const eventsRoute = createRoute({
   },
 });
 
-export function handleSessionPost(c: Context) {
-  const denied = blocked(c);
-  if (denied) return denied;
-  const current = live();
-  const email = 'demo@example.com';
-  const id = current.sessions.login(email);
-  writeSessionCookie(c, current.env, id);
-  mark(c, 'session', current.bus.current());
-  return c.json({ user: { id: email } }, 200);
-}
-
 export function handleSessionGet(c: Context) {
   const user = userOf(c);
   if (!user) {
-    mark(c);
+    mark(c, null);
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  mark(c, 'session', live().bus.current());
+  const data = record(user.email);
+  mark(c, data, 'session', data.bus.current());
   return c.json({ user: { id: user.email } }, 200);
 }
 
 export function handleProfileGet(c: Context) {
-  const current = live();
-  if (!userOf(c)) {
-    mark(c);
+  const user = userOf(c);
+  if (!user) {
+    mark(c, null);
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  if (!current.profile) {
-    mark(c);
+  const data = record(user.email);
+  if (!data.profile) {
+    mark(c, data);
     return c.json({ error: 'No profile yet' }, 404);
   }
-  mark(c, 'profile', current.profile.version);
-  return c.json(current.profile, 200);
+  mark(c, data, 'profile', data.profile.version);
+  return c.json(data.profile, 200);
 }
 
 export async function handleProfilePut(c: Context) {
   const denied = blocked(c);
   if (denied) return denied;
-  if (!userOf(c)) {
-    mark(c);
+  const user = userOf(c);
+  if (!user) {
+    mark(c, null);
     return c.json({ error: 'Unauthorized' }, 401);
   }
   const input = ProfileInputSchema.parse(await c.req.json());
-  const current = live();
-  const event = current.bus.publish({
+  const data = record(user.email);
+  const event = data.bus.publish({
     type: 'profile',
     version: 0,
     profile: { ...input, updatedAt: Date.now(), version: 0 },
   });
   if (event.type !== 'profile') throw new Error('Expected a profile event');
-  current.profile = event.profile;
-  mark(c, 'profile', event.version);
+  data.profile = event.profile;
+  mark(c, data, 'profile', event.version);
   return c.json(event.profile, 200);
 }
 
@@ -328,18 +365,19 @@ export async function handleUploadPost(c: Context) {
   }
   const denied = blocked(c);
   if (denied) return denied;
-  if (!userOf(c)) {
-    mark(c);
+  const user = userOf(c);
+  if (!user) {
+    mark(c, null);
     return c.json({ error: 'Unauthorized' }, 401);
   }
+  const data = record(user.email);
   const { files } = UploadFormSchema.parse(
     await c.req.parseBody({ all: true }),
   );
-  const current = live();
   for (const file of files) {
     const bytes = new Uint8Array(await file.arrayBuffer());
     if (!matchesType(bytes, mediaType(file.type))) {
-      mark(c);
+      mark(c, data);
       return c.json(
         {
           error: 'File contents do not match its type',
@@ -350,47 +388,50 @@ export async function handleUploadPost(c: Context) {
     }
   }
   for (const file of files) {
-    const result = await current.uploads.save(file);
+    const result = await data.uploads.save(file);
     if ('error' in result) {
-      mark(c);
+      mark(c, data);
       return c.json(
         { error: result.error, fields: { files: [result.error] } },
         400,
       );
     }
   }
-  const event = current.bus.publish({
+  const event = data.bus.publish({
     type: 'uploads',
     version: 0,
-    files: current.uploads.files,
+    files: data.uploads.files,
   });
-  current.uploads.version = event.version;
-  mark(c, 'uploads', event.version);
-  return c.json({ files: current.uploads.files, version: event.version }, 201);
+  data.uploads.version = event.version;
+  mark(c, data, 'uploads', event.version);
+  return c.json({ files: data.uploads.files, version: event.version }, 201);
 }
 
 export function handleUploadList(c: Context) {
-  const current = live();
-  if (!userOf(c)) {
-    mark(c);
+  const user = userOf(c);
+  if (!user) {
+    mark(c, null);
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  mark(c, 'uploads', current.uploads.version);
+  const data = record(user.email);
+  mark(c, data, 'uploads', data.uploads.version);
   return c.json(
-    { files: current.uploads.files, version: current.uploads.version },
+    { files: data.uploads.files, version: data.uploads.version },
     200,
   );
 }
 
 export async function handleUploadGet(c: Context) {
-  if (!userOf(c)) {
-    mark(c);
+  const user = userOf(c);
+  if (!user) {
+    mark(c, null);
     return c.json({ error: 'Unauthorized' }, 401);
   }
+  const data = record(user.email);
   const id = c.req.param('id') ?? '';
-  const found = live().uploads.filePath(id);
+  const found = data.uploads.filePath(id);
   if (!found) {
-    mark(c);
+    mark(c, data);
     return c.json({ error: 'Not found' }, 404);
   }
   const bytes = await readFile(found.path);
@@ -414,14 +455,15 @@ export function mountEvents(api: {
   if (eventsMounted) return;
   eventsMounted = true;
   api.openapi(eventsRoute, (c) => {
-    if (!userOf(c)) {
-      mark(c);
+    const user = userOf(c);
+    if (!user) {
+      mark(c, null);
       return c.json({ error: 'Unauthorized' }, 401);
     }
+    const data = record(user.email);
     const raw = c.req.header('last-event-id') ?? c.req.query('cursor') ?? '0';
     const cursor = Number(raw);
     const from = Number.isFinite(cursor) ? cursor : 0;
-    const current = live();
     return streamSSE(c, async (stream) => {
       let closed = false;
       stream.onAbort(() => {
@@ -429,8 +471,8 @@ export function mountEvents(api: {
       });
       c.header('Cache-Control', 'no-cache');
       c.header('X-Accel-Buffering', 'no');
-      if (current.bus.gap(from)) {
-        const version = current.bus.current();
+      if (data.bus.gap(from)) {
+        const version = data.bus.current();
         await stream.writeSSE({
           id: String(version),
           event: 'resync',
@@ -438,7 +480,7 @@ export function mountEvents(api: {
           retry: 1000,
         });
       } else {
-        for (const event of current.bus.replay(from)) {
+        for (const event of data.bus.replay(from)) {
           await stream.writeSSE({
             id: String(event.version),
             event: event.type,
@@ -448,7 +490,7 @@ export function mountEvents(api: {
       }
       await stream.write(': ready\n\n');
       await new Promise<void>((done) => {
-        const unsubscribe = current.bus.subscribe(async (event) => {
+        const unsubscribe = data.bus.subscribe(async (event) => {
           if (closed) return;
           try {
             await stream.writeSSE({

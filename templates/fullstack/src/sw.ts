@@ -62,16 +62,18 @@ async function networkFirst(request: Request): Promise<Response> {
   const cache = await caches.open(CACHE);
   try {
     const fresh = await fetch(request);
-    if (request.mode === 'navigate') {
+    if (request.mode === 'navigate' && fresh.ok && !fresh.redirected) {
       const path = new URL(request.url).pathname;
-      const key = path.startsWith('/app') ? '/app.html' : request;
+      const key =
+        path === '/app' || path.startsWith('/app/') ? '/app.html' : request;
       await cache.put(key, fresh.clone());
     }
     return fresh;
   } catch {
     const path = new URL(request.url).pathname;
     const cached = await cache.match(
-      request.mode === 'navigate' && path.startsWith('/app')
+      request.mode === 'navigate' &&
+        (path === '/app' || path.startsWith('/app/'))
         ? '/app.html'
         : request,
     );
@@ -91,6 +93,6 @@ async function cacheFirst(request: Request): Promise<Response> {
   const cached = await cache.match(request);
   if (cached) return cached;
   const fresh = await fetch(request);
-  if (fresh.ok) await cache.put(request, fresh.clone());
+  if (fresh.ok && !fresh.redirected) await cache.put(request, fresh.clone());
   return fresh;
 }

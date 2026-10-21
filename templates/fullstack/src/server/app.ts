@@ -7,7 +7,7 @@ import { bodyLimit } from 'hono/body-limit';
 import { HTTPException } from 'hono/http-exception';
 import { secureHeaders } from 'hono/secure-headers';
 import { attachLive, defaultUploadDir, mountEvents } from '../api/live';
-import { attachApi, createApiState, routes } from '../api/routes';
+import { routes } from '../api/routes';
 import { sessionIdFrom } from '../api/session';
 import { MAX_BODY_BYTES } from '../contract/schemas';
 import About from '../pages/about.riot';
@@ -16,7 +16,12 @@ import Login from '../pages/login.riot';
 import { type AppEnv, parseEnv } from './env';
 import { renderPage } from './html';
 import { csrfOk } from './security';
-import { resolveStatic, staticResponse } from './static';
+import {
+  isApiPath,
+  isCabinetPath,
+  resolveStatic,
+  staticResponse,
+} from './static';
 
 const scalarCss = `
 :root {
@@ -86,11 +91,9 @@ function spaHtml(env: AppEnv): string {
 
 export function createApp(
   env: AppEnv = parseEnv(),
-  options?: { uploadDir?: string },
+  options?: { uploadDir?: string; staticRoot?: string },
 ) {
-  const state = createApiState(env);
-  attachApi(state);
-  attachLive(env, state.sessions, options?.uploadDir ?? defaultUploadDir());
+  const state = attachLive(env, options?.uploadDir ?? defaultUploadDir());
   mountEvents(routes);
   const api = routes;
   const app = new Hono();
@@ -148,13 +151,15 @@ export function createApp(
   app.get('/robots.txt', (c) => {
     const origin =
       env.PUBLIC_ORIGIN?.replace(/\/$/, '') || new URL(c.req.url).origin;
-    return c.text(`User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`);
+    return c.text(
+      `User-agent: *\nAllow: /\nDisallow: /app\nDisallow: /api\nSitemap: ${origin}/sitemap.xml\n`,
+    );
   });
 
   app.get('/sitemap.xml', (c) => {
     const origin =
       env.PUBLIC_ORIGIN?.replace(/\/$/, '') || new URL(c.req.url).origin;
-    const urls = ['/', '/about', '/login']
+    const urls = ['/', '/about']
       .map((path) => `<url><loc>${origin}${path}</loc></url>`)
       .join('');
     c.header('Content-Type', 'application/xml; charset=utf-8');
@@ -166,10 +171,9 @@ export function createApp(
 
   if (env.NODE_ENV === 'production') {
     app.use('*', async (c, next) => {
-      if (c.req.path.startsWith('/api') || c.req.path.startsWith('/app'))
-        return next();
+      if (isApiPath(c.req.path) || isCabinetPath(c.req.path)) return next();
       const file = resolveStatic(
-        resolve(process.cwd(), 'dist/client'),
+        options?.staticRoot ?? resolve(process.cwd(), 'dist/client'),
         c.req.path,
       );
       if (!file) return next();
@@ -248,8 +252,7 @@ export function createApp(
   });
 
   app.notFound((c) => {
-    if (c.req.path.startsWith('/api'))
-      return c.json({ error: 'Not found' }, 404);
+    if (isApiPath(c.req.path)) return c.json({ error: 'Not found' }, 404);
     return c.text('Not found', 404);
   });
 

@@ -3,10 +3,21 @@
   z-index: 9;
   top: 0;
   left: 0;
-  width: 50px;
+  width: 16px;
   height: calc(100vh + 100px);
   background: transparent;
   touch-action: pan-y;
+  pointer-events: none;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 16px;
+    height: 100%;
+    pointer-events: auto;
+  }
 
   .toggle-drawer {
     position: absolute;
@@ -16,6 +27,7 @@
     display: block;
     width: 58px;
     height: 58px;
+    pointer-events: auto;
 
     &:before,
     &:after,
@@ -47,6 +59,11 @@
         transparent 0%
       );
     }
+  }
+
+  &.show .drawer-overlay,
+  &.show #drawer {
+    pointer-events: auto;
   }
 
   .drawer-overlay {

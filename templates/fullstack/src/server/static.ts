@@ -22,6 +22,14 @@ function contentType(file: string): string {
   return types[dot] ?? 'application/octet-stream';
 }
 
+export function isApiPath(path: string): boolean {
+  return path === '/api' || path.startsWith('/api/');
+}
+
+export function isCabinetPath(path: string): boolean {
+  return path === '/app' || path.startsWith('/app/');
+}
+
 export function resolveStatic(root: string, urlPath: string): string | null {
   let decoded = urlPath;
   try {
@@ -30,6 +38,7 @@ export function resolveStatic(root: string, urlPath: string): string | null {
     return null;
   }
   if (!decoded.startsWith('/')) return null;
+  if (decoded === '/.vite' || decoded.startsWith('/.vite/')) return null;
   const base = resolve(root);
   const full = resolve(base, `.${decoded}`);
   if (full !== base && !full.startsWith(`${base}${sep}`)) return null;

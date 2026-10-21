@@ -1,13 +1,5 @@
-import { z } from 'zod';
-import {
-  FileMetaSchema,
-  type LiveEvent,
-  LiveEventSchema,
-  ProfileSchema,
-  UserSchema,
-} from '../contract/schemas';
-import { nextDelay } from './backoff';
-import { bytesBody } from './bytes';
+import type { FileMeta, LiveEvent, Profile, User } from '../contract/schemas';
+import { bytesBody } from './caller';
 import type {
   ClientMsg,
   FetchLike,
@@ -18,7 +10,7 @@ import type {
   TopicView,
   TransportName,
 } from './protocol';
-import { SessionError } from './sse';
+import { nextDelay, SessionError } from './sse';
 import {
   type UploadRequest,
   type UploadResponse,
@@ -80,7 +72,6 @@ export class Hub {
   private online = true;
   private stopped = false;
   private lost = false;
-  private sessionFlight: Promise<boolean> | null = null;
   private eventsAbort = new AbortController();
   private heart: ReturnType<typeof setInterval> | null = null;
 
@@ -183,9 +174,9 @@ export class Hub {
   }
 
   snapshot(): Snapshot {
-    const profile = this.view('profile', ProfileSchema);
-    const uploads = this.view('uploads', z.array(FileMetaSchema));
-    const session = this.view('session', UserSchema);
+    const profile = this.view<Profile>('profile');
+    const uploads = this.view<FileMeta[]>('uploads');
+    const session = this.view<User>('session');
     const times = [profile?.storedAt, uploads?.storedAt].filter(
       (value): value is number => value != null,
     );
@@ -290,17 +281,9 @@ export class Hub {
     url: string,
     headers: [string, string][],
     body: Uint8Array | null,
-    attempt = 0,
   ): Promise<HttpResult> {
     const result = await this.send(method, url, headers, body);
-    const path = new URL(url).pathname;
-    if (result.status === 401 && path !== '/api/session') {
-      if (attempt === 0) {
-        const ok = await this.refreshSession();
-        if (ok) return this.network(method, url, headers, body, 1);
-      }
-      this.tellSessionLost();
-    }
+    if (result.status === 401) this.dropSession();
     this.broadcast();
     return result;
   }
@@ -328,24 +311,15 @@ export class Hub {
       [],
       null,
     );
-    if (result.status === 401) await this.refreshSession();
+    if (result.status === 401) this.dropSession();
   }
 
-  private refreshSession(): Promise<boolean> {
-    this.sessionFlight ??= this.postSession().finally(() => {
-      this.sessionFlight = null;
-    });
-    return this.sessionFlight;
-  }
-
-  private async postSession(): Promise<boolean> {
-    const result = await this.send(
-      'POST',
-      new URL('/api/session', this.origin).href,
-      [['content-type', 'application/json']],
-      new TextEncoder().encode('{}'),
-    );
-    return result.status >= 200 && result.status < 300;
+  private dropSession(): void {
+    this.topics.delete('session');
+    this.topics.delete('profile');
+    this.topics.delete('uploads');
+    this.tellSessionLost();
+    this.broadcast();
   }
 
   private async refetch(topics: Array<'profile' | 'uploads'>): Promise<void> {
@@ -439,11 +413,10 @@ export class Hub {
     version: number,
     data: unknown,
   ): boolean {
-    const parsed = schemaFor(topic).safeParse(data);
-    if (!parsed.success) return false;
+    if (!topicDataOk(topic, data)) return false;
     const current = this.topics.get(topic);
     if (current && version <= current.version) return false;
-    const stored: Stored = { version, storedAt: this.now(), data: parsed.data };
+    const stored: Stored = { version, storedAt: this.now(), data };
     this.topics.set(topic, stored);
     void this.cache?.write(topic, stored);
     void this.cache?.writeCursor(Math.max(this.cursor, version));
@@ -499,10 +472,9 @@ export class Hub {
       try {
         for await (const event of this.events(cursor, signal)) {
           attempt = 0;
-          const parsed = LiveEventSchema.safeParse(event);
-          if (!parsed.success) continue;
-          this.apply(parsed.data);
-          cursor = Math.max(cursor, parsed.data.version);
+          if (!isLiveEvent(event)) continue;
+          this.apply(event);
+          cursor = Math.max(cursor, event.version);
         }
         if (this.stopped) return;
       } catch (error) {
@@ -510,10 +482,7 @@ export class Hub {
           if (this.stopped) return;
           continue;
         }
-        if (error instanceof SessionError) {
-          const ok = await this.refreshSession();
-          if (!ok) this.tellSessionLost();
-        }
+        if (error instanceof SessionError) this.dropSession();
       }
       await this.sleep(nextDelay(attempt));
       attempt += 1;
@@ -530,20 +499,18 @@ export class Hub {
     for (const topic of ['session', 'profile', 'uploads'] as const) {
       const stored = await this.cache.read(topic);
       if (!stored) continue;
-      if (!schemaFor(topic).safeParse(stored.data).success) continue;
+      if (!topicDataOk(topic, stored.data)) continue;
       this.topics.set(topic, stored);
       this.cursor = Math.max(this.cursor, stored.version);
     }
     this.cursor = Math.max(this.cursor, await this.cache.readCursor());
   }
 
-  private view<T>(topic: TopicName, schema: z.ZodType<T>): TopicView<T> | null {
+  private view<T>(topic: TopicName): TopicView<T> | null {
     const stored = this.topics.get(topic);
-    if (!stored) return null;
-    const parsed = schema.safeParse(stored.data);
-    if (!parsed.success) return null;
+    if (!stored || !topicDataOk(topic, stored.data)) return null;
     return {
-      data: parsed.data,
+      data: stored.data as T,
       version: stored.version,
       storedAt: stored.storedAt,
     };
@@ -616,10 +583,28 @@ export class Hub {
   }
 }
 
-function schemaFor(topic: TopicName): z.ZodType {
-  if (topic === 'profile') return ProfileSchema;
-  if (topic === 'uploads') return z.array(FileMetaSchema);
-  return UserSchema;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object';
+}
+
+function topicDataOk(topic: TopicName, data: unknown): boolean {
+  if (topic === 'uploads') return Array.isArray(data);
+  if (!isRecord(data)) return false;
+  if (topic === 'session') return typeof data.id === 'string';
+  return (
+    typeof data.name === 'string' &&
+    typeof data.email === 'string' &&
+    typeof data.message === 'string'
+  );
+}
+
+export function isLiveEvent(value: unknown): value is LiveEvent {
+  if (!isRecord(value) || typeof value.version !== 'number') return false;
+  if (value.type === 'resync') return true;
+  if (value.type === 'invalidate') return Array.isArray(value.topics);
+  if (value.type === 'uploads') return Array.isArray(value.files);
+  if (value.type === 'profile') return topicDataOk('profile', value.profile);
+  return false;
 }
 
 function topicFor(pathname: string): TopicName | null {

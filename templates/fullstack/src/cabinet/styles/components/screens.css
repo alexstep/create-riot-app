@@ -1,3 +1,66 @@
+.screen-data,
+.screen-dashboard {
+  input,
+  textarea,
+  button {
+    font: inherit;
+    border: 1px solid var(--switch-border);
+    border-radius: 2px;
+    background: var(--switch-bg);
+    color: var(--switch-text);
+    padding: 8px 12px;
+  }
+
+  button {
+    cursor: pointer;
+    background: var(--main-bg);
+    border-color: var(--main-bg);
+    color: var(--text-on-main);
+  }
+
+  label {
+    display: grid;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+}
+
+.screen-data {
+  .data-layer {
+    display: grid;
+    gap: 16px;
+    max-width: 720px;
+    margin: 24px auto;
+    padding: 0 16px 48px;
+  }
+
+  .panel {
+    background: var(--card-bg);
+    color: var(--card-text);
+    padding: 16px;
+    border-radius: 4px;
+  }
+
+  .error {
+    color: #9f1239;
+  }
+
+  .banner {
+    background: var(--header-bg);
+    color: var(--card-text);
+    padding: 8px 12px;
+  }
+
+  .drop {
+    border: 1px dashed var(--muted);
+    padding: 16px;
+  }
+
+  .drop.is-over {
+    background: var(--card-selected);
+  }
+}
+
 .screen-dashboard h1 {
   margin: 20%;
   text-align: center;

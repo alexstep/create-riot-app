@@ -1,4 +1,3 @@
-import { bytesBody } from './bytes';
 import type {
   ClientMsg,
   FetchLike,
@@ -20,6 +19,13 @@ export type PortLike = {
   ): void;
   start(): void;
 };
+
+/** A fresh ArrayBuffer. TS 7 rejects Uint8Array<ArrayBufferLike> as a fetch body. */
+export function bytesBody(bytes: Uint8Array): ArrayBuffer {
+  const copy = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(copy).set(bytes);
+  return copy;
+}
 
 type Pending = {
   resolve: (result: HttpResult) => void;

@@ -2,17 +2,27 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { z } from 'zod';
 
-const EnvSchema = z.object({
-  SESSION_SECRET: z.string().min(16),
-  DEMO_PASSWORD: z.string().min(1),
-  PORT: z.coerce.number().int().positive().default(3000),
-  NODE_ENV: z
-    .enum(['development', 'production', 'test'])
-    .default('development'),
-  PUBLIC_ORIGIN: z.string().url().optional(),
-  DOCS_USER: z.string().min(1).optional(),
-  DOCS_PASSWORD: z.string().min(1).optional(),
-});
+const EnvSchema = z
+  .object({
+    SESSION_SECRET: z.string().min(16),
+    DEMO_PASSWORD: z.string().min(1),
+    PORT: z.coerce.number().int().positive().default(3000),
+    NODE_ENV: z
+      .enum(['development', 'production', 'test'])
+      .default('development'),
+    PUBLIC_ORIGIN: z.string().url().optional(),
+    DOCS_USER: z.string().min(1).optional(),
+    DOCS_PASSWORD: z.string().min(1).optional(),
+  })
+  .superRefine((env, ctx) => {
+    if (env.NODE_ENV === 'production' && !env.PUBLIC_ORIGIN) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['PUBLIC_ORIGIN'],
+        message: 'Required in production',
+      });
+    }
+  });
 
 export type AppEnv = z.infer<typeof EnvSchema>;
 

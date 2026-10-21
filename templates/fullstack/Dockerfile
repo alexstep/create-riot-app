@@ -21,7 +21,7 @@ COPY --from=deps --chown=bun:bun /app/node_modules ./node_modules
 COPY --from=build --chown=bun:bun /app/dist ./dist
 COPY --from=build --chown=bun:bun /app/package.json ./package.json
 USER root
-RUN mkdir -p /app/tmp/uploads && chown -R bun:bun /app
+RUN mkdir -p /app/tmp/uploads && chown bun:bun /app/tmp /app/tmp/uploads
 USER bun
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

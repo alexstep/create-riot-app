@@ -129,4 +129,3 @@ jobs:
         run: |
           set -euo pipefail
           docker build -t riot-fullstack templates/fullstack
-          docker build -t riot-spa templates/spa

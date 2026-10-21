@@ -1,5 +1,35 @@
-import { type LiveEvent, LiveEventSchema } from '../contract/schemas';
+import type { LiveEvent } from '../contract/schemas';
 import type { FetchLike } from './protocol';
+
+export function nextDelay(attempt: number, rand = Math.random()): number {
+  const step = Math.max(0, attempt);
+  const base = Math.min(500 * 2 ** step, 10_000);
+  return Math.round(base * (0.5 + rand * 0.5));
+}
+
+function isEvent(value: unknown): value is LiveEvent {
+  if (!value || typeof value !== 'object') return false;
+  const event = value as {
+    type?: string;
+    version?: unknown;
+    profile?: unknown;
+    files?: unknown;
+    topics?: unknown;
+  };
+  if (typeof event.version !== 'number') return false;
+  if (event.type === 'resync') return true;
+  if (event.type === 'invalidate') return Array.isArray(event.topics);
+  if (event.type === 'uploads') return Array.isArray(event.files);
+  if (event.type === 'profile') {
+    const profile = event.profile;
+    return (
+      !!profile &&
+      typeof profile === 'object' &&
+      typeof (profile as { name?: unknown }).name === 'string'
+    );
+  }
+  return false;
+}
 
 export class SessionError extends Error {
   constructor() {
@@ -36,8 +66,7 @@ export function parseFrame(raw: string): LiveEvent | null {
   if (data.length === 0) return null;
   try {
     const json: unknown = JSON.parse(data.join('\n'));
-    const parsed = LiveEventSchema.safeParse(json);
-    return parsed.success ? parsed.data : null;
+    return isEvent(json) ? json : null;
   } catch {
     return null;
   }
