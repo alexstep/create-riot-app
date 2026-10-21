@@ -23,28 +23,19 @@ Riot 10 is the current stable line on npm (the last 9.x release is 9.4.11; 10.0.
 
 ## Create a project
 
-From this repository:
+```bash
+bunx create-riot-app my-app
+cd my-app
+bun run dev
+```
+
+`bun create riot-app my-app` does the same thing. Bun runs `bunx create-riot-app my-app` for that command. The CLI installs dependencies, names `package.json` after the directory, and prints the next commands. `--no-install` copies files only. `--force` writes into a non-empty directory.
+
+From a checkout of this repository, without publishing:
 
 ```bash
 bun ./bin/create-riot-app.ts my-app
-cd my-app
 ```
-
-The same template through Bun's built-in `bun create` (it installs dependencies itself):
-
-```bash
-bun create ./template my-app
-cd my-app
-```
-
-After the package is published to npm, the equivalent is:
-
-```bash
-bun create riot-app my-app
-# same thing: bunx create-riot-app my-app
-```
-
-The CLI installs dependencies itself. `--no-install` copies files only. `--force` writes into a non-empty directory.
 
 ## Run the demo from this repository
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { spawn } from 'node:child_process'
-import { cp, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises'
+import { cp, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -11,8 +11,8 @@ const usage = `create-riot-app — Riot.js demo (Bun + Vite + TypeScript)
 
 Usage:
   bunx create-riot-app <directory>
+  bun create riot-app <directory>
   bun ./bin/create-riot-app.ts <directory>
-  bun create ./template <directory>
 
 Options:
   --force        write into a non-empty directory
@@ -23,6 +23,24 @@ Options:
 function fail(message: string): never {
   console.error(message)
   process.exit(1)
+}
+
+async function restoreGitignore(dest: string): Promise<void> {
+  const dot = join(dest, '.gitignore')
+  for (const name of ['gitignore', '_gitignore']) {
+    const source = join(dest, name)
+    try {
+      await stat(source)
+    } catch {
+      continue
+    }
+    try {
+      await stat(dot)
+      await rm(source)
+    } catch {
+      await rename(source, dot)
+    }
+  }
 }
 
 function slug(name: string): string {
@@ -71,7 +89,13 @@ await cp(templateDir, dest, {
     const rel = relative(templateDir, source)
     if (!rel) return true
     const parts = rel.split(sep)
-    return !parts.includes('node_modules') && !parts.includes('dist')
+    // node_modules and dist are install/build output. .npmignore only
+    // keeps those out of the published tarball; a new app does not need it.
+    return (
+      !parts.includes('node_modules') &&
+      !parts.includes('dist') &&
+      !parts.includes('.npmignore')
+    )
   },
 })
 
@@ -83,6 +107,7 @@ const pkg = JSON.parse(await readFile(pkgPath, 'utf8')) as {
 pkg.name = slug(basename(dest))
 delete pkg['bun-create']
 await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
+await restoreGitignore(dest)
 
 console.log(`Project created: ${dest}`)
 
