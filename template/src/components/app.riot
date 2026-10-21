@@ -1,0 +1,43 @@
+<app>
+  <div id="app">
+    <topbar title={state.screen}></topbar>
+    <drawer screen={state.screen}></drawer>
+    <dashboard if={state.screen === 'dashboard'}></dashboard>
+    <groups if={state.screen === 'groups'}></groups>
+    <settings if={state.screen === 'settings'}></settings>
+  </div>
+
+  <script lang="ts">
+    import { withTypes, type RiotComponent } from 'riot'
+    import { startRouter, type Screen } from '../router'
+    import { syncTopbarScroll } from '../topbar-scroll'
+
+    interface State {
+      screen: Screen
+    }
+
+    interface App extends RiotComponent<object, State> {
+      stopRouter: (() => void) | null
+      onRoute(screen: Screen): void
+    }
+
+    export default withTypes<App>({
+      state: {
+        screen: 'dashboard',
+      },
+      stopRouter: null,
+      onRoute(screen) {
+        this.update({ screen })
+        syncTopbarScroll()
+      },
+      onMounted() {
+        this.stopRouter = startRouter((screen) => this.onRoute(screen))
+        syncTopbarScroll()
+      },
+      onBeforeUnmount() {
+        this.stopRouter?.()
+        this.stopRouter = null
+      },
+    })
+  </script>
+</app>

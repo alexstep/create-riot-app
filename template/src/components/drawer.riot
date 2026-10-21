@@ -1,0 +1,138 @@
+<drawer>
+  <div class={'drawer-wrap' + (state.open ? ' show' : '')}>
+    <a onclick={toggleDrawer} href="#toggle_drawer" class="toggle-drawer" draggable="false" aria-label="Menu"><i></i></a>
+
+    <div id="drawer">
+      <header>
+        <a
+          if={state.user}
+          class="user-info"
+          target="_blank"
+          rel="noopener"
+          href={'https://vk.com/id' + state.user.id}
+        >
+          <figure class="avatar" style={'background-image:url(' + state.user.photoUrl + ')'}></figure>
+          <em class="name">
+            {state.user.firstName}
+            {state.user.lastName}
+          </em>
+        </a>
+      </header>
+
+      <ul class="menu-items">
+        <li class={props.screen === 'dashboard' ? 'selected' : ''}>
+          <a onclick={menuItemClick} href="/dashboard" onpointerenter={playHover}>
+            <icon src="dashboard.svg"></icon>
+            Dashboard
+          </a>
+        </li>
+        <li class={props.screen === 'groups' ? 'selected' : ''}>
+          <a onclick={menuItemClick} href="/groups" onpointerenter={playHover}>
+            <icon src="group.svg"></icon>
+            List
+          </a>
+        </li>
+        <li class={props.screen === 'settings' ? 'selected' : ''}>
+          <a onclick={menuItemClick} href="/settings" onpointerenter={playHover}>
+            <icon src="settings.svg"></icon>
+            Settings
+          </a>
+        </li>
+        <li class="logout">
+          <a onclick={menuItemClick} href="/dashboard" onpointerenter={playHover}>
+            <icon src="logout.svg"></icon>
+            Exit
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div onclick={toggleDrawer} class="drawer-overlay"></div>
+  </div>
+
+  <script lang="ts">
+    import { withTypes, type RiotComponent } from 'riot'
+    import { navigate } from '../router'
+    import { sound } from '../sounds'
+    import { initSwipe } from '../swipe'
+
+    interface Props {
+      screen: string
+    }
+
+    interface User {
+      id: number
+      photoUrl: string
+      firstName: string
+      lastName: string
+    }
+
+    interface State {
+      open: boolean
+      user: User
+    }
+
+    interface Drawer extends RiotComponent<Props, State> {
+      stopSwipe: (() => void) | null
+      toggleDrawer(event?: Event): void
+      menuItemClick(event: Event): void
+      playHover(event: PointerEvent): void
+    }
+
+    const avatar = import.meta.env.VITE_APP_AVATAR_URL || ''
+
+    export default withTypes<Drawer>({
+      state: {
+        open: false,
+        user: {
+          id: 99,
+          photoUrl: avatar,
+          firstName: 'Alex',
+          lastName: 'Step',
+        },
+      },
+      stopSwipe: null,
+      onMounted() {
+        const wrapper = this.$('.drawer-wrap')
+        const drawer = this.$('#drawer')
+        const overlay = this.$('.drawer-overlay')
+        if (!wrapper || !drawer || !overlay) return
+        this.stopSwipe = initSwipe({
+          wrapper,
+          drawer,
+          overlay,
+          drawerWidth: 240,
+          handlerWidth: 50,
+          isOpen: () => this.state.open,
+          onChange: (open) => {
+            this.update({ open })
+          },
+        })
+      },
+      onBeforeUnmount() {
+        this.stopSwipe?.()
+        this.stopSwipe = null
+      },
+      toggleDrawer(event) {
+        event?.preventDefault()
+        window.setTimeout(() => {
+          const open = !this.state.open
+          if (open) sound.tick()
+          this.update({ open })
+        }, 100)
+      },
+      menuItemClick(event: Event) {
+        event.preventDefault()
+        const href = (event.currentTarget as HTMLAnchorElement).getAttribute('href') || '/dashboard'
+        sound.tick()
+        navigate(href)
+        window.setTimeout(() => {
+          this.update({ open: false })
+        }, 290)
+      },
+      playHover(event) {
+        if (event.pointerType && event.pointerType !== 'mouse') return
+        sound.hover()
+      },
+    })
+  </script>
+</drawer>

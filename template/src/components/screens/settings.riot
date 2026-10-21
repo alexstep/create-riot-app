@@ -1,0 +1,21 @@
+<settings>
+  <div class="screen screen-settings" id="screen_settings">
+    <button type="button" onclick={onOption}>Some option</button>
+  </div>
+
+  <script lang="ts">
+    import { withTypes, type RiotComponent } from 'riot'
+    import { sound } from '../../sounds'
+
+    interface Settings extends RiotComponent {
+      onOption(): void
+    }
+
+    export default withTypes<Settings>({
+      state: {},
+      onOption() {
+        sound.tick()
+      },
+    })
+  </script>
+</settings>

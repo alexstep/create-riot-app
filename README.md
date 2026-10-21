@@ -1,115 +1,88 @@
-# ⏏ create-riot-app
-[![travis](https://travis-ci.org/alexstep/create-riot-app.svg?branch=master)](https://travis-ci.org/alexstep/create-riot-app-ejected/)
-[![Code Climate](https://codeclimate.com/github/alexstep/create-riot-app-ejected.png)](https://codeclimate.com/github/alexstep/create-riot-app-ejected)
-[![npm](https://img.shields.io/npm/v/npm.svg)]()
-[![Dependencies](https://david-dm.org/alexstep/create-riot-app-ejected/dev-status.svg)](https://david-dm.org/alexstep/create-riot-app-ejected?type=dev)
-[![Join the chat at https://gitter.im/create-riot-app/](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/create-riot-app/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# create-riot-app
 
-[RiotJS](https://github.com/riot/riot) startkit, based on [create-react-app](https://github.com/facebookincubator/create-react-app) and  [react-scripts](https://github.com/facebookincubator/create-react-app/tree/master/packages/react-scripts).
+Стартер Riot.js-приложения — аналог Create React App. Команда создаёт демо с боковым меню, звуками и тремя экранами. Сборка и dev-сервер работают на Bun.
 
-[DEMO](https://ipfs.infura.io/ipfs/QmeYf7fabpUcEtUzb3Xsf5SJPbGGigPE9GTkwhrSS6cgDG/)
+В репозитории два слоя:
 
-Package included simple app example, webpack dev server with **riot hot reload** and less, sass, stylus support. ES6 features available too. Jest with riot support for testing. ES6 and eslint in riot tag.
+- `bin/create-riot-app.ts` — CLI, копирует шаблон в новую папку.
+- `template/` — само демо. Его же получает новый проект.
 
-Just read https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md but replace all "react" word to "riot" :)
+## Стек
 
-[![See the video](https://j.gifs.com/VmEVBB.gif)](https://www.youtube.com/watch?v=dU2TsHzQA60)
+| | |
+| --- | --- |
+| Среда и пакеты | [Bun](https://bun.sh) |
+| UI | [Riot.js 10.1.6](https://riot.js.org) |
+| Компилятор тегов | `@riotjs/compiler` 10.0.5 через `rollup-plugin-riot` |
+| Роутер | `@riotjs/route` 10 |
+| Сборка и dev-сервер | [Vite](https://vite.dev) 8, HMR и прод-сборка |
+| Язык | TypeScript там, где его понимает Riot (`lang="ts"` в компонентах и обычные `.ts` модули) |
+| Стили | Less, те же экраны и drawer, что были в старом демо |
 
-## Features
-* Hot .tag reload
-* Realtime code linting
-* Async/await (ES2017).
-* Exponentiation Operator (ES2016).
-* Object Rest/Spread Properties (stage 3 proposal).
-* Dynamic import() (stage 3 proposal)
-* Jest for .tag testing
-* Generate all favicons and manifest.json
-* Pre-commit testing
+Riot 10 — текущая стабильная ветка в npm (последний 9.x — 9.4.11, его сменил 10.0.0 в августе 2025). Компоненты по-прежнему пишутся как `.riot` с `export default`. Отдельного Vite-плагина у Riot нет: официальный компилятор подключается как Rollup-плагин, а Vite этот плагин выполняет. Поэтому выбран Vite, а не `bun.build`: у Bun нет такого же dev-сервера с HMR для `.riot`, а Vite даёт и быструю перезагрузку, и `vite build`.
 
-## Requirements
-nodejs 10
-and optionaly docker-compose, for deploy to ipfs
+## Создать проект
 
-## ⚡ Start dev-server
-```
-git clone --depth=1 https://github.com/alexstep/create-riot-dapp my-riot-app
-cd my-riot-app
-rm -rf .git
+Из этого репозитория:
+
+```bash
+bun ./bin/create-riot-app.ts my-app
+cd my-app
 ```
 
-```
-npm install
-npm start
-```
-go to http://localhost:9999
+Тот же шаблон через встроенный `bun create` (сам поставит зависимости):
 
-### Note
-Riot route base url set in ./src/view/app.view.js line 47
-
-
-## ⚛ Favicons and meta-information
-Edit "meta" section in package.json ([see manifest format description](https://developer.mozilla.org/en-US/docs/Web/Manifest))
-Put your app icon in ./src/favicon_source.svg or .png or other image format
-and run
-```
-npm run meta:generate
-```
-manifest.json , browserconfig.xml, favicons and other meta-files will be generated and put to ./public/static/meta/ folder.
-
-Also you can change some options in ./scripts/tools/metainfo/config.js
-
-
-
-## ⚗ Build for production
-```
-npm run build
+```bash
+bun create ./template my-app
+cd my-app
 ```
 
-Check build result
-```
-npm run check_build
-```
+После публикации пакета в npm эквивалент такой:
 
-
-## ☁ Deploy
-
-
-### Firebase
-```
-npm run deploy
-```
-For example you can deploy app to [firebase](firebase.google.com)
-```
-npm install -g firebase-tools
-firebase login
-firebase init
-firebase deploy
+```bash
+bun create riot-app my-app
+# то же самое: bunx create-riot-app my-app
 ```
 
-### Your server
-Change settings in scripts/tools/deploy_ssh
-Add this file to .gitignore
+CLI ставит зависимости сам. Флаг `--no-install` оставляет только файлы, `--force` пишет в непустую папку.
+
+## Запуск демо из этого репозитория
+
+```bash
+cd template
+bun install
+bun run dev
 ```
-npm run deploy:ssh
+
+Dev-сервер: <http://localhost:5173>. Страницы: `/dashboard`, `/groups`, `/settings`. Dev-сервер и `vite preview` отдают `index.html` на эти адреса, поэтому обновление страницы оставляет тот же экран.
+
+Проверка типов и прод-сборка:
+
+```bash
+bun run typecheck
+bun run build
+bun run preview
 ```
-[About tool](https://www.npmjs.com/package/ssh-deploy-release)
 
+Сборка лежит в `template/dist`.
 
-# IPFS
-```
-npm run deploy:ipfs
-```
-Publish ./dist folder to [IPFS](https://ipfs.io) by defaults.
-Need insatlled docker-composes/tools/deploy_ipfs/docker-compose.yml
+## Что внутри демо
 
+- Верхняя панель и выезжающий drawer: кнопка, затемнение, анимация 0.3s, свайп от левого края на тач-экране.
+- Звуки из `public/sounds`: `tick` на открытие меню, пункт меню и кнопку настроек; `hover` при наведении мышью; `card` при выборе карточки в списке. Если браузер не играет Ogg, берётся Mp3. Ошибка autoplay не попадает в консоль.
+- Экраны: Dashboard, список с загрузкой первых десяти фото из jsonplaceholder (спиннер около секунды), Settings.
+- На узком экране список прячет верхнюю панель при прокрутке — как в старом демо.
+- Иконки, фавиконки и манифест лежат в `public/` и `src/icons`.
 
-### ⚙ Configuration options
+Логика приложения — TypeScript (`src/router.ts`, `src/sounds.ts`, `src/swipe.ts`, `src/api.ts`). Разметка экранов — компоненты `.riot` со скриптом `lang="ts"`. Стили экранов собраны в `src/styles` и подключаются один раз, без jQuery и Hammer.
 
-Modify the ```.env``` file in the root of the generated project, and add any of the configuration options below 👇 to enable that feature.
+## Скрипты шаблона
 
+| Команда | Действие |
+| --- | --- |
+| `bun run dev` | Vite dev-сервер с HMR |
+| `bun run build` | Прод-сборка в `dist/` |
+| `bun run preview` | Локальный просмотр сборки |
+| `bun run typecheck` | `tsc --noEmit` для `.ts` |
 
-## ☺ Contribute
-
-Fork and send pull-request. Thank you!
-
-
+Переменные с префиксом `VITE_` читаются из `.env`. Адрес аватара в шапке drawer — `VITE_APP_AVATAR_URL`.

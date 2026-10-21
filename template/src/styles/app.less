@@ -1,0 +1,52 @@
+@import 'base.less';
+
+@topbar_height: 58px;
+@main_bg: #5181b8;
+@text_color: #ffffff;
+
+// Riot mounts components as custom tags. Without a hyphen they are unknown
+// elements and default to inline, which collapses the layout.
+app,
+topbar,
+drawer,
+dashboard,
+groups,
+settings,
+spinner {
+  display: block;
+}
+
+.fullscreen {
+  min-height: 100vh;
+  height: 100%;
+}
+
+html,
+body {
+  overflow: hidden;
+
+  &.scroll {
+    overflow: auto;
+    max-height: inherit;
+    height: auto;
+  }
+}
+
+#app {
+  .fullscreen();
+  min-height: 100vh;
+  background: #fff;
+  position: relative;
+}
+
+.screen {
+  height: calc(100vh - @topbar_height);
+  width: 100vw;
+  overflow: scroll;
+}
+
+@import './components/topbar.less';
+@import './components/drawer.less';
+@import './components/groups.less';
+@import './components/spinner.less';
+@import './components/screens.less';

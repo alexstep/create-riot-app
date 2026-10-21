@@ -1,0 +1,29 @@
+<icon>
+  <span class="icon-svg"></span>
+
+  <script lang="ts">
+    import { withTypes, type RiotComponent } from 'riot'
+    import { iconSvg } from '../icons'
+
+    interface Props {
+      src: string
+    }
+
+    interface Icon extends RiotComponent<Props, Record<string, never>> {
+      paint(): void
+    }
+
+    export default withTypes<Icon>({
+      paint() {
+        const slot = this.$('.icon-svg')
+        if (slot) slot.innerHTML = iconSvg(this.props.src)
+      },
+      onMounted() {
+        this.paint()
+      },
+      onUpdated() {
+        this.paint()
+      },
+    })
+  </script>
+</icon>
