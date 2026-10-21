@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.3] - 2026-10-21
+
+### Fixed
+
+- `bun test` could still open a `.riot` file from a deleted project after 3.1.2. Bun keys its global transpiler cache by source contents, so unchanged server files kept the absolute paths written by 3.1.0 and 3.1.1. `bun run test` now starts the test process with `BUN_RUNTIME_TRANSPILER_CACHE_PATH` set to `node_modules/.cache/bun-transpiler`. That directory is chosen before Bun reads the global cache, including on macOS, Linux, and Windows. A cache that is already poisoned is left unused.
+
 ## [3.1.2] - 2026-10-21
 
 ### Fixed
@@ -109,6 +115,7 @@ Rewrite of the 1.2 Webpack 4 starter. The demo is the same idea: a side drawer, 
 
 - Webpack 4, the old `scripts/webpack` setup, Less, jQuery, and Hammer.
 
+[3.1.3]: https://github.com/alexstep/create-riot-app/compare/v3.1.2...v3.1.3
 [3.1.2]: https://github.com/alexstep/create-riot-app/compare/v3.1.1...v3.1.2
 [3.1.1]: https://github.com/alexstep/create-riot-app/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/alexstep/create-riot-app/compare/v3.0.0...v3.1.0

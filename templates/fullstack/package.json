@@ -12,7 +12,7 @@
     "build": "bun --bun vite build && bun --bun vite build --ssr src/server/index.ts && bun scripts/write-sw.ts",
     "start": "bun dist/server/index.js",
     "typecheck": "bun --bun tsc --noEmit",
-    "test": "bun test",
+    "test": "bun scripts/run-tests.ts",
     "lint": "biome check . && bun scripts/biome-riot.ts",
     "lint:fix": "biome check --write . && bun scripts/biome-riot.ts --write",
     "format": "biome format --write . && bun scripts/biome-riot.ts --write",

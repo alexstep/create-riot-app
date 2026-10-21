@@ -56,7 +56,7 @@ bun ./bin/create-riot-app.ts my-spa --template spa
 ```bash
 bun run build    # dist/client and dist/server
 bun run start    # Bun.serve, one process
-bun run test     # app.request() against the Hono app
+bun run test     # app.request() against the Hono app; cache stays in the project
 ```
 
 `src/server/index.ts` stops the server on SIGINT and SIGTERM. `bun run start` sets `NODE_ENV` to `production` when it is unset, then reads `.env`. Hashed files under `/assets/` are `immutable`. HTML is `no-cache` with an ETag. Paths that leave the static root are rejected. Mount order is API and special routes, then static files, then server-rendered pages, then the `/app/*` fallback. `/api/*` that does not match is JSON `{ "error": "Not found" }`.

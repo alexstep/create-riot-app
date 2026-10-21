@@ -3,11 +3,12 @@ import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { compile } from '@riotjs/compiler';
 import { plugin } from 'bun';
 
-// Bun's runtime transpiler cache is content-addressed and shared by every
-// project. The cached module keeps the import specifiers we return. An
-// absolute path from a deleted scaffold is then opened again and throws
-// ENOENT. Specifiers are project-relative (`riot:src/...`, `riot-file:src/...`)
-// and turned into the current directory only when a project is loaded.
+// Bun's transpiler cache is content-addressed. Specifiers in this output stay
+// project-relative (`riot:src/...`, `riot-file:src/...`) so a new directory
+// does not bake in another absolute path. Entries already written by older
+// releases still contain absolute paths; `bun run test` points
+// BUN_RUNTIME_TRANSPILER_CACHE_PATH at node_modules/.cache so those entries
+// are never opened.
 //
 // Dev and production builds do not use this file. Vite compiles tags with
 // `riot-plugin.ts`. This plugin is the `[test] preload` in bunfig.toml.
