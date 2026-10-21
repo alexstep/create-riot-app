@@ -20,8 +20,7 @@
       error: string;
     }
 
-    export default withTypes<RiotComponent<object, State>>({
-      observedAttributes: [] as string[],
+    export default withTypes<RiotComponent<object, State>>(() => ({
       state: { error: '' },
       async send(event: Event) {
         event.preventDefault();
@@ -44,7 +43,7 @@
             : '/app/dashboard';
         window.location.assign(dest);
       },
-    });
+    }));
   </script>
 
   <style>

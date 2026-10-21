@@ -11,14 +11,20 @@
 
     const order: ThemeChoice[] = ['light', 'dark', 'system'];
 
+    interface Props {
+      isServer?: boolean;
+    }
+
     interface State {
       label: string;
     }
 
-    export default withTypes<RiotComponent<object, State>>({
-      observedAttributes: [] as string[],
+    export default withTypes<RiotComponent<Props, State>>(() => ({
       state: { label: 'Theme' },
-      onMounted() {
+      onBeforeMount(props) {
+        // The server does not know localStorage. The inline script already
+        // wrote the same label the browser will bind here.
+        if (props.isServer) return;
         this.state.label = `Theme: ${getThemeChoice()}`;
       },
       cycle(event: Event) {
@@ -28,7 +34,7 @@
         setThemeChoice(next);
         this.update({ label: `Theme: ${next}` });
       },
-    });
+    }));
   </script>
 
   <style>

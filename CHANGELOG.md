@@ -5,6 +5,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-10-21
+
+### Added
+
+- The full-stack template hydrates server-rendered Riot tags. `theme-toggle`, `subscribe-form`, and `login-form` are in the first HTML response, and the client binds those nodes instead of rendering a second copy.
+- Initial props are embedded as JSON in `<script type="application/json" id="riot-state">`. `<` is escaped, so the payload cannot close the script. The hydrated tag does not fetch that data again.
+- `bun test` covers the server markup and a client bind that keeps the same DOM nodes, including text typed into an input before the module runs.
+
+### Changed
+
+- `@riotjs/hydrate` v10 is not used to bind those tags. It clones the root, mounts a new tree, and `replaceChild`s the server node. The template mounts Riot with DOM injection skipped, after copying the compiler's `exprN` markers onto the matching elements.
+- The cabinet at `/app` stays client-rendered. One cached document still serves every cabinet URL.
+
+### Removed
+
+- `@riotjs/custom-elements` from the full-stack template. The log-in link is a plain anchor.
+
 ## [3.0.0] - 2026-10-21
 
 The default scaffold is a full-stack Bun app. `2.1.0` was the client-only template.
@@ -70,6 +87,7 @@ Rewrite of the 1.2 Webpack 4 starter. The demo is the same idea: a side drawer, 
 
 - Webpack 4, the old `scripts/webpack` setup, Less, jQuery, and Hammer.
 
+[3.1.0]: https://github.com/alexstep/create-riot-app/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/alexstep/create-riot-app/compare/v2.1.0...v3.0.0
 [2.1.0]: https://github.com/alexstep/create-riot-app/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/alexstep/create-riot-app/compare/1.2...v2.0.0

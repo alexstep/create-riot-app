@@ -36,11 +36,34 @@ describe('pages', () => {
     expect(html).toContain('name="description"');
     expect(html).toContain('property="og:title"');
     expect(html).toContain('rel="canonical" href="http://localhost/"');
-    expect(html).toContain('<x-theme-toggle>');
-    expect(html).toContain('<x-login-link>');
-    expect(html).toContain('<x-subscribe-form>');
+    expect(html).toContain('<theme-toggle>');
+    expect(html).toContain('<button type="button">Theme</button>');
+    expect(html).toContain('<a href="/login">Log in</a>');
+    expect(html).toContain('<subscribe-form');
+    expect(html).toContain('name="email"');
+    expect(html).toContain('Send a note. It stays in memory on this server.');
+    expect(html).toContain('id="riot-state"');
+    expect(html).toContain('type="application/json"');
+    expect(html).not.toContain('<x-subscribe-form');
+    expect(html).toContain('<style riot>');
+    expect(html).toContain('theme-toggle button');
     expect(html).toContain('src="/src/islands/client.ts"');
     expect(html).toContain('A Riot app on one server');
+    const state = /id="riot-state">([^<]*)<\/script>/.exec(html)?.[1] ?? '';
+    expect(JSON.parse(state)).toEqual({
+      'subscribe-form': {
+        hint: 'Send a note. It stays in memory on this server.',
+      },
+    });
+  });
+
+  test('login form is in the first html response', async () => {
+    const html = await (await app.request('http://localhost/login')).text();
+    expect(html).toContain('<login-form>');
+    expect(html).toContain('value="ada@example.com"');
+    expect(html).toContain('type="password"');
+    const state = /id="riot-state">([^<]*)<\/script>/.exec(html)?.[1] ?? '';
+    expect(JSON.parse(state)).toEqual({ 'login-form': {} });
   });
 
   test('about has its own title', async () => {

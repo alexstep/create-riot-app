@@ -89,6 +89,8 @@ function spaHtml(env: AppEnv): string {
   return readFileSync(resolve(process.cwd(), file), 'utf8');
 }
 
+const contactHint = 'Send a note. It stays in memory on this server.';
+
 function loginLocation(path: string): string {
   const next =
     path === '/app' || path.startsWith('/app/') ? path : '/app/dashboard';
@@ -196,12 +198,16 @@ export function createApp(
       {
         title: 'A Riot app on one server',
         lead: 'Landing pages are rendered on the server. The cabinet is a client app after you log in.',
+        hint: contactHint,
       },
       {
         title: 'Riot app',
         description:
           'Server-rendered pages, a JSON API, and a client cabinet on Bun.',
         path: '/',
+      },
+      {
+        'subscribe-form': { hint: contactHint },
       },
     ),
   );
@@ -233,6 +239,7 @@ export function createApp(
         description: 'Demo sign-in for the cabinet.',
         path: '/login',
       },
+      { 'login-form': {} },
     ),
   );
 

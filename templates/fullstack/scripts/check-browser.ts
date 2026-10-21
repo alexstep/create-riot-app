@@ -24,7 +24,7 @@ async function login(page: Page, email: string): Promise<void> {
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill('demo');
   await page
-    .locator('x-login-form')
+    .locator('login-form')
     .getByRole('button', { name: 'Log in' })
     .click();
   for (let i = 0; i < 40 && !page.url().includes('/app/'); i++) {

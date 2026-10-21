@@ -20,7 +20,6 @@
   },
   "dependencies": {
     "@hono/zod-openapi": "1.6.3",
-    "@riotjs/custom-elements": "10.0.0",
     "@riotjs/route": "10.0.0",
     "@riotjs/ssr": "10.0.0",
     "@scalar/hono-api-reference": "0.12.13",
@@ -36,8 +35,10 @@
     "@hono/vite-dev-server": "0.26.1",
     "@riotjs/compiler": "10.0.5",
     "@riotjs/hot-reload": "10.0.0",
+    "@riotjs/hydrate": "10.0.0",
     "@riotjs/parser": "10.0.0",
     "@types/bun": "1.4.3",
+    "linkedom": "0.18.14",
     "rollup-plugin-riot": "10.0.0",
     "typescript": "7.0.2",
     "vite": "8.3.5"
