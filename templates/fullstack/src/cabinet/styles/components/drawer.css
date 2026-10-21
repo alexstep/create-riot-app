@@ -1,0 +1,215 @@
+.drawer-wrap {
+  position: absolute;
+  z-index: 9;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: calc(100vh + 100px);
+  background: transparent;
+  touch-action: pan-y;
+  pointer-events: none;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 16px;
+    height: 100%;
+    pointer-events: auto;
+  }
+
+  .toggle-drawer {
+    position: absolute;
+    z-index: 9;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 58px;
+    height: 58px;
+    pointer-events: auto;
+
+    &:before,
+    &:after,
+    i {
+      content: "";
+      display: block;
+      position: absolute;
+      height: 2px;
+      width: 18px;
+      background: var(--text-on-main);
+      left: 18px;
+      top: 22px;
+    }
+
+    &:before {
+      top: 27px;
+    }
+
+    &:after {
+      top: 32px;
+    }
+
+    &:active,
+    &:hover {
+      background-position: -2px -1px;
+      background-image: radial-gradient(
+        circle,
+        rgba(0, 0, 0, 0.05) 50%,
+        transparent 0%
+      );
+    }
+  }
+
+  &.show .drawer-overlay,
+  &.show #drawer {
+    pointer-events: auto;
+  }
+
+  .drawer-overlay {
+    pointer-events: none;
+    position: fixed;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    background: var(--overlay);
+    width: 100vw;
+    height: 100vh;
+    transition: opacity var(--drawer-speed) linear;
+    opacity: 0;
+  }
+
+  #drawer {
+    position: fixed;
+    z-index: 11;
+    top: 0;
+    left: 0;
+    width: 88vw;
+    min-width: var(--drawer-width);
+    max-width: 320px;
+    min-height: 100vh;
+    background: var(--drawer-bg);
+    transform: translate3d(-320px, 0, 0);
+    transition: transform var(--drawer-speed) ease-out;
+    box-shadow: var(--drawer-shadow);
+    margin-left: -20px;
+
+    .menu-items {
+      height: calc(100vh - var(--header-height));
+
+      a icon svg {
+        width: 25px;
+        height: 25px;
+      }
+
+      .logout {
+        position: absolute;
+        bottom: 15px;
+      }
+    }
+  }
+
+  &.pan {
+    #drawer,
+    .drawer-overlay {
+      transition: none;
+    }
+  }
+
+  &.show {
+    #drawer {
+      transform: translate3d(0, 0, 0);
+    }
+
+    .drawer-overlay {
+      pointer-events: all;
+      opacity: 1;
+    }
+  }
+}
+
+#drawer {
+  header {
+    background: var(--header-bg) no-repeat;
+    background-size: cover;
+    width: 100%;
+    height: var(--header-height);
+    padding: 0;
+
+    &:before {
+      display: block;
+      content: "";
+      width: 100%;
+      height: 100%;
+      background: var(--header-overlay);
+    }
+
+    .user-info {
+      position: absolute;
+      top: 0;
+      z-index: 2;
+      display: block;
+
+      .avatar {
+        background-size: cover;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: block;
+        position: absolute;
+        top: 30px;
+        left: 0;
+      }
+
+      em {
+        color: var(--text-on-main);
+        display: block;
+        position: absolute;
+        top: 60px;
+        left: 130px;
+        width: 130px;
+        line-height: 21px;
+        font-style: normal;
+      }
+    }
+  }
+
+  ul.menu-items {
+    margin: 0;
+
+    li {
+      display: block;
+      width: 100%;
+      color: var(--drawer-text);
+      font-size: 14px;
+      transition: all 0.2s linear;
+
+      a {
+        font-weight: 600;
+        line-height: 1px;
+        display: block;
+        width: 100%;
+        padding: 10px 10px 25px 10px;
+        color: inherit;
+
+        icon svg {
+          display: inline-block;
+          margin: 0 15px 0 30px;
+          position: relative;
+          top: 7px;
+          fill: var(--icon-color);
+          transition: fill 0.2s linear;
+        }
+      }
+
+      &.selected {
+        background-color: var(--selected-bg);
+        color: var(--selected-text);
+
+        icon {
+          fill: var(--selected-icon);
+        }
+      }
+    }
+  }
+}

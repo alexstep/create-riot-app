@@ -1,0 +1,18 @@
+<home>
+  <h1>{props.title}</h1>
+  <p>{props.lead}</p>
+  <x-subscribe-form></x-subscribe-form>
+
+  <script lang="ts">
+  import { withTypes, type RiotComponent } from 'riot';
+
+  interface Props {
+    title: string;
+    lead: string;
+  }
+
+  export default withTypes<RiotComponent<Props>>({
+    state: {},
+  });
+</script>
+</home>

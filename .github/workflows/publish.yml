@@ -42,11 +42,15 @@ jobs:
       - name: Require npm 11.5.1 or newer
         run: npm install -g npm@^11.5.1
 
-      - name: Typecheck and build the template
+      - name: Typecheck and build both templates
         run: |
-          bun install --cwd template
-          bun run --cwd template typecheck
-          bun run --cwd template build
+          bun install --cwd templates/spa
+          bun install --cwd templates/fullstack
+          bun run --cwd templates/spa typecheck
+          bun run --cwd templates/spa build
+          bun run --cwd templates/fullstack typecheck
+          bun run --cwd templates/fullstack test
+          bun run --cwd templates/fullstack build
 
       - name: Publish
         env:

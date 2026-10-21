@@ -1,0 +1,51 @@
+@import "../cabinet/styles/theme.css";
+@import "../cabinet/styles/reset.css";
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--card-text);
+  font-family:
+    -apple-system, BlinkMacSystemFont, Roboto, "Open Sans", "Helvetica Neue",
+    sans-serif;
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: var(--main-bg);
+  color: var(--text-on-main);
+}
+
+.site-header a,
+.brand {
+  color: var(--text-on-main);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.site-header nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+main h1 {
+  font-size: 40px;
+  line-height: 1.15;
+  margin: 0 0 16px;
+}
+
+main p {
+  font-size: 18px;
+  line-height: 1.5;
+}

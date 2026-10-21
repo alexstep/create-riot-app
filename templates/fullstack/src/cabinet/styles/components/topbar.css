@@ -1,0 +1,19 @@
+#topbar {
+  position: relative;
+  z-index: 9;
+  width: 100%;
+  height: var(--topbar-height);
+  background: var(--main-bg);
+  box-shadow: var(--topbar-shadow);
+
+  h1 {
+    text-transform: capitalize;
+    color: var(--text-on-main);
+    padding: 17px 0 0 60px;
+    font-size: 21px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 85%;
+    overflow: hidden;
+  }
+}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <script>
+      var saved = null;
+      var dark = false;
+      var theme = 'light';
+      try {
+        try {
+          saved = localStorage.getItem('theme');
+        } catch (_error) {}
+        dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        theme = saved === 'light' || saved === 'dark' ? saved : dark ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (_error) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Cabinet</title>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/cabinet/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,71 @@
+<login-form>
+  <form onsubmit="{send}">
+    <label>
+      Email
+      <input name="email" type="email" required value="ada@example.com" />
+    </label>
+    <label>
+      Password
+      <input name="password" type="password" required />
+    </label>
+    <button type="submit">Log in</button>
+    <p if="{state.error}">{state.error}</p>
+  </form>
+
+  <script lang="ts">
+    import { withTypes, type RiotComponent } from 'riot';
+    import { login } from '../client/api';
+
+    interface State {
+      error: string;
+    }
+
+    export default withTypes<RiotComponent<object, State>>({
+      observedAttributes: [] as string[],
+      state: { error: '' },
+      async send(event: Event) {
+        event.preventDefault();
+        const form = event.currentTarget as HTMLFormElement;
+        const data = new FormData(form);
+        const result = await login(
+          String(data.get('email') ?? ''),
+          String(data.get('password') ?? ''),
+        );
+        if (!result.ok) {
+          this.update({ error: result.error });
+          return;
+        }
+        const next = new URLSearchParams(window.location.search).get('next') ?? '';
+        const dest =
+          (next === '/app' || next.startsWith('/app/')) &&
+          !next.includes('\\') &&
+          !next.includes('://')
+            ? next
+            : '/app/dashboard';
+        window.location.assign(dest);
+      },
+    });
+  </script>
+
+  <style>
+    :host form {
+      display: grid;
+      gap: 12px;
+      max-width: 360px;
+    }
+
+    input,
+    button {
+      font: inherit;
+    }
+
+    button {
+      width: fit-content;
+      background: var(--main-bg);
+      color: var(--text-on-main);
+      border: 0;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+  </style>
+</login-form>

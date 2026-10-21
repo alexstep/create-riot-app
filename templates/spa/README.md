@@ -1,6 +1,6 @@
 # Riot.js app
 
-The demo scaffolded by `create-riot-app`: a top bar, a sliding menu, click sounds, and three screens. The runtime is Bun, the bundler is Vite, and the components are Riot 10 with TypeScript.
+The client-only template (`--template spa`): a top bar, a sliding menu, click sounds, and three screens. The runtime is Bun, the bundler is Vite, and the components are Riot 10 with TypeScript. The default `create-riot-app` template is the full-stack app, which serves this cabinet at `/app`.
 
 ```bash
 bun install
@@ -22,3 +22,5 @@ bun run preview
 The menu opens from the button on the left. On a phone it can be pulled in with a swipe from the left edge. Sounds live in `public/sounds`. The drawer avatar is `VITE_APP_AVATAR_URL` in `.env`.
 
 The default theme follows `prefers-color-scheme`. On Settings, the Light / Dark / System switch stores the choice in `localStorage` and sets `data-theme` on `<html>`.
+
+Serve the production build locally with `bun run preview`. This template has no container image.

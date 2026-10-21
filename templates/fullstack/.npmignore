@@ -1,0 +1,8 @@
+# Applied when the starter is packed. The root package.json `files`
+# whitelist disables the root .npmignore, but a nested one still applies.
+node_modules
+dist
+.vite
+.env
+.env.*
+!.env.example

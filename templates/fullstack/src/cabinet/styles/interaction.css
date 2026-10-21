@@ -1,0 +1,70 @@
+/* Native drag stays off for controls and images. Screen text and form
+   fields stay selectable. Pressed controls scale; the drawer panel does
+   not, because it already translates. */
+
+#app :is(a, button, img, svg),
+.toggle-drawer {
+  -webkit-user-drag: none;
+}
+
+#topbar,
+.toggle-drawer,
+#drawer,
+.drawer-overlay,
+button,
+.groups-list .group {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea,
+select,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-user-drag: auto;
+}
+
+:is(
+  button,
+  .toggle-drawer,
+  #drawer .menu-items a,
+  #drawer .user-info,
+  .groups-list .group
+) {
+  transition: transform 0.1s linear;
+}
+
+:is(
+  button,
+  .toggle-drawer,
+  #drawer .menu-items a,
+  #drawer .user-info,
+  .groups-list .group
+):active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(
+    button,
+    .toggle-drawer,
+    #drawer .menu-items a,
+    #drawer .user-info,
+    .groups-list .group
+  ) {
+    transition: none;
+  }
+
+  :is(
+    button,
+    .toggle-drawer,
+    #drawer .menu-items a,
+    #drawer .user-info,
+    .groups-list .group
+  ):active {
+    transform: none;
+  }
+}

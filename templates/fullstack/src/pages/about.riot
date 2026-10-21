@@ -1,0 +1,16 @@
+<about>
+  <h1>About</h1>
+  <p>
+    This server renders the landing pages, serves a JSON API, and hands the signed-in cabinet to a
+    client-side Riot app. One Bun process does all three.
+  </p>
+  <p>Add a page by rendering a Riot tag from <code>src/server/app.ts</code>. The cabinet stays under <code>/app</code>.</p>
+
+  <script lang="ts">
+    import { withTypes, type RiotComponent } from 'riot';
+
+    export default withTypes<RiotComponent>({
+      state: {},
+    });
+  </script>
+</about>

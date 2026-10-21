@@ -1,0 +1,45 @@
+{
+  "name": "riot-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Riot and Hono app: server-rendered pages, a JSON API, and a client cabinet",
+  "engines": {
+    "bun": ">=1.1.0"
+  },
+  "scripts": {
+    "dev": "bun ./node_modules/vite/bin/vite.js",
+    "build": "bun --bun vite build && bun --bun vite build --ssr src/server/index.ts && bun scripts/write-sw.ts",
+    "start": "bun dist/server/index.js",
+    "typecheck": "bun --bun tsc --noEmit",
+    "test": "bun test",
+    "lint": "biome check . && bun scripts/biome-riot.ts",
+    "lint:fix": "biome check --write . && bun scripts/biome-riot.ts --write",
+    "format": "biome format --write . && bun scripts/biome-riot.ts --write",
+    "format:check": "biome format . && bun scripts/biome-riot.ts"
+  },
+  "dependencies": {
+    "@hono/zod-openapi": "1.6.3",
+    "@riotjs/custom-elements": "10.0.0",
+    "@riotjs/route": "10.0.0",
+    "@riotjs/ssr": "10.0.0",
+    "@scalar/hono-api-reference": "0.12.13",
+    "hono": "4.13.13",
+    "riot": "10.1.6",
+    "zod": "4.6.7"
+  },
+  "bun-create": {
+    "start": "bun run dev"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.2",
+    "@hono/vite-dev-server": "0.26.1",
+    "@riotjs/compiler": "10.0.5",
+    "@riotjs/hot-reload": "10.0.0",
+    "@riotjs/parser": "10.0.0",
+    "@types/bun": "1.4.3",
+    "rollup-plugin-riot": "10.0.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.5"
+  }
+}
