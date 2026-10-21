@@ -334,3 +334,14 @@ describe('spa template', () => {
     }
   }, 30_000);
 });
+
+test('help uses @latest so bunx does not reuse a cached package', async () => {
+  const proc = Bun.spawn([process.execPath, cli, '-h'], {
+    stdout: 'pipe',
+    stderr: 'pipe',
+  });
+  const stdout = await new Response(proc.stdout).text();
+  expect(await proc.exited).toBe(0);
+  expect(stdout).toContain('bunx create-riot-app@latest');
+  expect(stdout).toContain('bun create riot-app@latest');
+});

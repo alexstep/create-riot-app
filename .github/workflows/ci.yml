@@ -39,7 +39,7 @@ jobs:
           bun run --cwd templates/spa build
           bun run --cwd templates/fullstack typecheck
           bun run --cwd templates/fullstack test
-          bun test ./test/create.test.ts
+          bun test ./test
           bun run --cwd templates/fullstack build
 
       - name: Smoke-test the packed CLI

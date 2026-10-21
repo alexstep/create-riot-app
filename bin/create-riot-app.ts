@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { spawn } from 'node:child_process';
-import { statSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import {
   cp,
   mkdir,
@@ -22,8 +22,8 @@ type TemplateName = (typeof templateNames)[number];
 const usage = `create-riot-app — Riot.js app starter (Bun + Vite + TypeScript)
 
 Usage:
-  bunx create-riot-app <directory> [--template fullstack|spa]
-  bun create riot-app <directory>
+  bunx create-riot-app@latest <directory> [--template fullstack|spa]
+  bun create riot-app@latest <directory>
   bun ./bin/create-riot-app.ts <directory>
 
 Options:
@@ -134,6 +134,8 @@ try {
   if (code !== 'ENOENT') throw error;
 }
 
+const newerRelease = checkNewerRelease();
+
 await mkdir(dest, { recursive: true });
 await cp(templateDir, dest, {
   recursive: true,
@@ -176,6 +178,9 @@ await restoreGitignore(dest);
 console.log(`Project created: ${dest}`);
 console.log(`Template: ${template}`);
 
+const updateHint = await newerRelease.hint();
+if (updateHint) console.log(updateHint);
+
 if (!noInstall) {
   console.log('Installing dependencies with Bun…');
   const install = spawn('bun', ['install'], {
@@ -209,6 +214,74 @@ Next:
   bun run dev      # http://localhost:3000
   bun run build && bun run start
 ${signIn}`);
+}
+
+function currentVersion(): string {
+  try {
+    const pkg = JSON.parse(
+      readFileSync(resolve(here, '..', 'package.json'), 'utf8'),
+    ) as { version?: string };
+    return pkg.version ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function isNewerVersion(latest: string, current: string): boolean {
+  const parse = (value: string) =>
+    value.split('.').map((part) => Number.parseInt(part, 10));
+  const next = parse(latest);
+  const have = parse(current);
+  for (let i = 0; i < 3; i++) {
+    const left = next[i] ?? 0;
+    const right = have[i] ?? 0;
+    if (Number.isNaN(left) || Number.isNaN(right)) return false;
+    if (left !== right) return left > right;
+  }
+  return false;
+}
+
+function checkNewerRelease(): { hint: () => Promise<string | null> } {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 800);
+  let settled: string | null = null;
+  let done = false;
+  const pending = (async () => {
+    try {
+      const current = currentVersion();
+      if (!current) return null;
+      const response = await fetch(
+        'https://registry.npmjs.org/create-riot-app/latest',
+        { signal: ctrl.signal },
+      );
+      if (!response.ok) return null;
+      const body = (await response.json()) as { version?: string };
+      if (!body.version || !isNewerVersion(body.version, current)) return null;
+      return `Newer create-riot-app@${body.version} is on npm (this is ${current}). Next time: bunx create-riot-app@latest`;
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  })().then((value) => {
+    settled = value;
+    done = true;
+    return value;
+  });
+
+  return {
+    async hint(): Promise<string | null> {
+      if (done) return settled;
+      const value = await Promise.race([
+        pending,
+        new Promise<null>((resolveHint) => {
+          setTimeout(() => resolveHint(null), 100);
+        }),
+      ]);
+      ctrl.abort();
+      return value;
+    },
+  };
 }
 
 async function ensureEnvFile(project: string): Promise<void> {
