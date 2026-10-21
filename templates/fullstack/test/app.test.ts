@@ -38,7 +38,8 @@ describe('pages', () => {
     expect(html).toContain('rel="canonical" href="http://localhost/"');
     expect(html).toContain('<theme-toggle>');
     expect(html).toContain('<button type="button">Theme</button>');
-    expect(html).toContain('<a href="/login">Log in</a>');
+    expect(html).toContain('href="/login">Log in</a>');
+    expect(html).not.toContain('>Home</a>');
     expect(html).toContain('<subscribe-form');
     expect(html).toContain('name="email"');
     expect(html).toContain('Send a note. It stays in memory on this server.');

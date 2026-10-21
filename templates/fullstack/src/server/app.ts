@@ -196,7 +196,7 @@ export function createApp(
       Home,
       {
         title: 'A Riot app on one server',
-        lead: 'Landing pages are rendered on the server. The cabinet is a client app after you log in.',
+        lead: 'Readable Riot tags, a typed Hono API, and a client cabinet. One Bun process serves all three.',
         hint: contactHint,
       },
       {

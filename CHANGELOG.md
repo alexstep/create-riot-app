@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The Groups screen reads `GET /api/groups` through the typed Hono client. The route is in the OpenAPI document at `/api/docs`. The server returns `src/fixtures/groups.json`, and the pictures are files under `public/media/groups`. The full-stack template no longer calls JSONPlaceholder or any other host for demo data. The same response works offline in dev and in Docker.
 - Landing, login, and cabinet pages use one spacing scale, aligned columns, and cards. Loading, empty, and error states are part of the screen. Light and dark, and the 375, 768, and 1280 widths, share that layout.
+- The public header is the brand only. Log in is the centered action on the home hero. About and the theme switch sit in the footer on the home, about, and login pages.
+- The full-stack next steps include `bun run test`. That command uses the project-local transpiler cache. A bare `bun test` does not.
 
 ## [3.1.3] - 2026-10-21
 
