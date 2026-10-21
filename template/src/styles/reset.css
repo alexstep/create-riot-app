@@ -6,12 +6,54 @@ body {
   padding: 0;
 }
 
-h1, h2, h3, h4, h5, h6,
-p, blockquote, pre,
-a, abbr, acronym, address, cite, code, del, dfn, em, img, q, s, samp, small, strike, strong, sub, sup, tt, var,
-dd, dl, dt, li, ol, ul,
-fieldset, form, label, legend,
-button, table, caption, tbody, tfoot, thead, tr, th, td {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+dd,
+dl,
+dt,
+li,
+ol,
+ul,
+fieldset,
+form,
+label,
+legend,
+button,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td {
   margin: 0;
   padding: 0;
   border: 0;
@@ -34,7 +76,7 @@ q::before,
 q::after,
 blockquote::before,
 blockquote::after {
-  content: "";
+  content: '';
 }
 
 * {
@@ -114,9 +156,9 @@ input {
 }
 
 button,
-input[type="button"],
-input[type="reset"],
-input[type="submit"] {
+input[type='button'],
+input[type='reset'],
+input[type='submit'] {
   cursor: pointer;
   -webkit-appearance: button;
 }
@@ -148,7 +190,7 @@ body {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
-input[type="checkbox"] {
+input[type='checkbox'] {
   -webkit-appearance: none;
 }
 

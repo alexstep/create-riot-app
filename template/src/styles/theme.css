@@ -2,7 +2,7 @@
    including when the choice is "system", so the dark palette is declared once. */
 
 :root,
-html[data-theme="light"] {
+html[data-theme='light'] {
   --theme-color: #5181b8;
   --page-bg: #fff;
   --main-bg: #5181b8;
@@ -40,7 +40,7 @@ html[data-theme="light"] {
   --header-height: 170px;
 }
 
-html[data-theme="dark"] {
+html[data-theme='dark'] {
   color-scheme: dark;
   --theme-color: #14171c;
   --page-bg: #14171c;
@@ -71,6 +71,6 @@ html[data-theme="dark"] {
   --switch-text: #e7eaee;
 }
 
-html[data-theme="dark"] #app {
+html[data-theme='dark'] #app {
   color: var(--card-text);
 }

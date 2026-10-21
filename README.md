@@ -77,6 +77,16 @@ The default theme follows `prefers-color-scheme`. On Settings, the Light / Dark 
 | `bun run build` | Production build in `dist/` |
 | `bun run preview` | Serve the production build locally |
 | `bun run typecheck` | `tsc --noEmit` for `.ts` files |
+| `bun run lint` | ESLint for `.ts` files and for `<script lang="ts">` inside `.riot` |
+| `bun run format` | Prettier, including `.riot` |
+
+## Lint and format
+
+Riot does not ship a linter or formatter for `.riot` files. `eslint-config-riot` is the JavaScript style used inside Riot's own repositories (ESLint 10, plus fp and jsdoc). It does not parse tags. Biome does not parse `.riot` either.
+
+`typescript-eslint` still imports the TypeScript 6 API. The template keeps that API on the `typescript` package name (`@typescript/typescript6`) and runs TypeScript 7 via `@typescript/native`, so `bun run typecheck` stays on 7. The template uses ESLint 9 flat config. `eslint.riot-processor.js` runs `@riotjs/parser`, lints the `<script lang="ts">` block as TypeScript, and maps the lines back to the `.riot` file. Template expressions such as `each`, `if`, and `{...}` are not linted. Prettier formats `.riot` through `prettier.riot-plugin.js`: expressions are masked, the file is formatted as HTML (so `<script lang="ts">` and `<style>` are formatted too), then the expressions are restored. Prettier's HTML parser cannot be used directly. It splits `each={item in items}` on spaces and rejects quotes inside `class={...}`.
+
+`.vscode/settings.json` turns on format-on-save, associates `*.riot` with HTML for highlighting, and points Prettier and ESLint at the extensions in `.vscode/extensions.json`. The Prettier config still selects the Riot parser, so save does not run the HTML parser on tags.
 
 Variables prefixed with `VITE_` are read from `.env`. The drawer avatar URL is `VITE_APP_AVATAR_URL`.
 
