@@ -1,5 +1,6 @@
 node_modules
 dist
+research/data-layer/tmp
 template/node_modules
 template/dist
 visual/actual
