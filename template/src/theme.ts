@@ -1,36 +1,59 @@
 export type ThemeChoice = 'light' | 'dark' | 'system'
+export type ResolvedTheme = 'light' | 'dark'
 
 const STORAGE_KEY = 'theme'
 
-export function getThemeChoice(): ThemeChoice {
+let memoryChoice: ThemeChoice | null = null
+let watching = false
+
+function readStorage(): ThemeChoice | null {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved === 'light' || saved === 'dark') return saved
+    if (saved === 'light' || saved === 'dark' || saved === 'system') return saved
   } catch {
-    // localStorage can be blocked. Fall back to the system theme.
+    // Storage can be blocked. The in-memory choice still applies.
   }
-  return 'system'
+  return null
+}
+
+function systemTheme(): ResolvedTheme {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+export function getThemeChoice(): ThemeChoice {
+  if (memoryChoice) return memoryChoice
+  memoryChoice = readStorage() ?? 'system'
+  return memoryChoice
+}
+
+export function resolvedTheme(): ResolvedTheme {
+  const choice = getThemeChoice()
+  return choice === 'system' ? systemTheme() : choice
 }
 
 export function applyStoredTheme(): void {
-  const choice = getThemeChoice()
-  const root = document.documentElement
-  if (choice === 'system') root.removeAttribute('data-theme')
-  else root.setAttribute('data-theme', choice)
-
-  const resolved = choice === 'system'
-    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-    : choice
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', resolved === 'dark' ? '#14171c' : '#5181b8')
+  const resolved = resolvedTheme()
+  document.documentElement.setAttribute('data-theme', resolved)
+  const color = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim()
+  if (color) document.querySelector('meta[name="theme-color"]')?.setAttribute('content', color)
 }
 
 export function setThemeChoice(choice: ThemeChoice): void {
+  memoryChoice = choice
   try {
     if (choice === 'system') localStorage.removeItem(STORAGE_KEY)
     else localStorage.setItem(STORAGE_KEY, choice)
   } catch {
-    // Ignore a blocked storage and still apply the choice for this visit.
+    // Keep memoryChoice so the selection survives a blocked storage write.
   }
   applyStoredTheme()
   window.dispatchEvent(new Event('themechange'))
+}
+
+export function watchSystemTheme(): void {
+  if (watching) return
+  watching = true
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (getThemeChoice() === 'system') applyStoredTheme()
+  })
 }

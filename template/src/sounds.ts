@@ -46,3 +46,8 @@ export function createSounds(soundsPath = '/sounds/'): SoundBoard {
 }
 
 export const sound = createSounds()
+
+export function playHover(event: PointerEvent): void {
+  if (event.pointerType && event.pointerType !== 'mouse') return
+  sound.hover()
+}

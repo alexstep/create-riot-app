@@ -1,8 +1,17 @@
 <drawer>
   <div class={'drawer-wrap' + (state.open ? ' show' : '')}>
-    <a onclick={toggleDrawer} href="#toggle_drawer" class="toggle-drawer" draggable="false" aria-label="Menu"><i></i></a>
+    <a
+      onclick={toggleDrawer}
+      href="#toggle_drawer"
+      class="toggle-drawer"
+      draggable="false"
+      role="button"
+      aria-label="Menu"
+      aria-controls="drawer"
+      aria-expanded={state.open ? 'true' : 'false'}
+    ><i></i></a>
 
-    <div id="drawer">
+    <div id="drawer" role="navigation" aria-label="Main">
       <header style="background-image:url()">
         <a
           if={state.user}
@@ -20,22 +29,10 @@
       </header>
 
       <ul class="menu-items">
-        <li>
-          <a onclick={menuItemClick} href="/dashboard" onpointerenter={playHover}>
-            <icon src="dashboard.svg"></icon>
-            Dashboard
-          </a>
-        </li>
-        <li>
-          <a onclick={menuItemClick} href="/groups" onpointerenter={playHover}>
-            <icon src="group.svg"></icon>
-            List
-          </a>
-        </li>
-        <li>
-          <a onclick={menuItemClick} href="/settings" onpointerenter={playHover}>
-            <icon src="settings.svg"></icon>
-            Settings
+        <li each={item in menu} class={props.current === item.name ? 'selected' : ''}>
+          <a onclick={menuItemClick} href={item.href} onpointerenter={playHover}>
+            <icon src={item.icon}></icon>
+            {item.label}
           </a>
         </li>
         <li class="logout">
@@ -51,9 +48,9 @@
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot'
-    import { navigate } from '../router'
-    import { sound } from '../sounds'
-    import { initSwipe } from '../swipe'
+    import { navigate, screens } from '../router'
+    import { playHover, sound } from '../sounds'
+    import { initSwipe, readDrawerMetrics } from '../swipe'
 
     interface User {
       id: number
@@ -67,16 +64,22 @@
       user: User
     }
 
-    interface Drawer extends RiotComponent<Record<string, never>, State> {
+    interface Drawer extends RiotComponent<{ current?: string }, State> {
+      menu: typeof screens
+      closeDelay: number
       stopSwipe: (() => void) | null
+      onKey: (event: KeyboardEvent) => void
       toggleDrawer(event?: Event): void
       menuItemClick(event: Event): void
       playHover(event: PointerEvent): void
+      syncA11y(): void
     }
 
     const avatar = import.meta.env.VITE_APP_AVATAR_URL || ''
 
     export default withTypes<Drawer>({
+      menu: screens,
+      closeDelay: 300,
       state: {
         open: false,
         user: {
@@ -87,26 +90,50 @@
         },
       },
       stopSwipe: null,
+      onKey() {},
+      syncA11y() {
+        const drawer = this.$('#drawer')
+        const toggle = this.$('.toggle-drawer')
+        if (drawer instanceof HTMLElement) {
+          drawer.inert = !this.state.open
+          drawer.setAttribute('aria-hidden', this.state.open ? 'false' : 'true')
+        }
+        toggle?.setAttribute('aria-expanded', this.state.open ? 'true' : 'false')
+      },
       onMounted() {
         const wrapper = this.$('.drawer-wrap')
         const drawer = this.$('#drawer')
         const overlay = this.$('.drawer-overlay')
-        if (!wrapper || !drawer || !overlay) return
-        this.stopSwipe = initSwipe({
-          wrapper,
-          drawer,
-          overlay,
-          drawerWidth: 240,
-          handlerWidth: 50,
-          isOpen: () => this.state.open,
-          onChange: (open) => {
-            this.update({ open })
-          },
-        })
+        const metrics = readDrawerMetrics()
+        this.closeDelay = metrics.speedMs
+        if (wrapper && drawer && overlay) {
+          this.stopSwipe = initSwipe({
+            wrapper,
+            drawer,
+            overlay,
+            drawerWidth: metrics.width,
+            handlerWidth: metrics.handler,
+            isOpen: () => this.state.open,
+            onChange: (open) => {
+              this.update({ open })
+            },
+          })
+        }
+        this.onKey = (event) => {
+          if (event.key !== 'Escape' || !this.state.open) return
+          event.preventDefault()
+          this.update({ open: false })
+        }
+        window.addEventListener('keydown', this.onKey)
+        this.syncA11y()
+      },
+      onUpdated() {
+        this.syncA11y()
       },
       onBeforeUnmount() {
         this.stopSwipe?.()
         this.stopSwipe = null
+        window.removeEventListener('keydown', this.onKey)
       },
       toggleDrawer(event) {
         event?.preventDefault()
@@ -123,12 +150,9 @@
         navigate(href)
         window.setTimeout(() => {
           this.update({ open: false })
-        }, 290)
+        }, this.closeDelay)
       },
-      playHover(event) {
-        if (event.pointerType && event.pointerType !== 'mouse') return
-        sound.hover()
-      },
+      playHover,
     })
   </script>
 </drawer>

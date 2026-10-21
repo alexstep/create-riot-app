@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -14,8 +15,6 @@ const VIEWPORTS = {
   desktop: { width: 1280, height: 800 },
   mobile: { width: 390, height: 844 },
 } as const
-
-const SCENES = ['dashboard', 'drawer', 'groups', 'settings'] as const
 
 // Anti-aliased text is ignored by pixelmatch. Anything above this share of
 // the viewport is a real layout regression.
@@ -43,7 +42,32 @@ const AUDIO_HOOK = `
 
 const FREEZE_CSS = `*,*::before,*::after{animation-duration:0s !important;animation-delay:0s !important;transition-duration:0s !important;transition-delay:0s !important;scroll-behavior:auto !important;}`
 
-type Scene = (typeof SCENES)[number]
+const thumb = readFileSync(join(root, 'fixtures/thumb.png'))
+const PHOTOS = Array.from({ length: 10 }, (_, index) => ({
+  albumId: 1,
+  id: index + 1,
+  title: `Fixture photo ${index + 1}`,
+  url: 'https://example.test/fixtures/thumb.png',
+  thumbnailUrl: 'https://example.test/fixtures/thumb.png',
+}))
+
+async function installRoutes(page: Page): Promise<void> {
+  await page.route('**/jsonplaceholder.typicode.com/**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(PHOTOS),
+    }),
+  )
+  await page.route('**/fixtures/thumb.png', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'image/png',
+      body: thumb,
+    }),
+  )
+}
+
 type ViewportName = keyof typeof VIEWPORTS
 
 const consoleErrors: string[] = []
@@ -131,7 +155,7 @@ async function showSettings(page: Page) {
   await settle(page)
 }
 
-async function capture(page: Page, scene: Scene): Promise<Buffer> {
+async function capture(page: Page, scene: string): Promise<Buffer> {
   if (scene === 'dashboard') {
     await page.locator('#screen_dashboard h1').waitFor()
   }
@@ -153,6 +177,7 @@ async function checkBehavior(browser: Browser, url: string) {
   })
   track(page)
   await page.addInitScript(AUDIO_HOOK)
+  await installRoutes(page)
   await gotoApp(page, url)
 
   const duration = await page.evaluate(() => getComputedStyle(document.querySelector('#drawer')!).transitionDuration)
@@ -202,16 +227,83 @@ async function checkBehavior(browser: Browser, url: string) {
   await page.locator('[data-choice="system"]').waitFor()
   await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark')
   await page.locator('[data-choice="system"]').click()
-  await page.waitForFunction(() => !document.documentElement.hasAttribute('data-theme') && localStorage.getItem('theme') === null)
+  await page.waitForFunction(() => document.documentElement.dataset.theme === 'light' && localStorage.getItem('theme') === null)
 
   await page.close()
 }
 
-function nameOf(viewport: ViewportName, scene: Scene) {
+async function checkTouch(browser: Browser, appUrl: string): Promise<void> {
+  const context = await browser.newContext({
+    hasTouch: true,
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 1,
+    colorScheme: 'light',
+  })
+  const page = await context.newPage()
+  track(page)
+  await page.addInitScript(AUDIO_HOOK)
+  await page.addInitScript(`try { localStorage.setItem('theme', 'light') } catch (e) {}`)
+  await installRoutes(page)
+  await gotoApp(page, appUrl)
+
+  await page.locator('.toggle-drawer').tap()
+  await page.locator('.drawer-wrap.show').waitFor({ timeout: 4000 })
+  await page.locator('#drawer a[href="/groups"]').tap()
+  await page.waitForFunction(
+    () => document.querySelector('#topbar h1')?.textContent?.trim().toLowerCase() === 'groups',
+  )
+
+  await page.evaluate(() => {
+    const wrap = document.querySelector('.drawer-wrap')
+    if (!wrap) throw new Error('drawer missing')
+    const down = (id: number, x: number) => {
+      wrap.dispatchEvent(new PointerEvent('pointerdown', {
+        pointerId: id,
+        pointerType: 'touch',
+        clientX: x,
+        clientY: 140,
+        bubbles: true,
+        cancelable: true,
+      }))
+    }
+    down(7, 12)
+    down(8, 20)
+    window.dispatchEvent(new PointerEvent('pointercancel', {
+      pointerId: 7,
+      pointerType: 'touch',
+      bubbles: true,
+      cancelable: true,
+    }))
+  })
+  if (await page.locator('.drawer-wrap.pan').count()) {
+    throw new Error('Drawer stayed in .pan after pointercancel')
+  }
+  await context.close()
+}
+
+async function menuScreens(page: Page): Promise<string[]> {
+  await openDrawer(page)
+  const hrefs = await page.locator('#drawer .menu-items a').evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute('href') ?? ''),
+  )
+  const names: string[] = []
+  for (const href of hrefs) {
+    const name = href.replace(/^\/+|\/+$/g, '')
+    if (!name || names.includes(name)) continue
+    names.push(name)
+  }
+  if (await page.locator('.drawer-wrap.show').count()) {
+    await page.keyboard.press('Escape')
+    await page.locator('.drawer-wrap:not(.show)').waitFor()
+  }
+  return names
+}
+
+function nameOf(viewport: ViewportName, scene: string) {
   return `${viewport}-${scene}.png`
 }
 
-async function compareOne(baselineRoot: string, actualRoot: string, diffRoot: string, viewport: ViewportName, scene: Scene, actual: Buffer) {
+async function compareOne(baselineRoot: string, actualRoot: string, diffRoot: string, viewport: ViewportName, scene: string, actual: Buffer) {
   const name = nameOf(viewport, scene)
   await writeFile(join(actualRoot, name), actual)
   const baselinePath = join(baselineRoot, name)
@@ -278,6 +370,8 @@ await mkdir(diffDir, { recursive: true })
 
 const browser = await chromium.launch({
   headless: true,
+  // The demo keeps the legacy font stack, which falls through to the browser
+  // sans-serif. These flags keep hinting stable without swapping that face.
   args: ['--font-render-hinting=none', '--disable-lcd-text'],
 })
 
@@ -301,12 +395,13 @@ async function runShots(theme: 'light' | 'dark', writeBaseline: boolean) {
     track(page)
     await page.addInitScript(AUDIO_HOOK)
     await page.addInitScript(`try { localStorage.setItem('theme', '${theme}') } catch (e) {}`)
-    for (const scene of SCENES) {
-      if (scene === 'dashboard') {
-        await gotoApp(page, url)
-        await freezeMotion(page)
-        if (theme === 'light') await page.addStyleTag({ content: HIDE_THEME_CONTROL })
-      }
+    await installRoutes(page)
+    await gotoApp(page, url)
+    await freezeMotion(page)
+    if (theme === 'light') await page.addStyleTag({ content: HIDE_THEME_CONTROL })
+    const names = await menuScreens(page)
+    const scenes = names.flatMap((name, index) => index === 0 ? [name, 'drawer'] : [name])
+    for (const scene of scenes) {
       const png = await capture(page, scene)
       const name = `${theme} ${nameOf(viewport, scene)}`
       if (writeBaseline) {
@@ -323,8 +418,12 @@ async function runShots(theme: 'light' | 'dark', writeBaseline: boolean) {
 }
 
 try {
-  console.log(`Behavior: ${url}`)
-  await checkBehavior(browser, url)
+  if (!update) {
+    console.log(`Behavior: ${url}`)
+    await checkBehavior(browser, url)
+    await checkTouch(browser, url)
+    console.log('Touch: hamburger and menu taps work.')
+  }
 
   const lightRows = await runShots('light', update)
   const darkRows = await runShots('dark', updateDark)

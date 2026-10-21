@@ -10,6 +10,21 @@ export interface SwipeOptions {
 
 const TAP_SLOP = 8
 
+export function readDrawerMetrics(): { width: number; handler: number; speedMs: number } {
+  const style = getComputedStyle(document.documentElement)
+  const px = (name: string, fallback: number): number => {
+    const value = Number.parseFloat(style.getPropertyValue(name))
+    return Number.isFinite(value) ? value : fallback
+  }
+  const speed = style.getPropertyValue('--drawer-speed').trim()
+  const speedMs = speed.endsWith('ms') ? Number.parseFloat(speed) : Number.parseFloat(speed) * 1000
+  return {
+    width: px('--drawer-width', 240),
+    handler: px('--drawer-handler-width', 50),
+    speedMs: Number.isFinite(speedMs) ? speedMs : 300,
+  }
+}
+
 export function initSwipe(options: SwipeOptions): () => void {
   const { wrapper, drawer, overlay } = options
   let tracking = false
@@ -27,6 +42,21 @@ export function initSwipe(options: SwipeOptions): () => void {
     return measured > 0 ? measured : options.drawerWidth
   }
 
+  const release = (id: number): void => {
+    if (!wrapper.hasPointerCapture(id)) return
+    try {
+      wrapper.releasePointerCapture(id)
+    } catch {
+      // The pointer may already be gone.
+    }
+  }
+
+  const clearGesture = (): void => {
+    wrapper.classList.remove('pan')
+    drawer.style.removeProperty('transform')
+    overlay.style.removeProperty('opacity')
+  }
+
   const paint = (visible: number, total: number): void => {
     const x = Math.max(0, Math.min(total, visible))
     drawer.style.transform = `translate3d(${x - total}px,0,0)`
@@ -35,15 +65,14 @@ export function initSwipe(options: SwipeOptions): () => void {
   }
 
   const finish = (): void => {
-    wrapper.classList.remove('pan')
-    drawer.style.removeProperty('transform')
-    overlay.style.removeProperty('opacity')
+    clearGesture()
     wrapper.classList.toggle('show', drawerOpen)
     options.onChange(drawerOpen)
   }
 
   const onDown = (event: PointerEvent): void => {
     if (event.pointerType !== 'touch') return
+    if (tracking) return
     const open = options.isOpen()
     if (!open && event.clientX > options.handlerWidth) return
     tracking = true
@@ -54,11 +83,6 @@ export function initSwipe(options: SwipeOptions): () => void {
     lastX = event.clientX
     startX = open ? event.clientX : 0
     drawerOpen = open
-    try {
-      wrapper.setPointerCapture(event.pointerId)
-    } catch {
-      // Capture is optional. Window listeners still follow the finger.
-    }
   }
 
   const onMove = (event: PointerEvent): void => {
@@ -72,6 +96,11 @@ export function initSwipe(options: SwipeOptions): () => void {
         return
       }
       panning = true
+      try {
+        wrapper.setPointerCapture(event.pointerId)
+      } catch {
+        // Window listeners still follow the finger.
+      }
     }
 
     event.preventDefault()
@@ -86,13 +115,27 @@ export function initSwipe(options: SwipeOptions): () => void {
     paint(clamped, total)
   }
 
-  const onUp = (event: PointerEvent): void => {
+  const endGesture = (event: PointerEvent, cancel: boolean): void => {
     if (!tracking || event.pointerId !== pointerId) return
+    release(event.pointerId)
     tracking = false
-    if (!panning) return
+    const wasPanning = panning
     panning = false
+    if (!wasPanning) return
+    if (cancel) {
+      clearGesture()
+      return
+    }
     suppressClick = true
     finish()
+  }
+
+  const onUp = (event: PointerEvent): void => {
+    endGesture(event, false)
+  }
+
+  const onCancel = (event: PointerEvent): void => {
+    endGesture(event, true)
   }
 
   const onClickCapture = (event: Event): void => {
@@ -106,13 +149,13 @@ export function initSwipe(options: SwipeOptions): () => void {
   wrapper.addEventListener('click', onClickCapture, true)
   window.addEventListener('pointermove', onMove, { passive: false })
   window.addEventListener('pointerup', onUp)
-  window.addEventListener('pointercancel', onUp)
+  window.addEventListener('pointercancel', onCancel)
 
   return () => {
     wrapper.removeEventListener('pointerdown', onDown)
     wrapper.removeEventListener('click', onClickCapture, true)
     window.removeEventListener('pointermove', onMove)
     window.removeEventListener('pointerup', onUp)
-    window.removeEventListener('pointercancel', onUp)
+    window.removeEventListener('pointercancel', onCancel)
   }
 }

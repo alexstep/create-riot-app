@@ -91,7 +91,7 @@ Variables prefixed with `VITE_` are read from `.env`. The drawer avatar URL is `
 
 ## Visual test
 
-`visual/test.ts` captures eight screens (desktop 1280×800 and mobile 390×844: home, open drawer, list, settings) in light and dark themes. Light screens are compared with the legacy demo in `visual/baselines`. Dark screens are compared with `visual/baselines/dark`. On light captures the `[data-theme-control]` block is hidden, because that switch did not exist in the old demo; the rest of the layout must match. Animations are disabled for screenshots. The same run checks the drawer animation, the `tick` sound, the theme switch, and that the console has no errors.
+`visual/test.ts` captures eight screens (desktop 1280×800 and mobile 390×844: home, open drawer, list, settings) in light and dark themes. The page list comes from the drawer menu. Light screens are compared with the legacy demo in `visual/baselines`. Dark screens are compared with `visual/baselines/dark`. On light captures the `[data-theme-control]` block is hidden, because that switch did not exist in the old demo; the rest of the layout must match. List photos are a local fixture, not the live API. Animations are disabled for screenshots. The same run checks the drawer animation, touch taps, the `tick` sound, the theme switch, and that the console has no errors. Chromium is launched with font hinting disabled so the legacy system font stack stays stable.
 
 ```bash
 cd visual && bun install

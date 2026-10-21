@@ -26,7 +26,7 @@
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot'
     import { getPhotos, type Photo } from '../../api'
-    import { sound } from '../../sounds'
+    import { playHover, sound } from '../../sounds'
 
     interface State {
       loading: boolean
@@ -71,10 +71,7 @@
         sound.card()
         if (Number.isFinite(id)) this.update({ selectedId: id })
       },
-      playHover(event) {
-        if (event.pointerType && event.pointerType !== 'mouse') return
-        sound.hover()
-      },
+      playHover,
       hideImage(event) {
         const img = event.currentTarget as HTMLImageElement
         img.style.visibility = 'hidden'

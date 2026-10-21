@@ -1,15 +1,13 @@
 <app>
   <div id="app">
     <topbar title={state.screen}></topbar>
-    <drawer></drawer>
-    <dashboard if={state.screen === 'dashboard'}></dashboard>
-    <groups if={state.screen === 'groups'}></groups>
-    <settings if={state.screen === 'settings'}></settings>
+    <drawer current={state.screen}></drawer>
+    <div each={item in screens} if={state.screen === item.name} is={item.name}></div>
   </div>
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot'
-    import { startRouter, type Screen } from '../router'
+    import { screens, startRouter, type Screen } from '../router'
     import { syncTopbarScroll } from '../topbar-scroll'
 
     interface State {
@@ -17,11 +15,13 @@
     }
 
     interface App extends RiotComponent<object, State> {
+      screens: typeof screens
       stopRouter: (() => void) | null
       onRoute(screen: Screen): void
     }
 
     export default withTypes<App>({
+      screens,
       state: {
         screen: 'dashboard',
       },

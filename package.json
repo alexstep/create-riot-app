@@ -1,12 +1,18 @@
 {
   "name": "create-riot-app",
   "version": "2.0.0",
-  "private": true,
   "type": "module",
+  "license": "BSD-3-Clause",
   "description": "Riot.js application starter. A create-react-app style CLI (bun create) and a demo with a drawer, sounds, and screens.",
   "bin": {
     "create-riot-app": "./bin/create-riot-app.ts"
   },
+  "files": [
+    "bin",
+    "template",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "create": "bun ./bin/create-riot-app.ts",
     "demo": "bun run --cwd template dev",

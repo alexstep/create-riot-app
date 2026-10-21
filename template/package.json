@@ -8,10 +8,10 @@
     "bun": ">=1.1.0"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "dev": "bun --bun vite",
+    "build": "bun --bun vite build",
+    "preview": "bun --bun vite preview",
+    "typecheck": "bun --bun tsc --noEmit"
   },
   "dependencies": {
     "@riotjs/route": "10.0.0",

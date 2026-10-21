@@ -112,7 +112,7 @@
     background: var(--header-bg) no-repeat;
     background-size: cover;
     width: 100%;
-    height: 170px;
+    height: var(--header-height);
     padding: 0;
 
     &:before {

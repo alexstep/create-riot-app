@@ -1,8 +1,26 @@
 import { initDomListeners, router, setBase } from '@riotjs/route'
+import type { RiotComponent, RiotComponentWrapper } from 'riot'
+import Dashboard from './components/screens/dashboard.riot'
+import Groups from './components/screens/groups.riot'
+import Settings from './components/screens/settings.riot'
 
-export type Screen = 'dashboard' | 'groups' | 'settings'
+export interface AppScreen {
+  name: 'dashboard' | 'groups' | 'settings'
+  label: string
+  icon: string
+  href: string
+  component: RiotComponentWrapper<RiotComponent>
+}
 
-const SCREENS: readonly Screen[] = ['dashboard', 'groups', 'settings']
+export const screens: readonly AppScreen[] = [
+  { name: 'dashboard', label: 'Dashboard', icon: 'dashboard.svg', href: '/dashboard', component: Dashboard },
+  { name: 'groups', label: 'List', icon: 'group.svg', href: '/groups', component: Groups },
+  { name: 'settings', label: 'Settings', icon: 'settings.svg', href: '/settings', component: Settings },
+]
+
+export type Screen = AppScreen['name']
+
+const names: readonly string[] = screens.map((screen) => screen.name)
 
 export function parseScreen(path: string): Screen {
   const withoutOrigin = path.replace(/^[a-z]+:\/\/[^/]+/i, '')
@@ -10,7 +28,7 @@ export function parseScreen(path: string): Screen {
     ? withoutOrigin.slice(withoutOrigin.indexOf('#') + 1)
     : withoutOrigin
   const name = hashed.replace(/^\/+/, '').split(/[/?#]/)[0] ?? ''
-  return (SCREENS as readonly string[]).includes(name) ? (name as Screen) : 'dashboard'
+  return (names.includes(name) ? name : 'dashboard') as Screen
 }
 
 export function navigate(path: string): void {
