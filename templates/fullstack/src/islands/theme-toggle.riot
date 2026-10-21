@@ -1,0 +1,48 @@
+<theme-toggle>
+  <button type="button" onclick="{cycle}">{state.label}</button>
+
+  <script lang="ts">
+    import { withTypes, type RiotComponent } from 'riot';
+    import {
+      getThemeChoice,
+      setThemeChoice,
+      type ThemeChoice,
+    } from '../cabinet/theme';
+
+    const order: ThemeChoice[] = ['light', 'dark', 'system'];
+
+    interface State {
+      label: string;
+    }
+
+    export default withTypes<RiotComponent<object, State>>({
+      observedAttributes: [] as string[],
+      state: { label: 'Theme' },
+      onMounted() {
+        this.state.label = `Theme: ${getThemeChoice()}`;
+      },
+      cycle(event: Event) {
+        event.preventDefault();
+        const current = getThemeChoice();
+        const next = order[(order.indexOf(current) + 1) % order.length] ?? 'system';
+        setThemeChoice(next);
+        this.update({ label: `Theme: ${next}` });
+      },
+    });
+  </script>
+
+  <style>
+    :host {
+      display: inline-block;
+    }
+
+    button {
+      border: 0;
+      border-radius: 2px;
+      background: var(--text-on-main);
+      color: var(--main-bg);
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+  </style>
+</theme-toggle>

@@ -1,102 +1,113 @@
 # create-riot-app
 
-A Riot.js starter, in the spirit of Create React App. The CLI scaffolds a demo with a side drawer, sounds, and three screens. The dev server and production build run on Bun.
+A Riot.js starter. The CLI copies a template into a new directory. The default template is one Bun process: a Hono API, server-rendered Riot pages, and a client cabinet. `--template spa` copies the client-only cabinet.
 
 The repository has two layers:
 
-- `bin/create-riot-app.ts` copies the template into a new directory.
-- `template/` is the demo itself. A generated project is a copy of it.
+- `bin/create-riot-app.ts` copies a template, names `package.json` from the directory, restores `.gitignore`, and installs dependencies.
+- `templates/fullstack` and `templates/spa` are those projects.
 
 ## Stack
 
 | | |
 | --- | --- |
 | Runtime and packages | [Bun](https://bun.sh) |
+| HTTP | [Hono](https://hono.dev) on Bun, in the full-stack template |
 | UI | [Riot.js 10.1.6](https://riot.js.org) |
+| Server HTML | `@riotjs/ssr` for the pages that opt in |
+| Islands | `@riotjs/custom-elements` |
 | Tag compiler | `@riotjs/compiler` 10.0.5 via `rollup-plugin-riot` |
-| Router | `@riotjs/route` 10 |
-| Dev server and build | [Vite](https://vite.dev) 8, with fast refresh and a production build |
-| Language | TypeScript where Riot supports it (`lang="ts"` in components and plain `.ts` modules) |
-| Styles | Native CSS: nesting, custom properties, `hsl(from …)` |
+| Router | `@riotjs/route` 10, inside the cabinet |
+| Dev server and build | [Vite](https://vite.dev) 8 |
+| Language | TypeScript in `.ts` modules and in `.riot` scripts (`lang="ts"`) |
+| Styles | Native CSS: nesting and custom properties |
 
-Riot 10 is the current stable line on npm (the last 9.x release is 9.4.11; 10.0.0 replaced it in August 2025). Components are still `.riot` files with `export default`. Riot does not publish a dedicated Vite plugin: the official compiler is a Rollup plugin, and Vite runs that plugin. Vite is used instead of `bun.build` because Bun has no equivalent dev server with hot reload for `.riot` files, while Vite provides both fast refresh and `vite build`.
+Riot 10 is the current stable line on npm (the last 9.x release is 9.4.11). Components are `.riot` files with `export default`. Riot does not publish a dedicated Vite plugin: the official compiler is a Rollup plugin, and Vite runs that plugin.
 
 ## Create a project
 
 ```bash
 bunx create-riot-app my-app
 cd my-app
+cp .env.example .env
 bun run dev
 ```
 
-`bun create riot-app my-app` does the same thing. Bun runs `bunx create-riot-app my-app` for that command. The CLI installs dependencies, names `package.json` after the directory, and prints the next commands. `--no-install` copies files only. `--force` writes into a non-empty directory.
+That is the full-stack template. The client-only app:
+
+```bash
+bunx create-riot-app my-spa --template spa
+```
+
+`bun create riot-app my-app` does the same thing as the default. `--no-install` copies files only. `--force` writes into a non-empty directory. Any other template name exits with `Unknown template "<name>". Use "fullstack" or "spa".`
 
 From a checkout of this repository, without publishing:
 
 ```bash
 bun ./bin/create-riot-app.ts my-app
+bun ./bin/create-riot-app.ts my-spa --template spa
 ```
 
-## Run the demo from this repository
+## Full-stack template
+
+`bun run dev` is one process on <http://localhost:3000>. `@hono/vite-dev-server` loads `src/server/dev.ts` through its Bun adapter. Hono serves the pages and `/api`. Vite serves the modules.
 
 ```bash
-cd template
+bun run build    # dist/client and dist/server
+bun run start    # Bun.serve, one process
+bun run test     # app.request() against the Hono app
+```
+
+`src/server/index.ts` stops the server on SIGINT and SIGTERM. `bun run start` sets `NODE_ENV` to `production` when it is unset, then reads `.env`. Hashed files under `/assets/` are `immutable`. HTML is `no-cache` with an ETag. Paths that leave the static root are rejected. Mount order is API and special routes, then static files, then server-rendered pages, then the `/app/*` fallback. `/api/*` that does not match is JSON `{ "error": "Not found" }`.
+
+### Pages, islands, cabinet, API
+
+`/` and `/about` are rendered with `@riotjs/ssr` `render`. Handlers pass props, including the title and description used for `<title>`, the meta description, Open Graph, and the canonical URL. `sitemap.xml` and `robots.txt` are routes. Other URLs are not server-rendered.
+
+Interactive pieces on those pages are custom elements (`x-theme-toggle`, `x-subscribe-form`, `x-login-link`, `x-login-form`). `define('x-tag', Component)` registers them. They upgrade in the browser. The landing pages are not hydrated: `@riotjs/hydrate` is not used, because each island owns its own listeners.
+
+`/login` accepts any email and `DEMO_PASSWORD`. The session cookie is `httpOnly`, `SameSite=Lax`, and `Secure` in production. `SESSION_SECRET` signs it. The same signed value works as a bearer token. Login allows 5 attempts per minute. `hono/csrf` rejects a cross-site form post. After login, `/app/*` is the cabinet (drawer, screens, themes, sounds) from `app.html`. Without a session, `/app/*` redirects to `/login` and `/api/me` is 401. Logout clears the cookie.
+
+Add a server-rendered page in `src/pages` and a `renderPage` route in `src/server/app.ts`. Add a cabinet screen in `src/cabinet/router.ts`. Add an API route by chaining `.openapi()` in `src/api/routes.ts`. Colors are the custom properties in `src/cabinet/styles/theme.css`, imported by both the landing CSS and the cabinet.
+
+The router is `OpenAPIHono` from `@hono/zod-openapi`. Schemas use zod 4 and `.openapi('Name')`. `defaultHook` returns `{ error }` with status 400. `basePath('/api')` is set before the routes. One `onError` returns an `HTTPException` response as-is and `{ error: "Internal Server Error" }` for anything else. `requireUser` and `optionalUser` are `createMiddleware` handlers with typed variables. Demo routes: `/api/login`, `/api/logout`, `/api/me`, `/api/hello` (optional auth), `/api/contact`, and in-memory `/api/items`.
+
+`/api/docs` is Scalar (`@scalar/hono-api-reference`). `customCss` maps the app tokens (`--page-bg`, `--card-text`, `--theme-color`, and the dark values) onto `--scalar-*` for the light page and `.dark-mode`. `/api/openapi.json` is produced by `app.doc`, with `info.version` from `package.json`, plus cookie and bearer security schemes. Docs are public when `NODE_ENV` is not `production`. In production they answer 404 until `DOCS_USER` and `DOCS_PASSWORD` are both set, and then HTTP basic auth protects them.
+
+The cabinet calls the API with `hc<AppType>`, where `AppType` is `typeof routes`. There is no generated `.d.ts`. Auth paths are `/api/login` and `/api/logout` rather than `/api/auth/*`: a shared prefix collapses those paths in the typed client.
+
+Environment variables are checked with zod at boot. `.env.example` lists them. Nothing secret is committed. `PUBLIC_ORIGIN` is optional and, when it is `https`, turns on HSTS. A local `bun run start` on http does not send HSTS.
+
+`Dockerfile` builds the client and the server and runs `bun run start` as one process. Pass `SESSION_SECRET` and `DEMO_PASSWORD` when you start the container.
+
+`@riotjs/ssr` `renderAsync` throws unless the mounted tag implements `onAsyncRendering`. Compiled tags do not expose that method, so a handler loads data and then calls `render`. Custom elements use shadow DOM: CSS variables inherit, and each island keeps the rules it needs in its own `<style>`.
+
+## Client-only template
+
+```bash
+cd templates/spa
 bun install
 bun run dev
 ```
 
-Dev server: <http://localhost:5173>. Routes: `/dashboard`, `/groups`, `/settings`. The dev server and `vite preview` serve `index.html` for those paths, so a reload stays on the same screen.
+Dev server: <http://localhost:5173>. Routes: `/dashboard`, `/groups`, `/settings`. `vite preview` serves `index.html` for those paths.
 
-Typecheck and production build:
-
-```bash
-bun run typecheck
-bun run build
-bun run preview
-```
-
-The build is written to `template/dist`.
-
-## What the demo includes
-
-- Top bar and a sliding drawer: button, dimmed overlay, 0.1s animation, and a swipe from the left edge on touch screens.
-- Sounds in `public/sounds`: `tick` when the menu opens, a menu item is chosen, or the settings button is pressed; `hover` on mouse enter; `card` when a list card is selected. Mp3 is used when the browser cannot play Ogg. A rejected autoplay does not show up in the console.
-- Screens: Dashboard, a list that loads the first ten photos from jsonplaceholder (spinner for about a second), Settings.
-- On a narrow viewport the list hides the top bar while scrolling, as the old demo did.
-- Icons, favicons, and the manifest live in `public/` and `src/icons`.
-
-Application logic is TypeScript (`src/router.ts`, `src/sounds.ts`, `src/swipe.ts`, `src/api.ts`). Screens are `.riot` components with `lang="ts"`. Styles live in `src/styles` and are imported once. There is no jQuery and no Hammer.
-
-The default theme follows `prefers-color-scheme`. On Settings, the Light / Dark / System switch stores the choice in `localStorage` and sets `data-theme` on `<html>`.
-
-## Template scripts
-
-| Command | What it does |
-| --- | --- |
-| `bun run dev` | Vite dev server with hot reload |
-| `bun run build` | Production build in `dist/` |
-| `bun run preview` | Serve the production build locally |
-| `bun run typecheck` | `tsc --noEmit` for `.ts` files |
-| `bun run lint` | Biome for `.ts`, `.css`, `.json`, and `.html`, plus `<script>` and `<style>` inside `.riot` |
-| `bun run format` | Biome write. Markup inside `.riot` is left as authored |
+The cabinet has a top bar, a drawer (0.1s, swipe from the left edge), sounds in `public/sounds`, and three screens. The default theme follows `prefers-color-scheme`. Settings stores Light / Dark / System in `localStorage`. `VITE_APP_AVATAR_URL` overrides the drawer avatar.
 
 ## Lint and format
 
-Biome 2.6.2 checks `.ts`, `.js`, `.css`, `.json`, and `.html` in the template and in `bin/`. It ignores `.riot` files. Parsing a tag as HTML fails: unquoted `{expr}` attributes are syntax errors, and `<script>` `import` / `export` is reported as being outside a module. Biome plugins cannot add a file type.
+Biome 2.6.2 checks `.ts`, `.js`, `.css`, `.json`, and `.html` in both templates and in `bin/`. It ignores `.riot` files. `scripts/biome-riot.ts` in each template uses `@riotjs/parser` to lint and format `<script>` and `<style>`. Diagnostics use the `.riot` line and column. Tag markup is not formatted. An `each` without `key` is reported.
 
-`scripts/biome-riot.ts` uses `@riotjs/parser` to find each `<script>` and `<style>` block, then runs Biome on that block. Diagnostics are printed with the `.riot` line and column. `--write` formats the block and splices it back at the same indentation. The tag markup is not formatted. An `each` without `key` is reported. `lang="ts"`, `export default`, `:host`, and CSS nesting are covered.
+```bash
+bun run lint
+bun run format:check
+```
 
-Biome 2.6.2's stdin mode does not return rule diagnostics, so the script writes each block to a temporary `*.riot.ts` or `*.riot.css` file and lints that path.
-
-`.vscode` recommends the Biome extension and formats `.ts` and `.css` on save. `.riot` is not formatted on save. Run `bun run format`, or the `format` task in `.vscode/tasks.json`.
-
-Unknown element selectors and untitled SVGs are not lint errors here: the tags are `app` and `drawer`, and the icons are decorative. Selector order is left as it is, because that order is the layout.
-
-Variables prefixed with `VITE_` are read from `.env`. The drawer avatar URL is `VITE_APP_AVATAR_URL`.
+`.vscode` in each template recommends the Biome extension. `.riot` is not part of format-on-save.
 
 ## Visual test
 
-`visual/test.ts` captures eight screens (desktop 1280×800 and mobile 390×844: home, open drawer, list, settings) in light and dark themes. The page list comes from the drawer menu. Light screens are compared with the legacy demo in `visual/baselines`. Dark screens are compared with `visual/baselines/dark`. On light captures the `[data-theme-control]` block is hidden, because that switch did not exist in the old demo; the rest of the layout must match. List photos are a local fixture, not the live API. Animations are disabled for screenshots. The same run checks the drawer animation, touch taps, the `tick` sound, the theme switch, and that the console has no errors. Chromium is launched with font hinting disabled so the legacy system font stack stays stable.
+`visual/test.ts` captures the spa template: eight screens (desktop 1280×800 and mobile 390×844: home, open drawer, list, settings) in light and dark themes. Light screens are compared with `visual/baselines`. Dark screens are compared with `visual/baselines/dark`. The suite is not part of CI.
 
 ```bash
 cd visual && bun install
@@ -105,9 +116,14 @@ cd ..
 bun run visual
 ```
 
-Recapture baselines from a running server with:
+## Scripts in this repository
 
-```bash
-cd visual && bun test.ts --update --url http://127.0.0.1:9999
-cd visual && bun test.ts --update-dark --url http://127.0.0.1:5173
-```
+| Command | What it does |
+| --- | --- |
+| `bun run demo` | Full-stack dev server |
+| `bun run demo:spa` | Client-only dev server |
+| `bun run demo:test` | Full-stack `bun test` |
+| `bun run demo:typecheck` | Typecheck both templates |
+| `bun run demo:build` | Production build of both templates |
+| `bun run lint` | Biome for `bin/` and both templates, including `.riot` script and style |
+| `bun run visual` | Spa screenshot suite |

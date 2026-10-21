@@ -14,24 +14,35 @@ import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const templateDir = resolve(here, '..', 'template');
+const templatesRoot = resolve(here, '..', 'templates');
+const templateNames = ['fullstack', 'spa'] as const;
+type TemplateName = (typeof templateNames)[number];
 
-const usage = `create-riot-app — Riot.js demo (Bun + Vite + TypeScript)
+const usage = `create-riot-app — Riot.js app starter (Bun + Vite + TypeScript)
 
 Usage:
-  bunx create-riot-app <directory>
+  bunx create-riot-app <directory> [--template fullstack|spa]
   bun create riot-app <directory>
   bun ./bin/create-riot-app.ts <directory>
 
 Options:
-  --force        write into a non-empty directory
-  --no-install   skip bun install
-  -h, --help     show this help
+  --template <name>  fullstack (default) or spa
+  --force            write into a non-empty directory
+  --no-install       skip bun install
+  -h, --help         show this help
+
+Templates:
+  fullstack  One Bun process: Hono API, server-rendered pages, and the client cabinet
+  spa        Client-only cabinet (Vite)
 `;
 
 function fail(message: string): never {
   console.error(message);
   process.exit(1);
+}
+
+function isTemplateName(value: string): value is TemplateName {
+  return (templateNames as readonly string[]).includes(value);
 }
 
 async function restoreGitignore(dest: string): Promise<void> {
@@ -68,14 +79,42 @@ if (args.includes('-h') || args.includes('--help')) {
 
 const force = args.includes('--force');
 const noInstall = args.includes('--no-install');
-const destArg = args.find((arg) => !arg.startsWith('-'));
+let template: TemplateName = 'fullstack';
+let destArg: string | undefined;
+
+for (let i = 0; i < args.length; i++) {
+  const arg = args[i] ?? '';
+  if (arg === '--force' || arg === '--no-install') continue;
+  if (arg === '--template' || arg.startsWith('--template=')) {
+    const value = arg.startsWith('--template=')
+      ? arg.slice('--template='.length)
+      : args[++i];
+    if (!value || value.startsWith('-')) {
+      fail('--template needs a name. Use "fullstack" or "spa".');
+    }
+    if (!isTemplateName(value)) {
+      fail(`Unknown template "${value}". Use "fullstack" or "spa".`);
+    }
+    template = value;
+    continue;
+  }
+  if (arg.startsWith('-')) fail(`Unknown option "${arg}".`);
+  if (destArg) fail('Pass one directory.');
+  destArg = arg;
+}
+
 if (!destArg) {
   console.log(usage);
   fail('Pass a directory for the new project.');
 }
 
+const templateDir = resolve(templatesRoot, template);
 const dest = resolve(process.cwd(), destArg);
-if (dest === templateDir) {
+if (
+  dest === templateDir ||
+  dest === templatesRoot ||
+  dest.startsWith(`${templateDir}${sep}`)
+) {
   fail('Refusing to generate a project on top of the template directory.');
 }
 
@@ -101,8 +140,6 @@ await cp(templateDir, dest, {
     const rel = relative(templateDir, source);
     if (!rel) return true;
     const parts = rel.split(sep);
-    // node_modules and dist are install/build output. .npmignore only
-    // keeps those out of the published tarball; a new app does not need it.
     return (
       !parts.includes('node_modules') &&
       !parts.includes('dist') &&
@@ -122,6 +159,7 @@ await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 await restoreGitignore(dest);
 
 console.log(`Project created: ${dest}`);
+console.log(`Template: ${template}`);
 
 if (!noInstall) {
   console.log('Installing dependencies with Bun…');
@@ -137,10 +175,20 @@ if (!noInstall) {
 }
 
 const folder = destArg;
-console.log(`
+if (template === 'spa') {
+  console.log(`
 Next:
   cd ${folder}
   bun run dev      # http://localhost:5173
   bun run build    # write dist/
   bun run preview  # serve the production build
 `);
+} else {
+  console.log(`
+Next:
+  cd ${folder}
+  cp .env.example .env
+  bun run dev      # http://localhost:3000
+  bun run build && bun run start
+`);
+}

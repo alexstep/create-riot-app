@@ -375,7 +375,7 @@ async function ensureServer(): Promise<string> {
   if (givenUrl) return givenUrl
   const probe = await fetch('http://127.0.0.1:5173/').then((r) => r.ok).catch(() => false)
   if (probe) return 'http://127.0.0.1:5173/'
-  devServer = Bun.spawn(['bun', 'run', '--cwd', join(root, '..', 'template'), 'dev', '--host', '127.0.0.1', '--port', '5173'], {
+  devServer = Bun.spawn(['bun', 'run', '--cwd', join(root, '..', 'templates', 'spa'), 'dev', '--host', '127.0.0.1', '--port', '5173'], {
     stdout: 'ignore',
     stderr: 'pipe',
     env: { ...process.env, PATH: `${process.env.HOME}/.bun/bin:${process.env.PATH}` },

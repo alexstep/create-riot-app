@@ -1,0 +1,183 @@
+<drawer>
+  <div class="{'drawer-wrap' + (state.open ? ' show' : '')}">
+    <a
+      onclick="{toggleDrawer}"
+      href="#toggle_drawer"
+      class="toggle-drawer"
+      draggable="false"
+      role="button"
+      aria-label="Menu"
+      aria-controls="drawer"
+      aria-expanded="{state.open ? 'true' : 'false'}"
+      ><i></i
+    ></a>
+
+    <div
+      id="drawer"
+      role="navigation"
+      aria-label="Main"
+      aria-hidden="{state.open ? 'false' : 'true'}"
+    >
+      <header style="background-image: url()">
+        <a
+          if="{state.user}"
+          class="user-info"
+          draggable="false"
+          target="_blank"
+          rel="noopener"
+          href="{'https://vk.com/id' + state.user.id}"
+        >
+          <figure class="avatar" style="{'background-image:url(' + state.user.photoUrl + ')'}"></figure>
+          <em class="name"> {state.user.firstName} {state.user.lastName} </em>
+        </a>
+      </header>
+
+      <ul class="menu-items">
+        <li
+          each="{item in menu}"
+          key="{item.name}"
+          class="{props.current === item.name ? 'selected' : ''}"
+        >
+          <a
+            onclick="{menuItemClick}"
+            href="{item.href}"
+            draggable="false"
+            onpointerenter="{playHover}"
+          >
+            <icon src="{item.icon}"></icon>
+            {item.label}
+          </a>
+        </li>
+        <li class="logout">
+          <a
+            onclick="{logoutClick}"
+            href="/"
+            draggable="false"
+            onpointerenter="{playHover}"
+          >
+            <icon src="logout.svg"></icon>
+            Exit
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div onclick="{toggleDrawer}" class="drawer-overlay"></div>
+  </div>
+
+  <script lang="ts">
+    import { withTypes, type RiotComponent } from 'riot';
+    import { logout } from '../api';
+    import { navigate, screens } from '../router';
+    import { playHover, sound } from '../sounds';
+    import { initSwipe, readDrawerMetrics } from '../swipe';
+
+    interface User {
+      id: number;
+      photoUrl: string;
+      firstName: string;
+      lastName: string;
+    }
+
+    interface State {
+      open: boolean;
+      user: User;
+    }
+
+    interface Drawer extends RiotComponent<{ current?: string }, State> {
+      menu: typeof screens;
+      closeDelay: number;
+      stopSwipe: (() => void) | null;
+      onKey: (event: KeyboardEvent) => void;
+      toggleDrawer(event?: Event): void;
+      logoutClick(event: Event): Promise<void>;
+      menuItemClick(event: Event): void;
+      playHover(event: PointerEvent): void;
+      syncInert(): void;
+    }
+
+    const avatar = import.meta.env.VITE_APP_AVATAR_URL || '';
+
+    export default withTypes<Drawer>(() => ({
+      menu: screens,
+      closeDelay: 100,
+      state: {
+        open: false,
+        user: {
+          id: 99,
+          photoUrl: avatar,
+          firstName: 'Alex',
+          lastName: 'Step',
+        },
+      },
+      stopSwipe: null,
+      onKey() {},
+      syncInert() {
+        const drawer = this.$('#drawer');
+        // `inert` is a boolean property. Riot's attribute parser does not
+        // treat it as boolean, so an expression would leave the attribute set.
+        if (drawer instanceof HTMLElement) drawer.inert = !this.state.open;
+      },
+      onMounted() {
+        const wrapper = this.$('.drawer-wrap');
+        const drawer = this.$('#drawer');
+        const overlay = this.$('.drawer-overlay');
+        const metrics = readDrawerMetrics();
+        this.closeDelay = metrics.speedMs;
+        if (wrapper && drawer && overlay) {
+          this.stopSwipe = initSwipe({
+            wrapper,
+            drawer,
+            overlay,
+            drawerWidth: metrics.width,
+            handlerWidth: metrics.handler,
+            isOpen: () => this.state.open,
+            onChange: (open) => {
+              this.update({ open });
+            },
+          });
+        }
+        this.onKey = (event) => {
+          if (event.key !== 'Escape' || !this.state.open) return;
+          event.preventDefault();
+          this.update({ open: false });
+        };
+        window.addEventListener('keydown', this.onKey);
+        this.syncInert();
+      },
+      onUpdated() {
+        this.syncInert();
+      },
+      onBeforeUnmount() {
+        this.stopSwipe?.();
+        this.stopSwipe = null;
+        window.removeEventListener('keydown', this.onKey);
+      },
+      toggleDrawer(event) {
+        event?.preventDefault();
+        window.setTimeout(() => {
+          const open = !this.state.open;
+          if (open) sound.tick();
+          this.update({ open });
+        }, 100);
+      },
+      async logoutClick(event: Event) {
+        event.preventDefault();
+        sound.tick();
+        await logout();
+        window.location.assign('/');
+      },
+      menuItemClick(event: Event) {
+        event.preventDefault();
+        const href =
+          (event.currentTarget as HTMLAnchorElement).getAttribute('href') ||
+          '/app/dashboard';
+        sound.tick();
+        navigate(href);
+        window.setTimeout(() => {
+          this.update({ open: false });
+        }, this.closeDelay);
+      },
+      playHover,
+    }));
+  </script>
+</drawer>

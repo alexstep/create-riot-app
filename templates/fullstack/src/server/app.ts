@@ -1,0 +1,228 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { Scalar } from '@scalar/hono-api-reference';
+import { type Context, Hono, type Next } from 'hono';
+import { basicAuth } from 'hono/basic-auth';
+import { csrf } from 'hono/csrf';
+import { HTTPException } from 'hono/http-exception';
+import { secureHeaders } from 'hono/secure-headers';
+import { attachApi, createApiState, routes } from '../api/routes';
+import { sessionIdFrom } from '../api/session';
+import About from '../pages/about.riot';
+import Home from '../pages/home.riot';
+import Login from '../pages/login.riot';
+import { type AppEnv, parseEnv } from './env';
+import { renderPage } from './html';
+import { resolveStatic, staticResponse } from './static';
+
+const scalarCss = `
+:root {
+  --scalar-background-1: var(--page-bg, #fff);
+  --scalar-background-2: var(--groups-canvas, #f0f0f0);
+  --scalar-background-3: var(--card-bg, #fff);
+  --scalar-color-1: var(--card-text, #333);
+  --scalar-color-2: var(--muted, #aaa);
+  --scalar-color-accent: var(--theme-color, #5181b8);
+}
+.dark-mode {
+  --scalar-background-1: var(--page-bg, #14171c);
+  --scalar-background-2: var(--drawer-bg, #1c2128);
+  --scalar-background-3: var(--card-bg, #222833);
+  --scalar-color-1: var(--card-text, #e7eaee);
+  --scalar-color-2: var(--muted, #9aa3ad);
+  --scalar-color-accent: var(--selected-icon, #8eb4e0);
+}
+`;
+
+function packageVersion(): string {
+  const pkg = JSON.parse(
+    readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'),
+  ) as {
+    version?: string;
+  };
+  return pkg.version ?? '0.0.0';
+}
+
+let specReady = false;
+
+function registerSpec(): void {
+  if (specReady) return;
+  specReady = true;
+  routes.openAPIRegistry.registerComponent('securitySchemes', 'cookieAuth', {
+    type: 'apiKey',
+    in: 'cookie',
+    name: 'session',
+  });
+  routes.openAPIRegistry.registerComponent('securitySchemes', 'bearerAuth', {
+    type: 'http',
+    scheme: 'bearer',
+  });
+  routes.doc('/openapi.json', {
+    openapi: '3.0.0',
+    info: {
+      title: 'Riot app API',
+      version: packageVersion(),
+    },
+  });
+}
+
+function docsAccess(env: AppEnv) {
+  if (env.NODE_ENV !== 'production')
+    return async (_c: Context, next: Next) => next();
+  if (!env.DOCS_USER || !env.DOCS_PASSWORD) {
+    return async (c: Context) => c.json({ error: 'Not found' }, 404);
+  }
+  return basicAuth({ username: env.DOCS_USER, password: env.DOCS_PASSWORD });
+}
+
+function spaHtml(env: AppEnv): string {
+  const file =
+    env.NODE_ENV === 'production' ? 'dist/client/app.html' : 'app.html';
+  return readFileSync(resolve(process.cwd(), file), 'utf8');
+}
+
+export function createApp(env: AppEnv = parseEnv()) {
+  const state = createApiState(env);
+  attachApi(state);
+  const api = routes;
+  const app = new Hono();
+
+  app.use(
+    '*',
+    secureHeaders(
+      env.PUBLIC_ORIGIN?.startsWith('https://')
+        ? {}
+        : { strictTransportSecurity: false },
+    ),
+  );
+  app.use('*', csrf());
+  app.onError((error, c) => {
+    if (error instanceof HTTPException) return error.getResponse();
+    console.error(error);
+    return c.json({ error: 'Internal Server Error' }, 500);
+  });
+
+  const guard = docsAccess(env);
+  app.use('/api/docs', guard);
+  app.use('/api/openapi.json', guard);
+  registerSpec();
+  app.get(
+    '/api/docs',
+    Scalar({
+      url: '/api/openapi.json',
+      customCss: scalarCss,
+    }),
+  );
+
+  app.route('/', api);
+
+  app.get('/robots.txt', (c) => {
+    const origin =
+      env.PUBLIC_ORIGIN?.replace(/\/$/, '') || new URL(c.req.url).origin;
+    return c.text(`User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`);
+  });
+
+  app.get('/sitemap.xml', (c) => {
+    const origin =
+      env.PUBLIC_ORIGIN?.replace(/\/$/, '') || new URL(c.req.url).origin;
+    const urls = ['/', '/about', '/login']
+      .map((path) => `<url><loc>${origin}${path}</loc></url>`)
+      .join('');
+    c.header('Content-Type', 'application/xml; charset=utf-8');
+    c.header('Cache-Control', 'no-cache');
+    return c.body(
+      `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`,
+    );
+  });
+
+  if (env.NODE_ENV === 'production') {
+    app.use('*', async (c, next) => {
+      if (c.req.path.startsWith('/api') || c.req.path.startsWith('/app'))
+        return next();
+      const file = resolveStatic(
+        resolve(process.cwd(), 'dist/client'),
+        c.req.path,
+      );
+      if (!file) return next();
+      return staticResponse(c, file, c.req.path.startsWith('/assets/'));
+    });
+  }
+
+  app.get('/', (c) =>
+    renderPage(
+      c,
+      env,
+      'home',
+      Home,
+      {
+        title: 'A Riot app on one server',
+        lead: 'Landing pages are rendered on the server. The cabinet is a client app after you log in.',
+      },
+      {
+        title: 'Riot app',
+        description:
+          'Server-rendered pages, a JSON API, and a client cabinet on Bun.',
+        path: '/',
+      },
+    ),
+  );
+
+  app.get('/about', (c) =>
+    renderPage(
+      c,
+      env,
+      'about',
+      About,
+      {},
+      {
+        title: 'About',
+        description: 'How this Riot and Hono app is put together.',
+        path: '/about',
+      },
+    ),
+  );
+
+  app.get('/login', (c) =>
+    renderPage(
+      c,
+      env,
+      'login',
+      Login,
+      {},
+      {
+        title: 'Log in',
+        description: 'Demo sign-in for the cabinet.',
+        path: '/login',
+      },
+    ),
+  );
+
+  app.use('/app', async (c, next) => {
+    if (!state.sessions.read(sessionIdFrom(c, env.SESSION_SECRET)))
+      return c.redirect('/login');
+    await next();
+  });
+  app.use('/app/*', async (c, next) => {
+    if (!state.sessions.read(sessionIdFrom(c, env.SESSION_SECRET)))
+      return c.redirect('/login');
+    await next();
+  });
+
+  app.get('/app', (c) => c.redirect('/app/dashboard'));
+  app.get('/app/*', (c) => {
+    const html = spaHtml(env);
+    const etag = `W/"${Bun.hash(html).toString(16)}"`;
+    c.header('ETag', etag);
+    c.header('Cache-Control', 'no-cache');
+    if (c.req.header('if-none-match') === etag) return c.body(null, 304);
+    return c.html(html);
+  });
+
+  app.notFound((c) => {
+    if (c.req.path.startsWith('/api'))
+      return c.json({ error: 'Not found' }, 404);
+    return c.text('Not found', 404);
+  });
+
+  return app;
+}

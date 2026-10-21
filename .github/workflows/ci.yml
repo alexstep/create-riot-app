@@ -31,11 +31,15 @@ jobs:
         run: |
           set -euo pipefail
           bun install
-          bun install --cwd template
+          bun install --cwd templates/spa
+          bun install --cwd templates/fullstack
           bun run lint
           bun run format:check
-          bun run --cwd template typecheck
-          bun run --cwd template build
+          bun run --cwd templates/spa typecheck
+          bun run --cwd templates/spa build
+          bun run --cwd templates/fullstack typecheck
+          bun run --cwd templates/fullstack test
+          bun run --cwd templates/fullstack build
 
       - name: Smoke-test the packed CLI
         run: |
@@ -51,31 +55,66 @@ jobs:
             echo "::error::tarball contains node_modules or dist"
             exit 1
           fi
-          grep -q 'template/gitignore' <<< "${list}"
-          for required in \
-            template/biome.json \
-            template/scripts/biome-riot.ts \
-            template/.vscode/settings.json \
-            template/.vscode/extensions.json \
-            template/.vscode/tasks.json
-          do
-            if ! grep -q "${required}" <<< "${list}"; then
-              echo "::error::tarball is missing ${required}"
+          for template in fullstack spa; do
+            grep -q "templates/${template}/gitignore" <<< "${list}"
+            for required in \
+              "templates/${template}/biome.json" \
+              "templates/${template}/scripts/biome-riot.ts" \
+              "templates/${template}/.vscode/settings.json" \
+              "templates/${template}/.vscode/extensions.json" \
+              "templates/${template}/.vscode/tasks.json"
+            do
+              if ! grep -q "${required}" <<< "${list}"; then
+                echo "::error::tarball is missing ${required}"
+                exit 1
+              fi
+            done
+            if grep -q "templates/${template}/\\.gitignore" <<< "${list}"; then
+              echo "::error::ship templates/${template}/gitignore; npm strips .gitignore"
               exit 1
             fi
           done
-          if grep -q 'template/\.gitignore' <<< "${list}"; then
-            echo "::error::ship template/gitignore; npm strips template/.gitignore"
+          work="$(mktemp -d)"
+          if bunx --package "${PWD}/${tarball}" create-riot-app "${work}/nope" --template missing; then
+            echo "::error::unknown template name was accepted"
             exit 1
           fi
-          work="$(mktemp -d)"
-          bunx --package "${PWD}/${tarball}" create-riot-app "${work}/my-app"
-          test -f "${work}/my-app/.gitignore"
-          test ! -e "${work}/my-app/gitignore"
-          grep -q '"name": "my-app"' "${work}/my-app/package.json"
-          cd "${work}/my-app"
+          bunx --package "${PWD}/${tarball}" create-riot-app "${work}/full"
+          test -f "${work}/full/.gitignore"
+          test ! -e "${work}/full/gitignore"
+          test -f "${work}/full/src/server/app.ts"
+          grep -q '"name": "full"' "${work}/full/package.json"
+          bunx --package "${PWD}/${tarball}" create-riot-app "${work}/spa-app" --template spa
+          test -f "${work}/spa-app/index.html"
+          test ! -e "${work}/spa-app/src/server"
+          cd "${work}/spa-app"
           bun install
           bun run lint
           bun run format:check
-          bun run build
           bun run typecheck
+          bun run build
+          cd "${work}/full"
+          cp .env.example .env
+          bun install
+          bun run lint
+          bun run format:check
+          bun run typecheck
+          bun run test
+          bun run build
+          bun run start > "${work}/server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "${server_pid}" || true' EXIT
+          for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+            if curl -sf -o /dev/null http://127.0.0.1:3000/; then
+              break
+            fi
+            sleep 0.4
+          done
+          curl -fsS http://127.0.0.1:3000/ | grep -q 'Riot app'
+          curl -fsS http://127.0.0.1:3000/about | grep -q '<title>About</title>'
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/api/me)" = "401"
+          curl -fsS http://127.0.0.1:3000/api/me | grep -q '"error"'
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/api/missing)" = "404"
+          curl -fsS http://127.0.0.1:3000/robots.txt | grep -q sitemap.xml
+          kill "${server_pid}"
+          wait "${server_pid}" || true

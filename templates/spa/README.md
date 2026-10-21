@@ -1,6 +1,6 @@
 # Riot.js app
 
-The demo scaffolded by `create-riot-app`: a top bar, a sliding menu, click sounds, and three screens. The runtime is Bun, the bundler is Vite, and the components are Riot 10 with TypeScript.
+The client-only template (`--template spa`): a top bar, a sliding menu, click sounds, and three screens. The runtime is Bun, the bundler is Vite, and the components are Riot 10 with TypeScript. The default `create-riot-app` template is the full-stack app, which serves this cabinet at `/app`.
 
 ```bash
 bun install

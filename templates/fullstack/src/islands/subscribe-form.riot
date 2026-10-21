@@ -1,0 +1,66 @@
+<subscribe-form>
+  <form onsubmit="{send}">
+    <label>
+      Email
+      <input name="email" type="email" required />
+    </label>
+    <label>
+      Message
+      <input name="message" required />
+    </label>
+    <button type="submit">Send</button>
+    <p if="{state.note}">{state.note}</p>
+  </form>
+
+  <script lang="ts">
+    import { withTypes, type RiotComponent } from 'riot';
+
+    interface State {
+      note: string;
+    }
+
+    export default withTypes<RiotComponent<object, State>>({
+      observedAttributes: [] as string[],
+      state: { note: '' },
+      async send(event: Event) {
+        event.preventDefault();
+        const form = event.currentTarget as HTMLFormElement;
+        const data = new FormData(form);
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            email: String(data.get('email') ?? ''),
+            message: String(data.get('message') ?? ''),
+          }),
+        });
+        this.update({
+          note: response.ok ? 'Sent.' : 'Could not send.',
+        });
+      },
+    });
+  </script>
+
+  <style>
+    :host form {
+      display: grid;
+      gap: 12px;
+      max-width: 360px;
+      margin-top: 24px;
+    }
+
+    input,
+    button {
+      font: inherit;
+    }
+
+    button {
+      width: fit-content;
+      background: var(--main-bg);
+      color: var(--text-on-main);
+      border: 0;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+  </style>
+</subscribe-form>

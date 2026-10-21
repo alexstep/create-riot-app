@@ -1,0 +1,100 @@
+<groups>
+  <div class="screen screen-groups" id="screen_groups" data-topbar="scroll">
+    <spinner if="{state.loading}" text="Loading items..."></spinner>
+
+    <div class="groups-list" if="{!state.loading && state.groups.length}">
+      <a
+        each="{group in state.groups}"
+        key="{group.id}"
+        href="/app/groups"
+        draggable="false"
+        data-id="{group.id}"
+        class="{'ripple group' + (state.selectedId === group.id ? ' is-selected' : '')}"
+        onclick="{selectGroup}"
+        onpointerenter="{playHover}"
+      >
+        <div class="img-wrap"
+          ><img
+            src="{group.thumbnailUrl}"
+            alt=""
+            draggable="false"
+            class="{state.broken[group.id] ? 'is-broken' : ''}"
+            onerror="{hideImage}"
+        /></div>
+        <b>{group.title}</b>
+        <span class="items" if="{group.albumId}">album: {group.albumId}</span>
+      </a>
+    </div>
+
+    <div class="no-groups" if="{!state.loading && !state.groups.length}">
+      No content...<br /><br />
+      <a
+        href="https://vk.com/groups"
+        draggable="false"
+        target="_blank"
+        rel="noopener"
+        >Create</a
+      >
+    </div>
+  </div>
+
+  <script lang="ts">
+    import { withTypes, type RiotComponent } from 'riot';
+    import { getPhotos, type Photo } from '../../api';
+    import { playHover, sound } from '../../sounds';
+
+    interface State {
+      loading: boolean;
+      groups: Photo[];
+      selectedId: number | null;
+      broken: Record<number, true>;
+    }
+
+    interface Groups extends RiotComponent<object, State> {
+      loadTimer: number;
+      load(): Promise<void>;
+      selectGroup(event: Event): void;
+      playHover(event: PointerEvent): void;
+      hideImage(event: Event): void;
+    }
+
+    export default withTypes<Groups>(() => ({
+      state: {
+        loading: true,
+        groups: [],
+        selectedId: null,
+        broken: {},
+      },
+      loadTimer: 0,
+      onMounted() {
+        this.loadTimer = window.setTimeout(() => {
+          void this.load();
+        }, 1000);
+      },
+      onBeforeUnmount() {
+        window.clearTimeout(this.loadTimer);
+      },
+      async load() {
+        try {
+          const groups = await getPhotos(10);
+          this.update({ groups, loading: false });
+        } catch {
+          this.update({ groups: [], loading: false });
+        }
+      },
+      selectGroup(event) {
+        event.preventDefault();
+        const id = Number((event.currentTarget as HTMLElement).dataset.id);
+        sound.card();
+        if (Number.isFinite(id)) this.update({ selectedId: id });
+      },
+      playHover,
+      hideImage(event) {
+        const img = event.currentTarget as HTMLImageElement;
+        const id = Number(img.closest('a')?.getAttribute('data-id'));
+        if (!Number.isFinite(id) || this.state.broken[id]) return;
+        this.update({ broken: { ...this.state.broken, [id]: true } });
+      },
+    }));
+  </script>
+</groups>

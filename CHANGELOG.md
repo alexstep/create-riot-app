@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The GitHub Releases page still lists **1.2** (16 January 2019, Webpack 4) as the latest release. Tag `v2.0.0` is on npm and on git, and it has no GitHub Release. The sections below are the notes for those releases.
 
+## [3.0.0] - 2026-10-21
+
+The default scaffold is a full-stack Bun app. `2.1.0` was the client-only template.
+
+### Added
+
+- `templates/fullstack`. One Bun process serves a Hono API, server-rendered Riot pages (`/` and `/about`), and the client cabinet at `/app`.
+- `bunx create-riot-app my-app --template spa` scaffolds the previous client-only app. The default template name is `fullstack`. Unknown names are rejected.
+- OpenAPI routes (`@hono/zod-openapi`), Scalar docs at `/api/docs`, and a typed `hc` client in the cabinet.
+- Demo auth: signed httpOnly cookie, bearer token of the same value, in-memory sessions, login rate limit, and CSRF protection for cookie auth.
+- `bun test` covers server HTML, auth, validation, and the OpenAPI document. `Dockerfile` runs the production build as one process.
+
+### Changed
+
+- The client template moved from `template/` to `templates/spa`. Package `files`, CI, and the visual suite follow that path.
+- Cabinet routes in the full-stack template are `/app/dashboard`, `/app/groups`, and `/app/settings`. The spa template keeps `/dashboard`, `/groups`, and `/settings`.
+
 ## [2.1.0] - 2026-10-21
 
 One release for the interaction polish and for linting `.riot` files. `2.0.1` was not published.
@@ -47,5 +64,6 @@ Rewrite of the 1.2 Webpack 4 starter. The demo is the same idea: a side drawer, 
 
 - Webpack 4, the old `scripts/webpack` setup, Less, jQuery, and Hammer.
 
+[3.0.0]: https://github.com/alexstep/create-riot-app/compare/v2.1.0...v3.0.0
 [2.1.0]: https://github.com/alexstep/create-riot-app/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/alexstep/create-riot-app/compare/1.2...v2.0.0

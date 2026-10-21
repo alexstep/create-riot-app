@@ -1,6 +1,6 @@
 {
   "name": "create-riot-app",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/alexstep/create-riot-app.git"
@@ -11,13 +11,13 @@
   "bugs": {
     "url": "https://github.com/alexstep/create-riot-app/issues"
   },
-  "description": "Riot.js application starter. A create-react-app style CLI (bun create) and a demo with a drawer, sounds, and screens.",
+  "description": "Riot.js application starter. Scaffolds a Bun server (Hono, server-rendered pages, and a client cabinet) or a client-only Vite app.",
   "engines": {
     "bun": ">=1.1.0"
   },
   "files": [
     "bin",
-    "template",
+    "templates",
     "LICENSE",
     "README.md",
     "CHANGELOG.md"
@@ -26,14 +26,16 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "create": "bun ./bin/create-riot-app.ts",
-    "demo": "bun run --cwd template dev",
-    "demo:build": "bun run --cwd template build",
-    "demo:typecheck": "bun run --cwd template typecheck",
+    "demo": "bun run --cwd templates/fullstack dev",
+    "demo:spa": "bun run --cwd templates/spa dev",
+    "demo:build": "bun run --cwd templates/fullstack build && bun run --cwd templates/spa build",
+    "demo:typecheck": "bun run --cwd templates/fullstack typecheck && bun run --cwd templates/spa typecheck",
+    "demo:test": "bun run --cwd templates/fullstack test",
     "visual": "bun run --cwd visual test",
-    "lint": "biome check bin && bun run --cwd template lint",
-    "lint:fix": "biome check --write bin && bun run --cwd template lint:fix",
-    "format": "biome format --write bin && bun run --cwd template format",
-    "format:check": "biome format bin && bun run --cwd template format:check"
+    "lint": "biome check bin && bun run --cwd templates/spa lint && bun run --cwd templates/fullstack lint",
+    "lint:fix": "biome check --write bin && bun run --cwd templates/spa lint:fix && bun run --cwd templates/fullstack lint:fix",
+    "format": "biome format --write bin && bun run --cwd templates/spa format && bun run --cwd templates/fullstack format",
+    "format:check": "biome format bin && bun run --cwd templates/spa format:check && bun run --cwd templates/fullstack format:check"
   },
   "type": "module",
   "devDependencies": {
