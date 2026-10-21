@@ -48,7 +48,7 @@ Cabinet screen: add a screen to `src/cabinet/router.ts` and a tag under `src/cab
 
 API route: add a zod schema (`.openapi('Name')`) and `createRoute` in `src/api/routes.ts`, then chain `.openapi(...)` on `routes`. `export type AppType = typeof routes` is what `src/client/api.ts` imports. Keep paths literal (`/items/{id}`, not a wildcard middleware) so `hc<AppType>` keeps real methods. Auth routes are `/api/login` and `/api/logout` for that reason.
 
-The browser talks to this server only through `src/client/api.ts`. Screens and islands call `login`, `listItems`, `sendContact`, and the other functions in that file. The Hono client stays inside the module, so replacing the data layer does not require edits in the tags. Cookies are sent with `credentials: 'include'`. A bearer token of the same signed session value also works.
+The browser talks to this server only through `src/client/api.ts`. See [Data layer](#data-layer).
 
 ## API docs and auth
 
@@ -56,7 +56,17 @@ The browser talks to this server only through `src/client/api.ts`. Screens and i
 
 In development and test the docs are public. In production they answer 404 until both `DOCS_USER` and `DOCS_PASSWORD` are set. Those two values turn on HTTP basic auth for `/api/docs` and `/api/openapi.json`.
 
-Sessions are in memory. The cookie is `httpOnly`, `SameSite=Lax`, and `Secure` in production. `SESSION_SECRET` signs the cookie value. `DEMO_PASSWORD` is the only accepted password. Login is limited to 5 attempts per minute per client. `hono/csrf` rejects cross-site form posts. JSON requests are not form posts; the browser still sends `Origin` on same-site fetches.
+Sessions are in memory. The cookie is `httpOnly`, `SameSite=Lax`, and `Secure` in production. `SESSION_SECRET` signs the cookie value. `DEMO_PASSWORD` is the only accepted password for the login form. Login is limited to 5 attempts per minute per client. A mutation with a foreign `Origin`, or with `Sec-Fetch-Site` other than `same-origin` or `none`, is rejected. curl and the tests send neither header, so they still work. `POST /api/session` with `{}` opens a demo session for the hub; the login form remains the way a person signs in.
+
+## Data layer
+
+One place describes each endpoint: a zod schema and a `createRoute` on the Hono router. The page does not repeat that shape. `src/client/api.ts` calls `hc<AppType>` and exports helpers such as `submitProfile`. A 400 body is `{ error, fields }`. The profile form on the Data screen puts `fields.email` under the email box.
+
+The cabinet does not call `fetch` itself. A SharedWorker (`src/client/hub.worker.ts`) is the only client of this origin. It deduplicates GETs, keeps one copy of each topic (`session`, `profile`, `uploads`), and broadcasts that snapshot to every tab. A new tab renders the snapshot without another request. The session is the httpOnly cookie; the worker does not store a token. If the browser has no SharedWorker, one tab takes a Web Lock and runs the same hub over a BroadcastChannel. Uploads go through `XMLHttpRequest` in the hub so the tab that dropped the files can show progress. Files are checked for size and type, stored under `./tmp/uploads` with a random name, and the download path cannot leave that directory.
+
+Live updates are one `GET /api/events` stream in the hub. Events are zod objects. The hub sends `Last-Event-ID`. If the server's ring buffer no longer has the next event, it sends `resync` and the hub loads the topics again. Saving the profile in one tab, or with curl, updates the other tabs.
+
+Offline, a service worker caches the app shell only. The cache name includes the build hash. HTML is network-first. `/api` and POST requests are not intercepted. When a new worker is waiting, the page shows "A new version is ready. Reload". GET topics that the hub already stored stay in Cache Storage. Writes while offline are refused, and the Data screen says the saved data may be stale. There is no database in the browser.
 
 Copy `.env.example` to `.env`. The process refuses to boot when the schema does not match. Do not put real secrets in source.
 

@@ -1,11 +1,12 @@
 import { initDomListeners, router, setBase } from '@riotjs/route';
 import type { RiotComponent, RiotComponentWrapper } from 'riot';
 import Dashboard from './components/screens/dashboard.riot';
+import Data from './components/screens/data.riot';
 import Groups from './components/screens/groups.riot';
 import Settings from './components/screens/settings.riot';
 
 export interface AppScreen {
-  name: 'dashboard' | 'groups' | 'settings';
+  name: 'dashboard' | 'groups' | 'settings' | 'data';
   label: string;
   icon: string;
   href: string;
@@ -33,6 +34,13 @@ export const screens: readonly AppScreen[] = [
     icon: 'settings.svg',
     href: '/app/settings',
     component: Settings,
+  },
+  {
+    name: 'data',
+    label: 'Data',
+    icon: 'settings.svg',
+    href: '/app/data',
+    component: Data,
   },
 ];
 

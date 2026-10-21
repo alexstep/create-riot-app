@@ -1,7 +1,24 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
+import { errorBody } from '../contract/schemas';
 import type { AppEnv } from '../server/env';
+import {
+  handleProfileGet,
+  handleProfilePut,
+  handleSessionGet,
+  handleSessionPost,
+  handleUploadGet,
+  handleUploadList,
+  handleUploadPost,
+  profileGet,
+  profilePut,
+  sessionGet,
+  sessionPost,
+  uploadGet,
+  uploadList,
+  uploadPost,
+} from './live';
 import {
   clearSessionCookie,
   clientKey,
@@ -228,12 +245,7 @@ const deleteItem = createRoute({
 
 export const routes = new OpenAPIHono({
   defaultHook: (result, c) => {
-    if (!result.success) {
-      return c.json(
-        { error: result.error.issues.map((issue) => issue.message).join(', ') },
-        400,
-      );
-    }
+    if (!result.success) return c.json(errorBody(result.error), 400);
   },
 })
   .basePath('/api')
@@ -302,7 +314,14 @@ export const routes = new OpenAPIHono({
     if (!item) return c.json({ error: 'Not found' }, 404);
     items.splice(index, 1);
     return c.json({ id: item.id, title: item.title }, 200);
-  });
+  })
+  .openapi(sessionPost, handleSessionPost)
+  .openapi(sessionGet, handleSessionGet)
+  .openapi(profileGet, handleProfileGet)
+  .openapi(profilePut, handleProfilePut)
+  .openapi(uploadPost, handleUploadPost)
+  .openapi(uploadList, handleUploadList)
+  .openapi(uploadGet, handleUploadGet);
 
 routes.notFound((c) => c.json({ error: 'Not found' }, 404));
 

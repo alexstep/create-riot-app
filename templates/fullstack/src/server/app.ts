@@ -3,16 +3,19 @@ import { resolve } from 'node:path';
 import { Scalar } from '@scalar/hono-api-reference';
 import { type Context, Hono, type Next } from 'hono';
 import { basicAuth } from 'hono/basic-auth';
-import { csrf } from 'hono/csrf';
+import { bodyLimit } from 'hono/body-limit';
 import { HTTPException } from 'hono/http-exception';
 import { secureHeaders } from 'hono/secure-headers';
+import { attachLive, defaultUploadDir, mountEvents } from '../api/live';
 import { attachApi, createApiState, routes } from '../api/routes';
 import { sessionIdFrom } from '../api/session';
+import { MAX_BODY_BYTES } from '../contract/schemas';
 import About from '../pages/about.riot';
 import Home from '../pages/home.riot';
 import Login from '../pages/login.riot';
 import { type AppEnv, parseEnv } from './env';
 import { renderPage } from './html';
+import { csrfOk } from './security';
 import { resolveStatic, staticResponse } from './static';
 
 const scalarCss = `
@@ -81,9 +84,14 @@ function spaHtml(env: AppEnv): string {
   return readFileSync(resolve(process.cwd(), file), 'utf8');
 }
 
-export function createApp(env: AppEnv = parseEnv()) {
+export function createApp(
+  env: AppEnv = parseEnv(),
+  options?: { uploadDir?: string },
+) {
   const state = createApiState(env);
   attachApi(state);
+  attachLive(env, state.sessions, options?.uploadDir ?? defaultUploadDir());
+  mountEvents(routes);
   const api = routes;
   const app = new Hono();
 
@@ -95,12 +103,32 @@ export function createApp(env: AppEnv = parseEnv()) {
         : { strictTransportSecurity: false },
     ),
   );
-  app.use('*', csrf());
+  app.use('*', async (c, next) => {
+    if (!/^(GET|HEAD|OPTIONS)$/.test(c.req.method) && !csrfOk(c)) {
+      return c.json({ error: 'Cross-site request blocked' }, 403);
+    }
+    await next();
+  });
   app.onError((error, c) => {
     if (error instanceof HTTPException) return error.getResponse();
     console.error(error);
     return c.json({ error: 'Internal Server Error' }, 500);
   });
+
+  app.post(
+    '/api/uploads',
+    bodyLimit({
+      maxSize: MAX_BODY_BYTES,
+      onError: (c) =>
+        c.json(
+          {
+            error: 'Upload is too large',
+            fields: { files: ['Upload is too large'] },
+          },
+          413,
+        ),
+    }),
+  );
 
   const guard = docsAccess(env);
   app.use('/api/docs', guard);

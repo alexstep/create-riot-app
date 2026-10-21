@@ -74,7 +74,7 @@ The router is `OpenAPIHono` from `@hono/zod-openapi`. Schemas use zod 4 and `.op
 
 `/api/docs` is Scalar (`@scalar/hono-api-reference`). `customCss` maps the app tokens (`--page-bg`, `--card-text`, `--theme-color`, and the dark values) onto `--scalar-*` for the light page and `.dark-mode`. `/api/openapi.json` is produced by `app.doc`, with `info.version` from `package.json`, plus cookie and bearer security schemes. Docs are public when `NODE_ENV` is not `production`. In production they answer 404 until `DOCS_USER` and `DOCS_PASSWORD` are both set, and then HTTP basic auth protects them.
 
-The browser talks to this server only through `src/client/api.ts`. That file is the data layer: today it calls `hc<AppType>`, where `AppType` is `typeof routes`, and the UI imports plain functions from it. There is no generated `.d.ts`. Auth paths are `/api/login` and `/api/logout` rather than `/api/auth/*`: a shared prefix collapses those paths in the typed client.
+The browser talks to this server only through `src/client/api.ts`. A SharedWorker is the only client of that API: it deduplicates requests, broadcasts GET snapshots to every tab, holds the httpOnly session, and keeps one event stream. The Data screen is a profile form (field errors from `{ error, fields }`) and file uploads saved under `tmp/uploads`. Offline mode caches the app shell and disables writes. Details are in `templates/fullstack/README.md`.
 
 Environment variables are checked with zod at boot. `.env.example` lists them. Nothing secret is committed. `PUBLIC_ORIGIN` is optional and, when it is `https`, turns on HSTS. A local `bun run start` on http does not send HSTS.
 

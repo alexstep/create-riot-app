@@ -1,0 +1,269 @@
+<data>
+  <div class="screen screen-data">
+  <div class="data-layer">
+    <header class="top">
+      <div>
+        <p class="eyebrow">Riot + Hono</p>
+        <h1>Data</h1>
+      </div>
+      <p class="transport">{state.transport}</p>
+    </header>
+
+    <p class="banner" role="status" if={state.offline}>
+      You are offline. Showing saved data{state.savedLabel}. It may be stale.
+    </p>
+    <p class="banner warn" role="status" if={state.sessionLost}>The session expired. Reload to start again.</p>
+
+    <section class="panel">
+      <h2>Profile</h2>
+      <p class="version" if={state.version}>Version {state.version}</p>
+      <form onsubmit={save}>
+        <label>
+          Name
+          <input name="name" value={state.name} oninput={edit} disabled={state.offline} autocomplete="name" />
+          <span class="error" if={state.fields.name}>{state.fields.name}</span>
+        </label>
+        <label>
+          Email
+          <input name="email" type="email" value={state.email} oninput={edit} disabled={state.offline} autocomplete="email" />
+          <span class="error" if={state.fields.email}>{state.fields.email}</span>
+        </label>
+        <label>
+          Message
+          <textarea name="message" rows="3" oninput={edit} disabled={state.offline}>{state.message}</textarea>
+          <span class="error" if={state.fields.message}>{state.fields.message}</span>
+        </label>
+        <p class="error" if={state.formError}>{state.formError}</p>
+        <button type="submit" disabled={state.offline || state.saving}>Save</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Files</h2>
+      <div
+        class={'drop' + (state.over ? ' is-over' : '')}
+        ondragover={over}
+        ondragleave={leave}
+        ondrop={drop}
+      >
+        <p>Drop files here, or choose them.</p>
+        <input type="file" multiple onchange={pick} disabled={state.offline} />
+      </div>
+      <p class="error" if={state.uploadError}>{state.uploadError}</p>
+      <progress max="100" value={state.progress} if={state.progress != null}></progress>
+      <ul class="files">
+        <li each={file in state.files} key={file.id}>
+          <a href={file.href}>{file.name}</a>
+          <span>{file.size} B · {file.type}</span>
+        </li>
+      </ul>
+      <p class="empty" if={state.files.length === 0}>No files yet.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Hub log</h2>
+      <p class="hint">Open this page in two more tabs. A profile save or a curl PUT should add one network line, then an event, on every tab.</p>
+      <ol class="log">
+        <li each={line in state.log} key={line}>{line}</li>
+      </ol>
+    </section>
+  </div>
+
+  <style>
+    .data-layer {
+      display: grid;
+      gap: 16px;
+      max-width: 720px;
+    }
+    .panel {
+      background: var(--card-bg);
+      color: var(--card-text);
+      padding: 16px;
+      border-radius: 4px;
+    }
+    label {
+      display: grid;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+    input,
+    textarea,
+    button {
+      font: inherit;
+    }
+    .error {
+      color: #9f1239;
+    }
+    .banner {
+      background: var(--header-bg);
+      padding: 8px 12px;
+    }
+    .drop {
+      border: 1px dashed var(--muted);
+      padding: 16px;
+    }
+    .drop.is-over {
+      background: var(--card-selected);
+    }
+    .log {
+      max-height: 180px;
+      overflow: auto;
+    }
+  </style>
+
+  <script lang="ts">
+    import { withTypes, type RiotComponent } from 'riot';
+    import {
+      startCabinet,
+      type Cabinet,
+      type CabinetView,
+    } from '../../../client/cabinet';
+
+    type Fields = { name: string; email: string; message: string };
+
+    interface State extends Fields {
+      version: number;
+      fields: Record<string, string>;
+      formError: string;
+      files: {
+        id: string;
+        name: string;
+        type: string;
+        size: number;
+        href: string;
+      }[];
+      log: string[];
+      offline: boolean;
+      savedLabel: string;
+      transport: string;
+      over: boolean;
+      progress: number | null;
+      uploadError: string;
+      saving: boolean;
+      sessionLost: boolean;
+      dirty: boolean;
+    }
+
+    interface View extends RiotComponent<object, State> {
+      cabinet: Cabinet | null;
+      stop: () => void;
+      edit(event: Event): void;
+      save(event: Event): Promise<void>;
+      pick(event: Event): void;
+      over(event: DragEvent): void;
+      leave(): void;
+      drop(event: DragEvent): void;
+      send(files: File[]): Promise<void>;
+      show(view: CabinetView): void;
+    }
+
+    export default withTypes<View>({
+      cabinet: null,
+      stop() {},
+      state: {
+        name: '',
+        email: '',
+        message: '',
+        version: 0,
+        fields: {},
+        formError: '',
+        files: [],
+        log: [],
+        offline: false,
+        savedLabel: '',
+        transport: 'connecting',
+        over: false,
+        progress: null,
+        uploadError: '',
+        saving: false,
+        sessionLost: false,
+        dirty: false,
+      },
+      async onMounted() {
+        this.cabinet = await startCabinet();
+        this.stop = this.cabinet.subscribe((view) => this.show(view));
+      },
+      onBeforeUnmount() {
+        this.stop();
+        this.cabinet?.connection.bye();
+      },
+      show(view) {
+        const next: Partial<State> = {
+          offline: !view.online,
+          savedLabel: view.storedAt
+            ? ` from ${new Date(view.storedAt).toLocaleString()}`
+            : '',
+          transport: view.transport,
+          sessionLost: view.sessionLost,
+          files: view.files.map((file) => ({
+            id: file.id,
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            href: this.cabinet ? this.cabinet.download(file.id) : '#',
+          })),
+          log: view.log.map((line) => `${line.method} ${line.path} · ${line.via}`),
+        };
+        if (!this.state.dirty && view.profile) {
+          next.name = view.profile.name;
+          next.email = view.profile.email;
+          next.message = view.profile.message;
+          next.version = view.profile.version;
+        } else if (view.profile) {
+          next.version = view.profile.version;
+        }
+        this.update(next);
+      },
+      edit(event) {
+        const input = event.target as HTMLInputElement | HTMLTextAreaElement;
+        const name = input.name;
+        if (name !== 'name' && name !== 'email' && name !== 'message') return;
+        this.update({ [name]: input.value, dirty: true });
+      },
+      async save(event) {
+        event.preventDefault();
+        if (!this.cabinet || this.state.offline) return;
+        this.update({ saving: true, formError: '', fields: {} });
+        const error = await this.cabinet.save({
+          name: this.state.name,
+          email: this.state.email,
+          message: this.state.message,
+        });
+        if (error) {
+          const fields: Record<string, string> = {};
+          for (const [key, messages] of Object.entries(error.fields))
+            fields[key] = messages.join(' ');
+          this.update({ saving: false, formError: error.error, fields });
+          return;
+        }
+        this.update({ saving: false, dirty: false, fields: {}, formError: '' });
+      },
+      pick(event) {
+        const input = event.target as HTMLInputElement;
+        void this.send([...(input.files ?? [])]);
+        input.value = '';
+      },
+      over(event) {
+        event.preventDefault();
+        this.update({ over: true });
+      },
+      leave() {
+        this.update({ over: false });
+      },
+      drop(event) {
+        event.preventDefault();
+        this.update({ over: false });
+        void this.send([...(event.dataTransfer?.files ?? [])]);
+      },
+      async send(files) {
+        if (!this.cabinet || files.length === 0 || this.state.offline) return;
+        this.update({ uploadError: '', progress: 0 });
+        const error = await this.cabinet.upload(files, ({ loaded, total }) => {
+          this.update({ progress: total ? Math.round((loaded / total) * 100) : 0 });
+        });
+        this.update({ progress: null, uploadError: error ?? '' });
+      },
+    });
+  </script>
+  </div>
+</data>

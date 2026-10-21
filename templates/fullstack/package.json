@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "bun ./node_modules/vite/bin/vite.js",
-    "build": "bun --bun vite build && bun --bun vite build --ssr src/server/index.ts",
+    "build": "bun --bun vite build && bun --bun vite build --ssr src/server/index.ts && bun scripts/write-sw.ts",
     "start": "bun dist/server/index.js",
     "typecheck": "bun --bun tsc --noEmit",
     "test": "bun test",
