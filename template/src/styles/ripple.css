@@ -22,7 +22,9 @@
     background-repeat: no-repeat;
     background-position: 50%;
     opacity: 0;
-    transition: all 0.4s, opacity 1s;
+    transition:
+      all 0.4s,
+      opacity 1s;
     background-size: 1000%;
   }
 

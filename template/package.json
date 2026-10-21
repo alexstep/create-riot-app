@@ -11,15 +11,21 @@
     "dev": "bun --bun vite",
     "build": "bun --bun vite build",
     "preview": "bun --bun vite preview",
-    "typecheck": "bun --bun tsc --noEmit"
+    "typecheck": "bun --bun tsc --noEmit",
+    "lint": "biome check . && bun scripts/biome-riot.ts",
+    "lint:fix": "biome check --write . && bun scripts/biome-riot.ts --write",
+    "format": "biome format --write . && bun scripts/biome-riot.ts --write",
+    "format:check": "biome format . && bun scripts/biome-riot.ts"
   },
   "dependencies": {
     "@riotjs/route": "10.0.0",
     "riot": "10.1.6"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.2",
     "@riotjs/compiler": "10.0.5",
     "@riotjs/hot-reload": "10.0.0",
+    "@riotjs/parser": "10.0.0",
     "rollup-plugin-riot": "10.0.0",
     "typescript": "7.0.2",
     "vite": "8.3.5"

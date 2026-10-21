@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
-import { riotPlugin } from './riot-plugin.ts'
+import { defineConfig } from 'vite';
+import { riotPlugin } from './riot-plugin.ts';
 
 export default defineConfig({
   plugins: [riotPlugin()],
@@ -12,4 +12,4 @@ export default defineConfig({
     sourcemap: true,
     outDir: 'dist',
   },
-})
+});

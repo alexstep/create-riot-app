@@ -77,6 +77,20 @@ The default theme follows `prefers-color-scheme`. On Settings, the Light / Dark 
 | `bun run build` | Production build in `dist/` |
 | `bun run preview` | Serve the production build locally |
 | `bun run typecheck` | `tsc --noEmit` for `.ts` files |
+| `bun run lint` | Biome for `.ts`, `.css`, `.json`, and `.html`, plus `<script>` and `<style>` inside `.riot` |
+| `bun run format` | Biome write. Markup inside `.riot` is left as authored |
+
+## Lint and format
+
+Biome 2.6.2 checks `.ts`, `.js`, `.css`, `.json`, and `.html` in the template and in `bin/`. It ignores `.riot` files. Parsing a tag as HTML fails: unquoted `{expr}` attributes are syntax errors, and `<script>` `import` / `export` is reported as being outside a module. Biome plugins cannot add a file type.
+
+`scripts/biome-riot.ts` uses `@riotjs/parser` to find each `<script>` and `<style>` block, then runs Biome on that block. Diagnostics are printed with the `.riot` line and column. `--write` formats the block and splices it back at the same indentation. The tag markup is not formatted. An `each` without `key` is reported. `lang="ts"`, `export default`, `:host`, and CSS nesting are covered.
+
+Biome 2.6.2's stdin mode does not return rule diagnostics, so the script writes each block to a temporary `*.riot.ts` or `*.riot.css` file and lints that path.
+
+`.vscode` recommends the Biome extension and formats `.ts` and `.css` on save. `.riot` is not formatted on save. Run `bun run format`, or the `format` task in `.vscode/tasks.json`.
+
+Unknown element selectors and untitled SVGs are not lint errors here: the tags are `app` and `drawer`, and the icons are decorative. Selector order is left as it is, because that order is the layout.
 
 Variables prefixed with `VITE_` are read from `.env`. The drawer avatar URL is `VITE_APP_AVATAR_URL`.
 

@@ -27,10 +27,13 @@ jobs:
         with:
           bun-version: 1.4.3
 
-      - name: Install, typecheck, and build the template
+      - name: Install, lint, typecheck, and build
         run: |
           set -euo pipefail
+          bun install
           bun install --cwd template
+          bun run lint
+          bun run format:check
           bun run --cwd template typecheck
           bun run --cwd template build
 
@@ -49,6 +52,18 @@ jobs:
             exit 1
           fi
           grep -q 'template/gitignore' <<< "${list}"
+          for required in \
+            template/biome.json \
+            template/scripts/biome-riot.ts \
+            template/.vscode/settings.json \
+            template/.vscode/extensions.json \
+            template/.vscode/tasks.json
+          do
+            if ! grep -q "${required}" <<< "${list}"; then
+              echo "::error::tarball is missing ${required}"
+              exit 1
+            fi
+          done
           if grep -q 'template/\.gitignore' <<< "${list}"; then
             echo "::error::ship template/gitignore; npm strips template/.gitignore"
             exit 1
@@ -60,5 +75,7 @@ jobs:
           grep -q '"name": "my-app"' "${work}/my-app/package.json"
           cd "${work}/my-app"
           bun install
+          bun run lint
+          bun run format:check
           bun run build
           bun run typecheck

@@ -41,7 +41,11 @@
     &:active,
     &:hover {
       background-position: -2px -1px;
-      background-image: radial-gradient(circle, rgba(0, 0, 0, 0.05) 50%, transparent 0%);
+      background-image: radial-gradient(
+        circle,
+        rgba(0, 0, 0, 0.05) 50%,
+        transparent 0%
+      );
     }
   }
 

@@ -1,28 +1,59 @@
 <settings>
   <div class="screen screen-settings" id="screen_settings">
-    <button type="button" draggable="false" onclick={onOption}>Some option</button>
-    <div class="theme-switch" data-theme-control role="group" aria-label="Theme">
+    <button type="button" draggable="false" onclick="{onOption}"
+      >Some option</button
+    >
+    <div
+      class="theme-switch"
+      data-theme-control
+      role="group"
+      aria-label="Theme"
+    >
       <span>Theme</span>
-      <button type="button" draggable="false" data-choice="light" class={state.choice === 'light' ? 'is-active' : ''} aria-pressed={state.choice === 'light' ? 'true' : 'false'} onclick={pick}>Light</button>
-      <button type="button" draggable="false" data-choice="dark" class={state.choice === 'dark' ? 'is-active' : ''} aria-pressed={state.choice === 'dark' ? 'true' : 'false'} onclick={pick}>Dark</button>
-      <button type="button" draggable="false" data-choice="system" class={state.choice === 'system' ? 'is-active' : ''} aria-pressed={state.choice === 'system' ? 'true' : 'false'} onclick={pick}>System</button>
+      <button
+        type="button"
+        draggable="false"
+        data-choice="light"
+        class="{state.choice === 'light' ? 'is-active' : ''}"
+        aria-pressed="{state.choice === 'light' ? 'true' : 'false'}"
+        onclick="{pick}"
+        >Light</button
+      >
+      <button
+        type="button"
+        draggable="false"
+        data-choice="dark"
+        class="{state.choice === 'dark' ? 'is-active' : ''}"
+        aria-pressed="{state.choice === 'dark' ? 'true' : 'false'}"
+        onclick="{pick}"
+        >Dark</button
+      >
+      <button
+        type="button"
+        draggable="false"
+        data-choice="system"
+        class="{state.choice === 'system' ? 'is-active' : ''}"
+        aria-pressed="{state.choice === 'system' ? 'true' : 'false'}"
+        onclick="{pick}"
+        >System</button
+      >
     </div>
   </div>
 
   <script lang="ts">
-    import { withTypes, type RiotComponent } from 'riot'
-    import { sound } from '../../sounds'
-    import { getThemeChoice, setThemeChoice, type ThemeChoice } from '../../theme'
+    import { withTypes, type RiotComponent } from 'riot';
+    import { sound } from '../../sounds';
+    import { getThemeChoice, setThemeChoice, type ThemeChoice } from '../../theme';
 
     interface State {
-      choice: ThemeChoice
+      choice: ThemeChoice;
     }
 
     interface Settings extends RiotComponent<object, State> {
-      onOption(): void
-      pick(event: Event): void
-      sync(): void
-      onThemeChange: () => void
+      onOption(): void;
+      pick(event: Event): void;
+      sync(): void;
+      onThemeChange: () => void;
     }
 
     export default withTypes<Settings>(() => ({
@@ -31,28 +62,28 @@
       },
       onThemeChange() {},
       onBeforeMount() {
-        this.state = { choice: getThemeChoice() }
-        this.onThemeChange = () => this.sync()
+        this.state = { choice: getThemeChoice() };
+        this.onThemeChange = () => this.sync();
       },
       onMounted() {
-        window.addEventListener('themechange', this.onThemeChange)
+        window.addEventListener('themechange', this.onThemeChange);
       },
       onBeforeUnmount() {
-        window.removeEventListener('themechange', this.onThemeChange)
+        window.removeEventListener('themechange', this.onThemeChange);
       },
       sync() {
-        this.update({ choice: getThemeChoice() })
+        this.update({ choice: getThemeChoice() });
       },
       onOption() {
-        sound.tick()
+        sound.tick();
       },
       pick(event) {
-        const choice = (event.currentTarget as HTMLElement).dataset.choice
-        if (choice !== 'light' && choice !== 'dark' && choice !== 'system') return
-        sound.tick()
-        setThemeChoice(choice)
-        this.update({ choice })
+        const choice = (event.currentTarget as HTMLElement).dataset.choice;
+        if (choice !== 'light' && choice !== 'dark' && choice !== 'system') return;
+        sound.tick();
+        setThemeChoice(choice);
+        this.update({ choice });
       },
-    }))
+    }));
   </script>
 </settings>
