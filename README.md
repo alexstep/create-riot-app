@@ -1,6 +1,6 @@
 # create-riot-app
 
-A Riot.js starter for a full-stack app: readable tags, one Bun process, and a small client. It is an alternative to Next.js, with the routes written in the server file. The CLI copies a template into a new directory. The default template is that Bun process: a Hono API, server-rendered Riot pages, and a client cabinet. `--template spa` copies the client-only cabinet.
+A Riot.js starter for a full-stack app: readable tags, one Bun process, and a small client. Routes are written in the server file. The CLI copies a template into a new directory. The default template is that Bun process: a Hono API, server-rendered Riot pages, and a client cabinet. `--template spa` copies the client-only cabinet.
 
 The repository has two layers:
 
@@ -15,7 +15,7 @@ The repository has two layers:
 | HTTP | [Hono](https://hono.dev) on Bun, in the full-stack template |
 | UI | [Riot.js 10.1.6](https://riot.js.org) |
 | Server HTML | `@riotjs/ssr` for the pages that opt in |
-| Islands | `@riotjs/custom-elements` |
+| Hydration | The same tags, bound to the server markup in the browser |
 | Tag compiler | `@riotjs/compiler` 10.0.5 via `rollup-plugin-riot` |
 | Router | `@riotjs/route` 10, inside the cabinet |
 | Dev server and build | [Vite](https://vite.dev) 8 |
@@ -62,9 +62,13 @@ bun run test     # app.request() against the Hono app
 
 ### Pages, islands, cabinet, API
 
-`/` and `/about` are rendered with `@riotjs/ssr` `render`. Handlers pass props, including the title and description used for `<title>`, the meta description, Open Graph, and the canonical URL. `sitemap.xml` and `robots.txt` are routes. Other URLs are not server-rendered.
+`/`, `/about`, and `/login` are rendered with `@riotjs/ssr` `render`. Handlers pass props, including the title and description used for `<title>`, the meta description, Open Graph, and the canonical URL. `sitemap.xml` and `robots.txt` are routes. Other URLs are not server-rendered.
 
-Interactive pieces on those pages are custom elements (`x-theme-toggle`, `x-subscribe-form`, `x-login-link`, `x-login-form`). `define('x-tag', Component)` registers them. They upgrade in the browser. The landing pages are not hydrated: `@riotjs/hydrate` is not used, because each island owns its own listeners.
+`theme-toggle`, `subscribe-form`, and `login-form` are rendered in that HTML and bound in the browser. The client entry does not build a second copy of the markup. The props for that render are `<script type="application/json" id="riot-state">`. The JSON escapes `<`, so a value cannot close the script, and the client does not fetch those props again. The log-in link is a plain anchor. The theme choice is in `localStorage`: the server prints "Theme", and a short script writes the real label before the first paint.
+
+`@riotjs/hydrate` v10 is not the binder. It mounts on a clone of the root and then replaces the server node. Details and the tag pattern are in `templates/fullstack/README.md`.
+
+The cabinet at `/app` stays a client app. The service worker stores one document for every `/app/*` URL, and the client router picks the screen. Rendering each screen on the server would make that cache show the wrong screen until JavaScript runs, and it would not make the cabinet bundle smaller.
 
 `/login` accepts any email and `DEMO_PASSWORD`. The session cookie is `httpOnly`, `SameSite=Lax`, and `Secure` in production. `SESSION_SECRET` signs it. The same signed value works as a bearer token. Login allows 5 attempts per minute. `hono/csrf` rejects a cross-site form post. After login, `/app/*` is the cabinet (drawer, screens, themes, sounds) from `app.html`. Without a session, `/app/*` redirects to `/login?next=` (the cabinet path) and `/api/me` is 401. Logout clears the cookie. A session that expires in an open tab sends every tab to that same login URL.
 
@@ -80,7 +84,7 @@ Environment variables are checked with zod at boot. `.env.example` lists them. N
 
 `templates/fullstack/Dockerfile` builds on `oven/bun:1.4.3` in three stages (frozen production install, Vite and server build, slim runtime). The container runs as `bun`, reads `PORT`, and answers `GET /api/health`. Pass `SESSION_SECRET`, `DEMO_PASSWORD`, and `PUBLIC_ORIGIN` when you start it; production refuses to boot without `PUBLIC_ORIGIN`. Set `DOCS_USER` and `DOCS_PASSWORD` as well when `/api/docs` should be on. See the full-stack README for `docker build` and `docker run`. The client-only template is served with `bun run preview`.
 
-`@riotjs/ssr` `renderAsync` throws unless the mounted tag implements `onAsyncRendering`. Compiled tags do not expose that method, so a handler loads data and then calls `render`. Custom elements use shadow DOM: CSS variables inherit, and each island keeps the rules it needs in its own `<style>`.
+`@riotjs/ssr` `renderAsync` throws unless the mounted tag implements `onAsyncRendering`. Compiled tags do not expose that method, so a handler loads data and then calls `render`. A tag's `<style>` is scoped to its name by the compiler and inlined in `<style riot>` so it applies before JavaScript. CSS variables still come from the shared theme.
 
 ## Client-only template
 

@@ -1,4 +1,5 @@
 <subscribe-form>
+  <p class="hint" if="{props.hint}">{props.hint}</p>
   <form onsubmit="{send}">
     <label>
       Email
@@ -16,12 +17,15 @@
     import { withTypes, type RiotComponent } from 'riot';
     import { sendContact } from '../client/api';
 
+    interface Props {
+      hint: string;
+    }
+
     interface State {
       note: string;
     }
 
-    export default withTypes<RiotComponent<object, State>>({
-      observedAttributes: [] as string[],
+    export default withTypes<RiotComponent<Props, State>>(() => ({
       state: { note: '' },
       async send(event: Event) {
         event.preventDefault();
@@ -33,10 +37,15 @@
         );
         this.update({ note: ok ? 'Sent.' : 'Could not send.' });
       },
-    });
+    }));
   </script>
 
   <style>
+    :host .hint {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
     :host form {
       display: grid;
       gap: 12px;

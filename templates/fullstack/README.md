@@ -30,7 +30,8 @@ src/server/dev.ts     same app, loaded by Vite in development
 src/api/routes.ts     OpenAPI routes and AppType
 src/client/api.ts     browser calls to this server (the swappable data layer)
 src/pages/            server-rendered Riot tags
-src/islands/          custom elements used on those pages
+src/islands/          tags rendered on the server and bound in the browser
+src/client/hydrate.ts binds a server-rendered tag to its existing nodes
 src/cabinet/          client-only app mounted at /app
 src/styles/           landing CSS (imports the shared theme)
 app.html              cabinet shell
@@ -42,7 +43,17 @@ Shared colors live in `src/cabinet/styles/theme.css`. The landing stylesheet imp
 
 Server-rendered page: add a `.riot` tag under `src/pages` and a `GET` handler in `src/server/app.ts` that calls `renderPage`. Give it a title, description, and path so the document has canonical and Open Graph tags. Add the path to the sitemap in that same file. Only the pages you render this way are server-rendered.
 
-Island: add a custom element under `src/islands`, register it with `define('x-tag', Component)` in `src/islands/client.ts`, and put the tag in a page. Props that must be set from HTML go in `observedAttributes`. The element upgrades itself in the browser. Landing pages are not hydrated.
+Hydrated tag: add a `.riot` file under `src/islands`. If a page includes the tag, `register` its name in `src/server/html.ts` (see `subscribe-form`). A tag in the layout, such as `theme-toggle`, is rendered there with `render` instead. Pass the same props from the route into `renderPage`'s last argument. That object is written to `<script type="application/json" id="riot-state">`, with `<` escaped. In `src/islands/client.ts`, bind the tag that is already in the document:
+
+```ts
+hydrate(SubscribeForm)(element, props);
+```
+
+`props` are the server render. Do not request them again in `onMounted`. The log-in link has no behavior, so it is ordinary HTML.
+
+`@riotjs/hydrate` v10 clones the root and replaces the server node with `replaceChild`. This template does not call it. `src/client/hydrate.ts` copies the compiler's `exprN` markers onto the matching elements and mounts with DOM injection skipped, so listeners land on the nodes from the server. An `each` list is still rebuilt by Riot when it renders; the tags in this template do not use `each`.
+
+The cabinet is not hydrated. The service worker stores one document for every `/app/*` URL and the client router chooses the screen. A server render of each screen would make that single cache entry show the wrong screen until JavaScript runs, and the cabinet bundle would not get smaller.
 
 Cabinet screen: add a screen to `src/cabinet/router.ts` and a tag under `src/cabinet/components/screens`. It is a normal client Riot app. Unauthenticated requests to `/app/*` redirect to `/login`.
 
@@ -74,7 +85,7 @@ Copy `.env.example` to `.env`. The process refuses to boot when the schema does 
 
 Development is one Vite process on port 3000. The `dev` script runs Vite's JavaScript entry with Bun. `@hono/vite-dev-server` loads `src/server/dev.ts` with the Bun adapter, so Hono handles the pages and `/api` while Vite serves modules. `parseEnv` also reads `.env`, because a Node-hosted Vite process would not.
 
-`bun test` compiles `.riot` imports through `bunfig.toml` (`[test] preload`). `@riotjs/ssr`'s `renderAsync` asks the tag for `onAsyncRendering`, and the compiled tags do not expose that hook, so handlers load any data first and call `render`.
+`bun test` compiles `.riot` imports through `bunfig.toml` (`[test] preload`). The loader rewrites relative imports inside a tag to absolute paths, because Bun serves the compiled tag from a `riot:` URL. `@riotjs/ssr`'s `renderAsync` asks the tag for `onAsyncRendering`, and the compiled tags do not expose that hook, so handlers load any data first and call `render`. `test/hydrate.test.ts` renders a page, parses that HTML, and binds the tags without replacing the inputs.
 
 ## Deploy
 

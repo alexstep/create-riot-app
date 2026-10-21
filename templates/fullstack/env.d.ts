@@ -29,14 +29,6 @@ declare module 'rollup-plugin-riot' {
   export default function riot(options?: Record<string, unknown>): RiotPlugin;
 }
 
-declare module '@riotjs/custom-elements' {
-  export default function define(
-    name: string,
-    component: unknown,
-    options?: object,
-  ): void;
-}
-
 declare module '*.riot' {
   import type { RiotComponent, RiotComponentWrapper } from 'riot';
 
