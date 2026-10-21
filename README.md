@@ -1,52 +1,52 @@
 # create-riot-app
 
-Стартер Riot.js-приложения — аналог Create React App. Команда создаёт демо с боковым меню, звуками и тремя экранами. Сборка и dev-сервер работают на Bun.
+A Riot.js starter, in the spirit of Create React App. The CLI scaffolds a demo with a side drawer, sounds, and three screens. The dev server and production build run on Bun.
 
-В репозитории два слоя:
+The repository has two layers:
 
-- `bin/create-riot-app.ts` — CLI, копирует шаблон в новую папку.
-- `template/` — само демо. Его же получает новый проект.
+- `bin/create-riot-app.ts` copies the template into a new directory.
+- `template/` is the demo itself. A generated project is a copy of it.
 
-## Стек
+## Stack
 
 | | |
 | --- | --- |
-| Среда и пакеты | [Bun](https://bun.sh) |
+| Runtime and packages | [Bun](https://bun.sh) |
 | UI | [Riot.js 10.1.6](https://riot.js.org) |
-| Компилятор тегов | `@riotjs/compiler` 10.0.5 через `rollup-plugin-riot` |
-| Роутер | `@riotjs/route` 10 |
-| Сборка и dev-сервер | [Vite](https://vite.dev) 8, HMR и прод-сборка |
-| Язык | TypeScript там, где его понимает Riot (`lang="ts"` в компонентах и обычные `.ts` модули) |
-| Стили | нативный CSS: вложенность, custom properties, `hsl(from …)` |
+| Tag compiler | `@riotjs/compiler` 10.0.5 via `rollup-plugin-riot` |
+| Router | `@riotjs/route` 10 |
+| Dev server and build | [Vite](https://vite.dev) 8, with fast refresh and a production build |
+| Language | TypeScript where Riot supports it (`lang="ts"` in components and plain `.ts` modules) |
+| Styles | Native CSS: nesting, custom properties, `hsl(from …)` |
 
-Riot 10 — текущая стабильная ветка в npm (последний 9.x — 9.4.11, его сменил 10.0.0 в августе 2025). Компоненты по-прежнему пишутся как `.riot` с `export default`. Отдельного Vite-плагина у Riot нет: официальный компилятор подключается как Rollup-плагин, а Vite этот плагин выполняет. Поэтому выбран Vite, а не `bun.build`: у Bun нет такого же dev-сервера с HMR для `.riot`, а Vite даёт и быструю перезагрузку, и `vite build`.
+Riot 10 is the current stable line on npm (the last 9.x release is 9.4.11; 10.0.0 replaced it in August 2025). Components are still `.riot` files with `export default`. Riot does not publish a dedicated Vite plugin: the official compiler is a Rollup plugin, and Vite runs that plugin. Vite is used instead of `bun.build` because Bun has no equivalent dev server with hot reload for `.riot` files, while Vite provides both fast refresh and `vite build`.
 
-## Создать проект
+## Create a project
 
-Из этого репозитория:
+From this repository:
 
 ```bash
 bun ./bin/create-riot-app.ts my-app
 cd my-app
 ```
 
-Тот же шаблон через встроенный `bun create` (сам поставит зависимости):
+The same template through Bun's built-in `bun create` (it installs dependencies itself):
 
 ```bash
 bun create ./template my-app
 cd my-app
 ```
 
-После публикации пакета в npm эквивалент такой:
+After the package is published to npm, the equivalent is:
 
 ```bash
 bun create riot-app my-app
-# то же самое: bunx create-riot-app my-app
+# same thing: bunx create-riot-app my-app
 ```
 
-CLI ставит зависимости сам. Флаг `--no-install` оставляет только файлы, `--force` пишет в непустую папку.
+The CLI installs dependencies itself. `--no-install` copies files only. `--force` writes into a non-empty directory.
 
-## Запуск демо из этого репозитория
+## Run the demo from this repository
 
 ```bash
 cd template
@@ -54,9 +54,9 @@ bun install
 bun run dev
 ```
 
-Dev-сервер: <http://localhost:5173>. Страницы: `/dashboard`, `/groups`, `/settings`. Dev-сервер и `vite preview` отдают `index.html` на эти адреса, поэтому обновление страницы оставляет тот же экран.
+Dev server: <http://localhost:5173>. Routes: `/dashboard`, `/groups`, `/settings`. The dev server and `vite preview` serve `index.html` for those paths, so a reload stays on the same screen.
 
-Проверка типов и прод-сборка:
+Typecheck and production build:
 
 ```bash
 bun run typecheck
@@ -64,32 +64,34 @@ bun run build
 bun run preview
 ```
 
-Сборка лежит в `template/dist`.
+The build is written to `template/dist`.
 
-## Что внутри демо
+## What the demo includes
 
-- Верхняя панель и выезжающий drawer: кнопка, затемнение, анимация 0.3s, свайп от левого края на тач-экране.
-- Звуки из `public/sounds`: `tick` на открытие меню, пункт меню и кнопку настроек; `hover` при наведении мышью; `card` при выборе карточки в списке. Если браузер не играет Ogg, берётся Mp3. Ошибка autoplay не попадает в консоль.
-- Экраны: Dashboard, список с загрузкой первых десяти фото из jsonplaceholder (спиннер около секунды), Settings.
-- На узком экране список прячет верхнюю панель при прокрутке — как в старом демо.
-- Иконки, фавиконки и манифест лежат в `public/` и `src/icons`.
+- Top bar and a sliding drawer: button, dimmed overlay, 0.3s animation, and a swipe from the left edge on touch screens.
+- Sounds in `public/sounds`: `tick` when the menu opens, a menu item is chosen, or the settings button is pressed; `hover` on mouse enter; `card` when a list card is selected. Mp3 is used when the browser cannot play Ogg. A rejected autoplay does not show up in the console.
+- Screens: Dashboard, a list that loads the first ten photos from jsonplaceholder (spinner for about a second), Settings.
+- On a narrow viewport the list hides the top bar while scrolling, as the old demo did.
+- Icons, favicons, and the manifest live in `public/` and `src/icons`.
 
-Логика приложения — TypeScript (`src/router.ts`, `src/sounds.ts`, `src/swipe.ts`, `src/api.ts`). Разметка экранов — компоненты `.riot` со скриптом `lang="ts"`. Стили экранов собраны в `src/styles` и подключаются один раз, без jQuery и Hammer.
+Application logic is TypeScript (`src/router.ts`, `src/sounds.ts`, `src/swipe.ts`, `src/api.ts`). Screens are `.riot` components with `lang="ts"`. Styles live in `src/styles` and are imported once. There is no jQuery and no Hammer.
 
-## Скрипты шаблона
+The default theme follows `prefers-color-scheme`. On Settings, the Light / Dark / System switch stores the choice in `localStorage` and sets `data-theme` on `<html>`.
 
-| Команда | Действие |
+## Template scripts
+
+| Command | What it does |
 | --- | --- |
-| `bun run dev` | Vite dev-сервер с HMR |
-| `bun run build` | Прод-сборка в `dist/` |
-| `bun run preview` | Локальный просмотр сборки |
-| `bun run typecheck` | `tsc --noEmit` для `.ts` |
+| `bun run dev` | Vite dev server with hot reload |
+| `bun run build` | Production build in `dist/` |
+| `bun run preview` | Serve the production build locally |
+| `bun run typecheck` | `tsc --noEmit` for `.ts` files |
 
-Переменные с префиксом `VITE_` читаются из `.env`. Адрес аватара в шапке drawer — `VITE_APP_AVATAR_URL`.
+Variables prefixed with `VITE_` are read from `.env`. The drawer avatar URL is `VITE_APP_AVATAR_URL`.
 
-## Визуальный тест
+## Visual test
 
-`visual/test.ts` снимает восемь экранов (desktop 1280×800 и mobile 390×844: главная, открытый drawer, список, настройки) в светлой и тёмной теме. Светлая сравнивается со старым демо в `visual/baselines`, тёмная — с `visual/baselines/dark`. На снимках светлой темы блок `[data-theme-control]` скрыт: этого переключателя в старом демо не было, остальная вёрстка должна совпасть. Анимации на снимках выключены. Отдельно проверяются анимация drawer, звук `tick`, переключатель темы и отсутствие ошибок в консоли.
+`visual/test.ts` captures eight screens (desktop 1280×800 and mobile 390×844: home, open drawer, list, settings) in light and dark themes. Light screens are compared with the legacy demo in `visual/baselines`. Dark screens are compared with `visual/baselines/dark`. On light captures the `[data-theme-control]` block is hidden, because that switch did not exist in the old demo; the rest of the layout must match. Animations are disabled for screenshots. The same run checks the drawer animation, the `tick` sound, the theme switch, and that the console has no errors.
 
 ```bash
 cd visual && bun install
@@ -98,8 +100,9 @@ cd ..
 bun run visual
 ```
 
-Эталоны переснимаются со запущенного сервера так:
+Recapture baselines from a running server with:
 
 ```bash
 cd visual && bun test.ts --update --url http://127.0.0.1:9999
+cd visual && bun test.ts --update-dark --url http://127.0.0.1:5173
 ```

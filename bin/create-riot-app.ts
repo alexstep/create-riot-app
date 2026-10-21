@@ -7,17 +7,17 @@ import { fileURLToPath } from 'node:url'
 const here = dirname(fileURLToPath(import.meta.url))
 const templateDir = resolve(here, '..', 'template')
 
-const usage = `create-riot-app — демо Riot.js (Bun + Vite + TypeScript)
+const usage = `create-riot-app — Riot.js demo (Bun + Vite + TypeScript)
 
-Использование:
-  bunx create-riot-app <папка>
-  bun ./bin/create-riot-app.ts <папка>
-  bun create ./template <папка>
+Usage:
+  bunx create-riot-app <directory>
+  bun ./bin/create-riot-app.ts <directory>
+  bun create ./template <directory>
 
-Опции:
-  --force        скопировать в непустую папку
-  --no-install   не запускать bun install
-  -h, --help     эта справка
+Options:
+  --force        write into a non-empty directory
+  --no-install   skip bun install
+  -h, --help     show this help
 `
 
 function fail(message: string): never {
@@ -44,20 +44,20 @@ const noInstall = args.includes('--no-install')
 const destArg = args.find((arg) => !arg.startsWith('-'))
 if (!destArg) {
   console.log(usage)
-  fail('Укажите папку нового проекта.')
+  fail('Pass a directory for the new project.')
 }
 
 const dest = resolve(process.cwd(), destArg)
 if (dest === templateDir) {
-  fail('Нельзя генерировать проект поверх каталога template.')
+  fail('Refusing to generate a project on top of the template directory.')
 }
 
 try {
   const existing = await stat(dest)
-  if (!existing.isDirectory()) fail(`${dest} уже существует и это не папка.`)
+  if (!existing.isDirectory()) fail(`${dest} already exists and is not a directory.`)
   const entries = (await readdir(dest)).filter((name) => name !== '.git')
   if (entries.length > 0 && !force) {
-    fail(`Папка ${dest} не пуста. Укажите другую папку или --force.`)
+    fail(`Directory ${dest} is not empty. Pick another directory or pass --force.`)
   }
 } catch (error) {
   const code = (error as NodeJS.ErrnoException).code
@@ -84,10 +84,10 @@ pkg.name = slug(basename(dest))
 delete pkg['bun-create']
 await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
 
-console.log(`Проект создан: ${dest}`)
+console.log(`Project created: ${dest}`)
 
 if (!noInstall) {
-  console.log('Устанавливаю зависимости через Bun…')
+  console.log('Installing dependencies with Bun…')
   const install = spawn('bun', ['install'], {
     cwd: dest,
     stdio: 'inherit',
@@ -101,9 +101,9 @@ if (!noInstall) {
 
 const folder = destArg
 console.log(`
-Дальше:
+Next:
   cd ${folder}
   bun run dev      # http://localhost:5173
-  bun run build    # сборка в dist/
-  bun run preview  # посмотреть прод-сборку
+  bun run build    # write dist/
+  bun run preview  # serve the production build
 `)

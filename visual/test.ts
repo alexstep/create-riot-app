@@ -28,7 +28,7 @@ const urlIndex = args.indexOf('--url')
 const givenUrl = urlIndex >= 0 ? args[urlIndex + 1] : undefined
 
 if (update && !givenUrl) {
-  console.error('Для --update нужен --url со старым или новым сервером.')
+  console.error('--update requires --url pointing at a running server.')
   process.exit(1)
 }
 
@@ -87,7 +87,7 @@ async function clickAny(page: Page, selectors: string[]) {
       return
     }
   }
-  throw new Error(`Не найден элемент: ${selectors.join(' | ')}`)
+  throw new Error(`Element not found: ${selectors.join(' | ')}`)
 }
 
 async function openDrawer(page: Page) {
@@ -157,7 +157,7 @@ async function checkBehavior(browser: Browser, url: string) {
 
   const duration = await page.evaluate(() => getComputedStyle(document.querySelector('#drawer')!).transitionDuration)
   if (!/0\.3s|300ms/.test(duration)) {
-    throw new Error(`У #drawer нет анимации 0.3s, сейчас: ${duration}`)
+    throw new Error(`#drawer is missing the 0.3s animation, got: ${duration}`)
   }
 
   await page.locator('.toggle-drawer').click()
@@ -170,14 +170,14 @@ async function checkBehavior(browser: Browser, url: string) {
   }
   const distinct = new Set(frames)
   if (distinct.size < 2) {
-    throw new Error(`Drawer не анимировался, кадры: ${frames.join(' | ')}`)
+    throw new Error(`Drawer did not animate, frames: ${frames.join(' | ')}`)
   }
   await page.locator('.drawer-wrap.show').waitFor()
 
   const calls = async () => page.evaluate(() => (window as unknown as { __audioCalls: string[] }).__audioCalls)
   const afterOpen = await calls()
   if (!afterOpen.some((src) => src.includes('tick'))) {
-    throw new Error(`Открытие drawer не запустило tick: ${afterOpen.join(', ') || 'пусто'}`)
+    throw new Error(`Opening the drawer did not play tick: ${afterOpen.join(', ') || 'none'}`)
   }
 
   await clickAny(page, ['a[href="/groups/"]', 'a[href="/groups"]'])
@@ -191,7 +191,7 @@ async function checkBehavior(browser: Browser, url: string) {
   )
   const afterNav = await calls()
   if (afterNav.filter((src) => src.includes('tick')).length < 2) {
-    throw new Error(`Клик по пункту меню не запустил tick: ${afterNav.join(', ')}`)
+    throw new Error(`Choosing a menu item did not play tick: ${afterNav.join(', ')}`)
   }
 
   await openDrawer(page)
@@ -219,7 +219,7 @@ async function compareOne(baselineRoot: string, actualRoot: string, diffRoot: st
   try {
     baseline = await readFile(baselinePath)
   } catch {
-    throw new Error(`Нет эталона ${name}. Снимите его: bun test.ts --update --url <старый сервер>`)
+    throw new Error(`Missing baseline ${name}. Capture it with: bun test.ts --update --url <server>`)
   }
   const expected = PNG.sync.read(baseline)
   const received = PNG.sync.read(actual)
@@ -229,7 +229,7 @@ async function compareOne(baselineRoot: string, actualRoot: string, diffRoot: st
       mismatch: 1,
       strict: 1,
       pixels: expected.width * expected.height,
-      note: `размер ${received.width}x${received.height} против ${expected.width}x${expected.height}`,
+      note: `size ${received.width}x${received.height} vs ${expected.width}x${expected.height}`,
     }
   }
   const diff = new PNG({ width: expected.width, height: expected.height })
@@ -268,7 +268,7 @@ async function ensureServer(): Promise<string> {
     if (ok) return 'http://127.0.0.1:5173/'
     await new Promise((resolve) => setTimeout(resolve, 250))
   }
-  throw new Error('Dev-сервер Vite не поднялся на :5173')
+  throw new Error('Vite dev server did not start on :5173')
 }
 
 const url = await ensureServer()
@@ -311,7 +311,7 @@ async function runShots(theme: 'light' | 'dark', writeBaseline: boolean) {
       const name = `${theme} ${nameOf(viewport, scene)}`
       if (writeBaseline) {
         await writeFile(join(baselineRoot, nameOf(viewport, scene)), png)
-        console.log(`эталон ${name}`)
+        console.log(`baseline ${name}`)
       } else {
         const row = await compareOne(baselineRoot, actualRoot, diffRoot, viewport, scene, png)
         rows.push({ ...row, name })
@@ -323,7 +323,7 @@ async function runShots(theme: 'light' | 'dark', writeBaseline: boolean) {
 }
 
 try {
-  console.log(`Поведение: ${url}`)
+  console.log(`Behavior: ${url}`)
   await checkBehavior(browser, url)
 
   const lightRows = await runShots('light', update)
@@ -331,15 +331,15 @@ try {
   const rows = [...lightRows, ...darkRows]
 
   if (consoleErrors.length) {
-    console.error('Ошибки консоли:')
+    console.error('Console errors:')
     for (const line of consoleErrors) console.error('  ' + line)
-    throw new Error(`Ошибок в консоли: ${consoleErrors.length}`)
+    throw new Error(`Console errors: ${consoleErrors.length}`)
   }
-  console.log('Консоль: ошибок нет. Анимация drawer и звук tick проверены.')
+  console.log('Console: no errors. Drawer animation, tick sound, and theme switch checked.')
 
   if (!update) {
     console.log('')
-    console.log('| Экран | Порог 0.1 | Строгое | Пикселей |')
+    console.log('| Screen | Threshold 0.1 | Strict | Pixels |')
     console.log('| --- | ---: | ---: | ---: |')
     let failed = false
     for (const row of rows) {
@@ -349,7 +349,7 @@ try {
       if (row.mismatch > MAX_MISMATCH) failed = true
     }
     if (failed) {
-      console.error(`Есть экраны с расхождением больше ${MAX_MISMATCH * 100}%`)
+      console.error(`Some screens differ by more than ${MAX_MISMATCH * 100}%`)
       process.exitCode = 1
     }
   }

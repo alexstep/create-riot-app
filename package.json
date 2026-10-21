@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "Стартер Riot.js-приложения. Аналог create-react-app: bun create и демо с drawer, звуками и экранами.",
+  "description": "Riot.js application starter. A create-react-app style CLI (bun create) and a demo with a drawer, sounds, and screens.",
   "bin": {
     "create-riot-app": "./bin/create-riot-app.ts"
   },

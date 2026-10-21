@@ -1,13 +1,13 @@
 # Riot.js app
 
-Демо, которое создаёт `create-riot-app`: верхняя панель, выезжающее меню, звуки клика и три экрана. Среда — Bun, сборка — Vite, компоненты — Riot 10 и TypeScript.
+The demo scaffolded by `create-riot-app`: a top bar, a sliding menu, click sounds, and three screens. The runtime is Bun, the bundler is Vite, and the components are Riot 10 with TypeScript.
 
 ```bash
 bun install
 bun run dev
 ```
 
-Откройте <http://localhost:5173>. Страницы: `/dashboard`, `/groups`, `/settings`.
+Open <http://localhost:5173>. Routes: `/dashboard`, `/groups`, `/settings`.
 
 ```bash
 bun run typecheck
@@ -15,6 +15,6 @@ bun run build
 bun run preview
 ```
 
-Меню открывается кнопкой слева; на телефоне его можно вытянуть свайпом от левого края. Звуки лежат в `public/sounds`. Аватар в меню задаётся в `.env` переменной `VITE_APP_AVATAR_URL`.
+The menu opens from the button on the left. On a phone it can be pulled in with a swipe from the left edge. Sounds live in `public/sounds`. The drawer avatar is `VITE_APP_AVATAR_URL` in `.env`.
 
-Тема по умолчанию берётся из `prefers-color-scheme`. На экране Settings переключатель «Светлая / Тёмная / Система» пишет выбор в `localStorage` и ставит `data-theme` на `<html>`.
+The default theme follows `prefers-color-scheme`. On Settings, the Light / Dark / System switch stores the choice in `localStorage` and sets `data-theme` on `<html>`.

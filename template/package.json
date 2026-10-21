@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Демо-приложение Riot.js: drawer, звуки, три экрана",
+  "description": "Riot.js demo: drawer, sounds, and three screens",
   "engines": {
     "bun": ">=1.1.0"
   },

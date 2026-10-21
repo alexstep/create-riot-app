@@ -1,11 +1,11 @@
 <settings>
   <div class="screen screen-settings" id="screen_settings">
     <button type="button" onclick={onOption}>Some option</button>
-    <div class="theme-switch" data-theme-control role="group" aria-label="Тема">
-      <span>Тема</span>
-      <button type="button" data-choice="light" class={state.choice === 'light' ? 'is-active' : ''} aria-pressed={state.choice === 'light' ? 'true' : 'false'} onclick={pick}>Светлая</button>
-      <button type="button" data-choice="dark" class={state.choice === 'dark' ? 'is-active' : ''} aria-pressed={state.choice === 'dark' ? 'true' : 'false'} onclick={pick}>Тёмная</button>
-      <button type="button" data-choice="system" class={state.choice === 'system' ? 'is-active' : ''} aria-pressed={state.choice === 'system' ? 'true' : 'false'} onclick={pick}>Система</button>
+    <div class="theme-switch" data-theme-control role="group" aria-label="Theme">
+      <span>Theme</span>
+      <button type="button" data-choice="light" class={state.choice === 'light' ? 'is-active' : ''} aria-pressed={state.choice === 'light' ? 'true' : 'false'} onclick={pick}>Light</button>
+      <button type="button" data-choice="dark" class={state.choice === 'dark' ? 'is-active' : ''} aria-pressed={state.choice === 'dark' ? 'true' : 'false'} onclick={pick}>Dark</button>
+      <button type="button" data-choice="system" class={state.choice === 'system' ? 'is-active' : ''} aria-pressed={state.choice === 'system' ? 'true' : 'false'} onclick={pick}>System</button>
     </div>
   </div>
 
