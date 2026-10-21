@@ -39,14 +39,17 @@ jobs:
           set -euo pipefail
           npm pack
           tarball="$(ls create-riot-app-*.tgz)"
-          echo "Packed ${tarball}"
-          tar -tzf "${tarball}"
-          if tar -tzf "${tarball}" | grep -E '(^|/)node_modules/|(^|/)dist/'; then
+          echo "Packed ${tarball} ($(wc -c < "${tarball}") bytes)"
+          # Read the listing once. `tar | grep -q` under pipefail dies with
+          # SIGPIPE when grep exits as soon as it finds a match.
+          list="$(tar -tzf "${tarball}")"
+          printf '%s\n' "${list}"
+          if grep -E '(^|/)node_modules/|(^|/)dist/' <<< "${list}"; then
             echo "::error::tarball contains node_modules or dist"
             exit 1
           fi
-          tar -tzf "${tarball}" | grep -q 'template/gitignore'
-          if tar -tzf "${tarball}" | grep -q 'template/\.gitignore'; then
+          grep -q 'template/gitignore' <<< "${list}"
+          if grep -q 'template/\.gitignore' <<< "${list}"; then
             echo "::error::ship template/gitignore; npm strips template/.gitignore"
             exit 1
           fi
