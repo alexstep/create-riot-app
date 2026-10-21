@@ -9,16 +9,20 @@ export function createBrowserHub(
   transport: TransportName,
   extra: Partial<HubOptions> = {},
 ): Hub {
-  return new Hub({
+  let opened: (() => void) | undefined;
+  const hub = new Hub({
     origin,
     transport,
     fetch: extra.fetch ?? globalThis.fetch.bind(globalThis),
     cache: extra.cache ?? cacheStorageTopics(),
     events:
       extra.events ??
-      ((cursor, signal) => sseEvents(origin, cursor, signal, extra.fetch)),
+      ((cursor, signal) =>
+        sseEvents(origin, cursor, signal, extra.fetch, () => opened?.())),
     upload: extra.upload ?? ((input) => uploadWithProgress(input, extra.fetch)),
     now: extra.now,
     heartbeatMs: extra.heartbeatMs ?? 15_000,
   });
+  opened = () => hub.markReachable(true);
+  return hub;
 }

@@ -77,6 +77,7 @@ export async function* sseEvents(
   cursor: number,
   signal: AbortSignal,
   fetchImpl: FetchLike = globalThis.fetch.bind(globalThis),
+  onOpen?: () => void,
 ): AsyncGenerator<LiveEvent> {
   const res = await fetchImpl(new URL('/api/events', origin), {
     headers: { accept: 'text/event-stream', 'last-event-id': String(cursor) },
@@ -86,6 +87,7 @@ export async function* sseEvents(
   if (res.status === 401) throw new SessionError();
   if (!res.ok || !res.body)
     throw new Error(`Event stream failed (${res.status})`);
+  onOpen?.();
   const parser = new SseParser();
   const reader = res.body.getReader();
   const decoder = new TextDecoder();

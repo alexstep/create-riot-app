@@ -24,6 +24,8 @@ export type TopicView<T> = {
 /** What every tab renders. The hub is the only thing that fills this in. */
 export type Snapshot = {
   online: boolean;
+  /** False when a fetch or the event stream failed while the browser is online. */
+  reachable: boolean;
   transport: TransportName;
   storedAt: number | null;
   session: TopicView<User> | null;

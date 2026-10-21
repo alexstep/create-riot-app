@@ -70,6 +70,7 @@ export class Hub {
   private readonly waiters: Array<() => void> = [];
   private cursor = 0;
   private online = true;
+  private reachable = true;
   private stopped = false;
   private lost = false;
   private eventsAbort = new AbortController();
@@ -108,8 +109,8 @@ export class Hub {
     if (this.online) {
       try {
         await this.prefetch();
-      } catch (error) {
-        console.error(error);
+      } catch {
+        this.markReachable(false);
       }
     }
     this.broadcast();
@@ -127,6 +128,13 @@ export class Hub {
     this.online = online;
     this.wake();
     if (online) this.kickEvents();
+    this.broadcast();
+  }
+
+  /** A real HTTP response or an open event stream sets this; a failed fetch clears it. */
+  markReachable(reachable: boolean): void {
+    if (this.reachable === reachable) return;
+    this.reachable = reachable;
     this.broadcast();
   }
 
@@ -182,6 +190,7 @@ export class Hub {
     );
     return {
       online: this.online,
+      reachable: this.reachable,
       transport: this.transport,
       storedAt: times.length > 0 ? Math.max(...times) : null,
       session,
@@ -365,24 +374,23 @@ export class Hub {
     body: Uint8Array | null,
   ): Promise<HttpResult> {
     this.addLog(method, new URL(url).pathname, 'network');
-    let res: Response;
     try {
-      res = await this.fetchImpl(url, {
+      const res = await this.fetchImpl(url, {
         method,
         headers: sanitize(headers, body != null),
         body: body ? bytesBody(body) : undefined,
         credentials: 'include',
       });
-    } catch (error) {
-      throw new Error(
-        error instanceof Error ? error.message : 'Network error',
-        { cause: error },
-      );
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      const out = [...res.headers.entries()];
+      await this.absorb(res.status, out, bytes);
+      this.markReachable(true);
+      return { status: res.status, headers: out, body: bytes };
+    } catch {
+      this.markReachable(false);
+      if (!this.stopped) this.kickEvents();
+      return unreachableResult();
     }
-    const bytes = new Uint8Array(await res.arrayBuffer());
-    const out = [...res.headers.entries()];
-    await this.absorb(res.status, out, bytes);
-    return { status: res.status, headers: out, body: bytes };
   }
 
   private async absorb(
@@ -444,6 +452,7 @@ export class Hub {
             entry.send({ type: 'progress', id: msg.id, loaded, total });
         },
       });
+      this.markReachable(true);
       await this.absorb(result.status, result.headers, result.body);
       this.addLog('POST', parsed.pathname, 'network');
       this.broadcast();
@@ -451,11 +460,17 @@ export class Hub {
         entry.send({ type: 'http', id: msg.id, ...result });
     } catch (error) {
       if (!this.entries.has(entry)) return;
-      entry.send({
-        type: 'http-error',
-        id: msg.id,
-        message: error instanceof Error ? error.message : 'Upload failed',
-      });
+      if (isClientBlock(error)) {
+        entry.send({
+          type: 'http-error',
+          id: msg.id,
+          message: error instanceof Error ? error.message : 'Upload failed',
+        });
+        return;
+      }
+      this.markReachable(false);
+      if (!this.stopped) this.kickEvents();
+      entry.send({ type: 'http', id: msg.id, ...unreachableResult() });
     }
   }
 
@@ -472,17 +487,27 @@ export class Hub {
       try {
         for await (const event of this.events(cursor, signal)) {
           attempt = 0;
+          this.markReachable(true);
           if (!isLiveEvent(event)) continue;
           this.apply(event);
           cursor = Math.max(cursor, event.version);
         }
-        if (this.stopped) return;
+        if (this.stopped || signal.aborted) {
+          if (this.stopped) return;
+          continue;
+        }
+        this.markReachable(false);
       } catch (error) {
         if (this.stopped || signal.aborted) {
           if (this.stopped) return;
           continue;
         }
-        if (error instanceof SessionError) this.dropSession();
+        if (error instanceof SessionError) {
+          this.markReachable(true);
+          this.dropSession();
+        } else {
+          this.markReachable(false);
+        }
       }
       await this.sleep(nextDelay(attempt));
       attempt += 1;
@@ -627,6 +652,24 @@ function offlineResult(): HttpResult {
     headers: [['content-type', 'application/json']],
     body: new TextEncoder().encode(JSON.stringify({ error: 'Offline' })),
   };
+}
+
+function unreachableResult(): HttpResult {
+  return {
+    status: 503,
+    headers: [['content-type', 'application/json']],
+    body: new TextEncoder().encode(JSON.stringify({ error: 'Unreachable' })),
+  };
+}
+
+function isClientBlock(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : '';
+  return (
+    message === 'Cross-origin request blocked' ||
+    message === 'Only /api requests are proxied' ||
+    message === 'The event stream is owned by the hub' ||
+    message === 'Method is not allowed'
+  );
 }
 
 function sanitize(headers: [string, string][], hasBody: boolean): Headers {

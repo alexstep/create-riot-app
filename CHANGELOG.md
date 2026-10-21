@@ -13,16 +13,16 @@ The default scaffold is a full-stack Bun app. `2.1.0` was the client-only templa
 
 - `templates/fullstack`. One Bun process serves a Hono API, server-rendered Riot pages (`/` and `/about`), and the client cabinet at `/app`.
 - `bunx create-riot-app my-app --template spa` scaffolds the previous client-only app. The default template name is `fullstack`. Unknown names are rejected.
-- OpenAPI routes (`@hono/zod-openapi`), Scalar docs at `/api/docs`, and a typed `hc` client. A SharedWorker hub is the only browser client of the API. The Data screen validates a profile form and uploads files to `tmp/uploads`. One SSE stream updates every open tab. A service worker caches the app shell and disables offline writes.
+- OpenAPI routes (`@hono/zod-openapi`), Scalar docs at `/api/docs`, and a typed `hc` client. A SharedWorker hub is the only browser client of the API. The Records screen (`/app/records`) validates a profile form and uploads files to `tmp/uploads`. One SSE stream updates every open tab. A service worker caches the app shell and disables offline writes. A failed fetch shows that the server is unreachable. An expired session sends every open tab to `/login`.
 - Demo auth: signed httpOnly cookie, bearer token of the same value, in-memory sessions, login rate limit, and CSRF protection for cookie auth.
 - `bun test` covers server HTML, auth, validation, and the OpenAPI document.
 - `GET /api/health` for process checks.
-- Multi-stage `Dockerfile` on `oven/bun` for the full-stack app (frozen lockfile, client and server build, slim non-root runtime, `HEALTHCHECK` on `/api/health`). The spa template has a small static image.
+- Multi-stage `Dockerfile` on `oven/bun` for the full-stack app (frozen lockfile, client and server build, slim non-root runtime, `HEALTHCHECK` on `/api/health`). The spa template has no container image.
 
 ### Changed
 
 - The client template moved from `template/` to `templates/spa`. Package `files`, CI, and the visual suite follow that path.
-- Cabinet routes in the full-stack template are `/app/dashboard`, `/app/groups`, and `/app/settings`. The spa template keeps `/dashboard`, `/groups`, and `/settings`.
+- Cabinet routes in the full-stack template are `/app/dashboard`, `/app/groups`, `/app/settings`, and `/app/records`. The spa template keeps `/dashboard`, `/groups`, and `/settings`.
 
 ## [2.1.0] - 2026-10-21
 

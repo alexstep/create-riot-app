@@ -5,8 +5,21 @@ import {
 } from '/workspace/visual/node_modules/playwright/index.mjs';
 
 const base = process.env.CHECK_URL ?? 'http://127.0.0.1:3010';
+const failures: string[] = [];
+
+function watch(page: Page): void {
+  page.on('pageerror', (error) => {
+    failures.push(error.message);
+  });
+  page.on('console', (msg) => {
+    if (msg.type() !== 'error') return;
+    const text = msg.text();
+    if (/Uncaught|TypeError|Failed to fetch/i.test(text)) failures.push(text);
+  });
+}
 
 async function login(page: Page, email: string): Promise<void> {
+  watch(page);
   await page.goto(`${base}/login`, { waitUntil: 'domcontentloaded' });
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill('demo');
@@ -25,7 +38,7 @@ async function twoTabs(
   context: BrowserContext,
   email: string,
   transport: string,
-): Promise<void> {
+): Promise<[Page, Page]> {
   const first = await context.newPage();
   await login(first, email);
   const second = await context.newPage();
@@ -41,19 +54,59 @@ async function twoTabs(
     .locator('input[name="name"]')
     .filter({ hasValue: name })
     .waitFor();
-  await second.close();
-  return first;
+  return [first, second];
+}
+
+async function saveLooksDisabled(page: Page): Promise<void> {
+  const save = page.getByRole('button', { name: 'Save' });
+  if (!(await save.isDisabled())) throw new Error('Save stayed enabled');
+  const opacity = await save.evaluate((el) => getComputedStyle(el).opacity);
+  if (Number(opacity) > 0.6) {
+    throw new Error(`Save did not look disabled (opacity ${opacity})`);
+  }
 }
 
 const browser = await chromium.launch({ headless: true });
 const shared = await browser.newContext({
   extraHTTPHeaders: { 'x-forwarded-for': '203.0.113.10' },
 });
-const alice = await twoTabs(shared, 'alice@example.com', 'shared-worker');
+const [alice, aliceAgain] = await twoTabs(
+  shared,
+  'alice@example.com',
+  'shared-worker',
+);
+const drawer =
+  (await alice.locator('a[href="/app/records"]').textContent()) ?? '';
+if (!drawer.includes('Records')) {
+  throw new Error(`Drawer label was ${JSON.stringify(drawer)}`);
+}
+await alice.getByRole('heading', { name: 'Records', exact: true }).waitFor();
+
 await shared.setOffline(true);
 await alice.reload({ waitUntil: 'domcontentloaded' });
+await alice.locator('.banner', { hasText: 'You are offline' }).waitFor();
 await alice.locator('.banner', { hasText: 'may be stale' }).waitFor();
-await alice.getByRole('heading', { name: 'Data' }).waitFor();
+await saveLooksDisabled(alice);
+
+await shared.setOffline(false);
+await alice.reload({ waitUntil: 'domcontentloaded' });
+await alice.locator('.transport', { hasText: 'shared-worker' }).waitFor();
+await alice.locator('.banner').waitFor({ state: 'hidden', timeout: 15000 });
+const save = alice.getByRole('button', { name: 'Save' });
+if (await save.isDisabled())
+  throw new Error('Save stayed disabled after reconnect');
+
+await shared.clearCookies();
+await alice.locator('input[name="name"]').fill('alice');
+await save.click();
+await alice.waitForURL(/\/login\?next=/);
+await aliceAgain.waitForURL(/\/login\?next=/);
+for (const page of [alice, aliceAgain]) {
+  const next = new URL(page.url()).searchParams.get('next') ?? '';
+  if (!next.startsWith('/app/records')) {
+    throw new Error(`Return path was ${page.url()}`);
+  }
+}
 await shared.close();
 
 const bob = await browser.newContext({
@@ -76,8 +129,23 @@ await locked.addInitScript(() => {
     value: undefined,
   });
 });
-await twoTabs(locked, 'cara@example.com', 'leader');
+const [cara, caraAgain] = await twoTabs(locked, 'cara@example.com', 'leader');
+await locked.route('**/api/**', (route) => route.abort('failed'));
+await cara
+  .locator('.banner', { hasText: 'unreachable' })
+  .waitFor({ timeout: 15000 });
+await caraAgain
+  .locator('.banner', { hasText: 'unreachable' })
+  .waitFor({ timeout: 15000 });
+await saveLooksDisabled(cara);
+await locked.unroute('**/api/**');
+await cara.locator('.banner').waitFor({ state: 'hidden', timeout: 15000 });
+await caraAgain.locator('.banner').waitFor({ state: 'hidden', timeout: 15000 });
+await cara.close();
 await locked.close();
 
 await browser.close();
+if (failures.length > 0) {
+  throw new Error(`Unhandled browser errors:\n${failures.join('\n')}`);
+}
 console.log('browser check ok');

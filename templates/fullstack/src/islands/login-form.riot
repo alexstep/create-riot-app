@@ -35,7 +35,14 @@
           this.update({ error: result.error });
           return;
         }
-        window.location.assign('/app/dashboard');
+        const next = new URLSearchParams(window.location.search).get('next') ?? '';
+        const dest =
+          (next === '/app' || next.startsWith('/app/')) &&
+          !next.includes('\\') &&
+          !next.includes('://')
+            ? next
+            : '/app/dashboard';
+        window.location.assign(dest);
       },
     });
   </script>

@@ -72,7 +72,9 @@ describe('auth and api', () => {
 
     const cabinet = await app.request('http://localhost/app/dashboard');
     expect(cabinet.status).toBe(302);
-    expect(cabinet.headers.get('location')).toBe('/login');
+    expect(cabinet.headers.get('location')).toBe(
+      '/login?next=%2Fapp%2Fdashboard',
+    );
 
     const id = await login();
     const me = await app.request('http://localhost/api/me', {

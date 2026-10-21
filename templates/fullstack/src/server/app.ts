@@ -89,6 +89,12 @@ function spaHtml(env: AppEnv): string {
   return readFileSync(resolve(process.cwd(), file), 'utf8');
 }
 
+function loginLocation(path: string): string {
+  const next =
+    path === '/app' || path.startsWith('/app/') ? path : '/app/dashboard';
+  return `/login?next=${encodeURIComponent(next)}`;
+}
+
 export function createApp(
   env: AppEnv = parseEnv(),
   options?: { uploadDir?: string; staticRoot?: string },
@@ -232,12 +238,12 @@ export function createApp(
 
   app.use('/app', async (c, next) => {
     if (!state.sessions.read(sessionIdFrom(c, env.SESSION_SECRET)))
-      return c.redirect('/login');
+      return c.redirect(loginLocation(c.req.path));
     await next();
   });
   app.use('/app/*', async (c, next) => {
     if (!state.sessions.read(sessionIdFrom(c, env.SESSION_SECRET)))
-      return c.redirect('/login');
+      return c.redirect(loginLocation(c.req.path));
     await next();
   });
 

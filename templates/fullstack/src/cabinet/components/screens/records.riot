@@ -4,15 +4,12 @@
     <header class="top">
       <div>
         <p class="eyebrow">Riot + Hono</p>
-        <h1>Data</h1>
+        <h1>Records</h1>
       </div>
       <p class="transport">{state.transport}</p>
     </header>
 
-    <p class="banner" role="status" if={state.offline}>
-      You are offline. Showing saved data{state.savedLabel}. It may be stale.
-    </p>
-    <p class="banner warn" role="status" if={state.sessionLost}>The session expired. Reload to start again.</p>
+    <p class="banner" role="status" if={state.notice}>{state.notice}</p>
 
     <section class="panel">
       <h2>Profile</h2>
@@ -105,6 +102,36 @@
     .drop.is-over {
       background: var(--card-selected);
     }
+    .top {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .eyebrow {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 4px 0 0;
+      font-size: 32px;
+      font-weight: 600;
+      line-height: 1.1;
+    }
+    .transport {
+      margin: 0 0 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    button:disabled,
+    input:disabled,
+    textarea:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
     .log {
       max-height: 180px;
       overflow: auto;
@@ -134,13 +161,12 @@
       }[];
       log: string[];
       offline: boolean;
-      savedLabel: string;
+      notice: string;
       transport: string;
       over: boolean;
       progress: number | null;
       uploadError: string;
       saving: boolean;
-      sessionLost: boolean;
       dirty: boolean;
     }
 
@@ -170,13 +196,12 @@
         files: [],
         log: [],
         offline: false,
-        savedLabel: '',
+        notice: '',
         transport: 'connecting',
         over: false,
         progress: null,
         uploadError: '',
         saving: false,
-        sessionLost: false,
         dirty: false,
       },
       async onMounted() {
@@ -188,13 +213,20 @@
         this.cabinet?.connection.bye();
       },
       show(view) {
+        const saved = view.storedAt
+          ? ` from ${new Date(view.storedAt).toLocaleString()}`
+          : '';
+        const blocked = !view.online || !view.reachable;
+        let notice = '';
+        if (!view.online) {
+          notice = `You are offline. Showing saved data${saved}. It may be stale.`;
+        } else if (!view.reachable) {
+          notice = `The server is unreachable. Showing saved data${saved}. It may be stale.`;
+        }
         const next: Partial<State> = {
-          offline: !view.online,
-          savedLabel: view.storedAt
-            ? ` from ${new Date(view.storedAt).toLocaleString()}`
-            : '',
+          offline: blocked,
+          notice,
           transport: view.transport,
-          sessionLost: view.sessionLost,
           files: view.files.map((file) => ({
             id: file.id,
             name: file.name,

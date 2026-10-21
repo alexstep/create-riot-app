@@ -241,24 +241,54 @@ test('a 401 logs the hub out and does not create a session', async () => {
   const snap = tab.messages.filter((msg) => msg.type === 'snapshot').at(-1);
   expect(snap?.type === 'snapshot' && snap.state.session).toBeNull();
 
-  const failing = new Hub({
+  hub.stop();
+});
+
+test('a failed fetch is unreachable and the next response clears it', async () => {
+  let down = true;
+  const hub = new Hub({
     origin,
     transport: 'shared-worker',
-    fetch: async () => {
-      throw new Error('socket hang up');
+    fetch: async (input, init) => {
+      if (down) throw new TypeError('Failed to fetch');
+      return jsonResponse(
+        new URL(String(input)).pathname,
+        init?.method ?? 'GET',
+      );
     },
   });
-  const tab2 = collect();
-  const port2 = failing.bind(tab2.push);
-  await port2.push(http('GET', '/api/profile', '9'));
-  expect(
-    tab2.messages.some(
-      (msg) => msg.type === 'http-error' && msg.message === 'socket hang up',
-    ),
-  ).toBe(true);
-  expect(tab2.messages.some((msg) => msg.type === 'session-lost')).toBe(false);
+  const tab = collect();
+  const port = hub.bind(tab.push);
+  await port.push(http('GET', '/api/profile', '1'));
+  expect(httpResult(tab, '1')?.status).toBe(503);
+  expect(hub.snapshot().reachable).toBe(false);
+  expect(tab.messages.some((msg) => msg.type === 'http-error')).toBe(false);
+  expect(tab.messages.some((msg) => msg.type === 'session-lost')).toBe(false);
+  down = false;
+  await port.push(http('GET', '/api/profile', '2'));
+  expect(httpResult(tab, '2')?.status).toBe(200);
+  expect(hub.snapshot().reachable).toBe(true);
   hub.stop();
-  failing.stop();
+});
+
+test('a failed event stream marks the server unreachable', async () => {
+  const hub = new Hub({
+    origin,
+    transport: 'shared-worker',
+    fetch: async (input, init) =>
+      jsonResponse(new URL(String(input)).pathname, init?.method ?? 'GET'),
+    events: () => ({
+      [Symbol.asyncIterator]() {
+        return {
+          next: () => Promise.reject(new TypeError('Failed to fetch')),
+        };
+      },
+    }),
+  });
+  hub.bind(collect().push);
+  await hub.start();
+  await waitFor(() => hub.snapshot().reachable === false);
+  hub.stop();
 });
 
 test('a warm cache does not repeat session or topic requests', async () => {

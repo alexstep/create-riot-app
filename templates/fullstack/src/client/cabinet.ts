@@ -30,6 +30,7 @@ export type Cabinet = {
 export type CabinetView = {
   transport: string;
   online: boolean;
+  reachable: boolean;
   storedAt: number | null;
   profile: Profile | null;
   files: FileMeta[];
@@ -43,6 +44,9 @@ export async function startCabinet(origin = location.origin): Promise<Cabinet> {
   let sessionLost = false;
   connection.onSessionLost(() => {
     sessionLost = true;
+    if (location.pathname.startsWith('/login')) return;
+    const back = `${location.pathname}${location.search}`;
+    location.assign(`/login?next=${encodeURIComponent(returnPath(back))}`);
   });
   return {
     client,
@@ -67,10 +71,19 @@ export async function startCabinet(origin = location.origin): Promise<Cabinet> {
   };
 }
 
+function returnPath(path: string): string {
+  const ok =
+    (path === '/app' || path.startsWith('/app/')) &&
+    !path.includes('\\') &&
+    !path.includes('://');
+  return ok ? path : '/app/dashboard';
+}
+
 function toView(state: Snapshot, sessionLost: boolean): CabinetView {
   return {
     transport: state.transport,
     online: state.online,
+    reachable: state.reachable,
     storedAt: state.storedAt,
     profile: state.profile?.data ?? null,
     files: state.uploads?.data ?? [],

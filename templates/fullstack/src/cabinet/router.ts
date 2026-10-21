@@ -1,8 +1,8 @@
 import { initDomListeners, router, setBase } from '@riotjs/route';
 import type { RiotComponent, RiotComponentWrapper } from 'riot';
 import Dashboard from './components/screens/dashboard.riot';
-import Data from './components/screens/data.riot';
 import Groups from './components/screens/groups.riot';
+import Records from './components/screens/records.riot';
 import Settings from './components/screens/settings.riot';
 
 export interface AppScreen {
@@ -37,10 +37,10 @@ export const screens: readonly AppScreen[] = [
   },
   {
     name: 'records',
-    label: 'Data',
+    label: 'Records',
     icon: 'settings.svg',
     href: '/app/records',
-    component: Data,
+    component: Records,
   },
 ];
 
