@@ -116,7 +116,7 @@ ${fouc}
 <link rel="stylesheet" href="${escapeHtml(assets.css)}">
 <style riot>${islandCss.replaceAll('</', '<\\/')}</style>
 </head>
-<body>
+<body class="site">
 <header class="site-header">
   <a class="brand" href="/">Riot app</a>
   <nav>

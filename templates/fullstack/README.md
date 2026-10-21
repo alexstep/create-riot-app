@@ -9,7 +9,7 @@ bun install
 bun run dev
 ```
 
-Open <http://localhost:3000>. `/` and `/about` are rendered on the server. `/login` signs you in (any email; in development the page shows `DEMO_PASSWORD`, which is `demo` unless you change `.env`). `/app/dashboard`, `/app/groups`, `/app/settings`, and `/app/records` are the cabinet. `create-riot-app` writes `.env` from `.env.example`. If that file is missing, development still boots with those demo defaults and prints one notice.
+Open <http://localhost:3000>. `/` and `/about` are rendered on the server. `/login` signs you in (any email; in development the page shows `DEMO_PASSWORD`, which is `demo` unless you change `.env`). `/app/dashboard`, `/app/groups`, `/app/settings`, and `/app/records` are the cabinet. A second `/app` in front of a screen redirects back to that URL. `create-riot-app` writes `.env` from `.env.example`. If that file is missing, development still boots with those demo defaults and prints one notice.
 
 ```bash
 bun run test
@@ -72,7 +72,9 @@ Sessions are in memory. The cookie is `httpOnly`, `SameSite=Lax`, and `Secure` i
 
 ## Data layer
 
-One place describes each endpoint: a zod schema and a `createRoute` on the Hono router. The page does not repeat that shape. `src/client/api.ts` calls `hc<AppType>` and exports helpers such as `submitProfile`. A 400 body is `{ error, fields }`. The profile form on the Records screen (`/app/records`) puts `fields.email` under the email box.
+One place describes each endpoint: a zod schema and a `createRoute` on the Hono router. The page does not repeat that shape. `src/client/api.ts` calls `hc<AppType>` and exports helpers such as `submitProfile` and `listGroups`. A 400 body is `{ error, fields }`. The profile form on the Records screen (`/app/records`) puts `fields.email` under the email box.
+
+`GET /api/groups` requires a session and returns `src/fixtures/groups.json`. The pictures are `/media/groups/*.svg` in `public/`, copied into the client build, so dev and Docker do not call another host. The Groups screen is the only consumer. It shows loading, empty, and error states.
 
 The cabinet does not call `fetch` itself. A SharedWorker (`src/client/hub.worker.ts`) is the only client of this origin. It deduplicates GETs, keeps one copy of each topic (`session`, `profile`, `uploads`), and broadcasts that snapshot to every tab. A new tab renders the snapshot without another request. The session is the httpOnly cookie; the worker does not store a token. If the browser has no SharedWorker, one tab takes a Web Lock and runs the same hub over a BroadcastChannel. Uploads go through `XMLHttpRequest` in the hub so the tab that dropped the files can show progress. Files are checked for size and type, stored under `./tmp/uploads` with a random name, and the download path cannot leave that directory.
 

@@ -1,12 +1,14 @@
 <login>
-  <h1>Log in</h1>
-  <p if="{props.password}">
-    Any email. Password: <code>{props.password}</code>
-  </p>
-  <p if="{!props.password}">
-    Any email, and the demo password from the environment.
-  </p>
-  <login-form password="{props.password}"></login-form>
+  <section class="card">
+    <h1>Log in</h1>
+    <p class="lead" if="{props.password}">
+      Any email. Password: <code>{props.password}</code>
+    </p>
+    <p class="lead" if="{!props.password}">
+      Any email, and the demo password from the environment.
+    </p>
+    <login-form password="{props.password}"></login-form>
+  </section>
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot';

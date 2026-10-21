@@ -14,6 +14,7 @@ drawer,
 dashboard,
 groups,
 settings,
+records,
 spinner {
   display: block;
 }
@@ -46,7 +47,8 @@ html {
 }
 
 .screen {
-  height: calc(100vh - var(--topbar-height));
-  width: 100vw;
-  overflow: scroll;
+  height: calc(100dvh - var(--topbar-height));
+  width: 100%;
+  overflow: auto;
+  color: var(--card-text);
 }

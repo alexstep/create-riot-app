@@ -1,4 +1,8 @@
-import { shouldHandle, strategy } from './client/cache-policy';
+import {
+  isCabinetNavigation,
+  shouldHandle,
+  strategy,
+} from './client/cache-policy';
 
 declare const BUILD_HASH: string;
 declare const PRECACHE_JSON: string;
@@ -58,25 +62,23 @@ sw.addEventListener('fetch', (event) => {
   );
 });
 
+function shellKey(request: Request): Request | string {
+  if (request.mode !== 'navigate') return request;
+  const path = new URL(request.url).pathname;
+  return isCabinetNavigation(path) ? '/app.html' : request;
+}
+
 async function networkFirst(request: Request): Promise<Response> {
   const cache = await caches.open(CACHE);
+  const key = shellKey(request);
   try {
     const fresh = await fetch(request);
     if (request.mode === 'navigate' && fresh.ok && !fresh.redirected) {
-      const path = new URL(request.url).pathname;
-      const key =
-        path === '/app' || path.startsWith('/app/') ? '/app.html' : request;
       await cache.put(key, fresh.clone());
     }
     return fresh;
   } catch {
-    const path = new URL(request.url).pathname;
-    const cached = await cache.match(
-      request.mode === 'navigate' &&
-        (path === '/app' || path.startsWith('/app/'))
-        ? '/app.html'
-        : request,
-    );
+    const cached = await cache.match(key);
     return (
       cached ??
       (await cache.match('/offline.html')) ??

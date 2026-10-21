@@ -164,7 +164,7 @@ export interface Item {
 export async function listItems(): Promise<Item[]> {
   const client = await clientInBrowser();
   const response = await client.api.items.$get();
-  if (!response.ok) return [];
+  if (!response.ok) throw new Error('Could not load items.');
   const body: unknown = await response.json();
   if (
     body &&
@@ -174,7 +174,7 @@ export async function listItems(): Promise<Item[]> {
   ) {
     return body.items as Item[];
   }
-  return [];
+  throw new Error('Could not load items.');
 }
 
 export async function createItem(title: string): Promise<Item | null> {
@@ -186,22 +186,28 @@ export async function createItem(title: string): Promise<Item | null> {
   return (await response.json()) as Item;
 }
 
-export interface Photo {
-  albumId: number;
-  id: number;
+export interface Group {
+  id: string;
   title: string;
-  url: string;
-  thumbnailUrl: string;
+  members: number;
+  summary: string;
+  image: string;
 }
 
-export async function getPhotos(limit = 10): Promise<Photo[]> {
-  const response = await fetch(
-    `https://jsonplaceholder.typicode.com/photos?_limit=${limit}`,
-  );
-  if (!response.ok) throw new Error(`Demo API answered ${response.status}`);
-  const data: unknown = await response.json();
-  if (!Array.isArray(data)) return [];
-  return data as Photo[];
+export async function listGroups(): Promise<Group[]> {
+  const client = await clientInBrowser();
+  const response = await client.api.groups.$get();
+  if (!response.ok) throw new Error('Could not load groups.');
+  const body: unknown = await response.json();
+  if (
+    !body ||
+    typeof body !== 'object' ||
+    !('groups' in body) ||
+    !Array.isArray(body.groups)
+  ) {
+    throw new Error('Could not load groups.');
+  }
+  return body.groups as Group[];
 }
 
 export async function deleteItem(id: string): Promise<boolean> {

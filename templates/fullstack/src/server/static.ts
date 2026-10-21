@@ -1,6 +1,9 @@
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { resolve, sep } from 'node:path';
 import type { Context } from 'hono';
+import { isCabinetPath } from '../cabinet/paths';
+
+export { isCabinetPath };
 
 const types: Record<string, string> = {
   '.css': 'text/css; charset=utf-8',
@@ -24,10 +27,6 @@ function contentType(file: string): string {
 
 export function isApiPath(path: string): boolean {
   return path === '/api' || path.startsWith('/api/');
-}
-
-export function isCabinetPath(path: string): boolean {
-  return path === '/app' || path.startsWith('/app/');
 }
 
 export function resolveStatic(root: string, urlPath: string): string | null {

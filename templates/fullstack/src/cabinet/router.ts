@@ -4,9 +4,14 @@ import Dashboard from './components/screens/dashboard.riot';
 import Groups from './components/screens/groups.riot';
 import Records from './components/screens/records.riot';
 import Settings from './components/screens/settings.riot';
+import {
+  type CabinetScreen,
+  cabinetReturnPath,
+  normalizeCabinetPath,
+} from './paths';
 
 export interface AppScreen {
-  name: 'dashboard' | 'groups' | 'settings' | 'records';
+  name: CabinetScreen;
   label: string;
   icon: string;
   href: string;
@@ -23,7 +28,7 @@ export const screens: readonly AppScreen[] = [
   },
   {
     name: 'groups',
-    label: 'List',
+    label: 'Groups',
     icon: 'group.svg',
     href: '/app/groups',
     component: Groups,
@@ -49,20 +54,18 @@ export type Screen = AppScreen['name'];
 const names: readonly string[] = screens.map((screen) => screen.name);
 
 export function parseScreen(path: string): Screen {
-  const withoutOrigin = path.replace(/^[a-z]+:\/\/[^/]+/i, '');
-  const hashed = withoutOrigin.includes('#')
-    ? withoutOrigin.slice(withoutOrigin.indexOf('#') + 1)
-    : withoutOrigin;
-  let rest = hashed.replace(/^\/+/, '');
-  if (rest === 'app') rest = '';
-  else if (rest.startsWith('app/')) rest = rest.slice(4);
-  const name = rest.split(/[/?#]/)[0] ?? '';
+  const name = normalizeCabinetPath(path).slice('/app/'.length);
   return (names.includes(name) ? name : 'dashboard') as Screen;
 }
 
+/**
+ * `@riotjs/route` setBase('/app') stores `origin + /app`.
+ * `router.push` prefixes that base again unless the argument already
+ * contains it. Pass the absolute cabinet URL, never a second `/app`.
+ */
 export function navigate(path: string): void {
-  const normalized = path.startsWith('/') ? path : `/${path}`;
-  router.push(normalized);
+  const canonical = cabinetReturnPath(path);
+  router.push(new URL(canonical, window.location.origin).href);
 }
 
 export function startRouter(onScreen: (screen: Screen) => void): () => void {
@@ -75,6 +78,10 @@ export function startRouter(onScreen: (screen: Screen) => void): () => void {
   };
 
   router.on.value(onValue);
+  const canonical = normalizeCabinetPath(window.location.pathname);
+  if (canonical !== window.location.pathname) {
+    window.history.replaceState(null, '', canonical);
+  }
   router.push(window.location.href);
 
   return () => {

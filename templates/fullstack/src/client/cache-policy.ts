@@ -21,6 +21,16 @@ export function shouldHandle(
   return true;
 }
 
+/**
+ * Cabinet navigations share one cached document (`/app.html`).
+ * A doubled prefix such as `/app/app/groups` is still the cabinet,
+ * so the offline fallback is that shell rather than `/offline.html`.
+ */
+export function isCabinetNavigation(pathname: string): boolean {
+  const path = pathname.split(/[?#]/)[0] ?? '';
+  return path === '/app' || path.startsWith('/app/');
+}
+
 export function strategy(pathname: string, mode: string): CacheStrategy {
   if (mode === 'navigate' || pathname === '/' || pathname.endsWith('.html'))
     return 'network-first';

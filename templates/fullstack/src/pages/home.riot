@@ -1,7 +1,11 @@
 <home>
+  <p class="eyebrow">Bun, Riot, and Hono</p>
   <h1>{props.title}</h1>
-  <p>{props.lead}</p>
-  <subscribe-form hint="{props.hint}"></subscribe-form>
+  <p class="lead">{props.lead}</p>
+  <section class="card">
+    <h2>Contact</h2>
+    <subscribe-form hint="{props.hint}"></subscribe-form>
+  </section>
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot';

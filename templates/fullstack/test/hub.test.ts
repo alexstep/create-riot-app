@@ -13,7 +13,11 @@ const env = parseEnv({
 });
 
 import { createClient } from '../src/client/api';
-import { shouldHandle, strategy } from '../src/client/cache-policy';
+import {
+  isCabinetNavigation,
+  shouldHandle,
+  strategy,
+} from '../src/client/cache-policy';
 import { createCaller } from '../src/client/caller';
 import { Hub, memoryCache } from '../src/client/hub';
 import type { FetchLike, HttpResult, ServerMsg } from '../src/client/protocol';
@@ -50,12 +54,17 @@ test('service worker ignores api, mutations, and other origins', () => {
   );
   expect(strategy('/', 'navigate')).toBe('network-first');
   expect(strategy('/assets/a.js', 'no-cors')).toBe('cache-first');
+  expect(isCabinetNavigation('/app/groups')).toBe(true);
+  expect(isCabinetNavigation('/app/app/groups')).toBe(true);
+  expect(isCabinetNavigation('/about')).toBe(false);
+  expect(isCabinetNavigation('/app.html')).toBe(false);
 });
 
 test('typed client path matches the server base path', () => {
   const client = createClient(origin, fetch);
   expect(client.api.profile.$url().pathname).toBe('/api/profile');
   expect(client.api.uploads.$url().pathname).toBe('/api/uploads');
+  expect(client.api.groups.$url().pathname).toBe('/api/groups');
   expect(new URL(client.api.uploads.$url()).pathname).toBe('/api/uploads');
 });
 

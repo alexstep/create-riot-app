@@ -1,10 +1,28 @@
 <about>
+  <p class="eyebrow">How it fits together</p>
   <h1>About</h1>
-  <p>
+  <p class="lead">
     This server renders the landing pages, serves a JSON API, and hands the signed-in cabinet to a
     client-side Riot app. One Bun process does all three.
   </p>
-  <p>Add a page by rendering a Riot tag from <code>src/server/app.ts</code>. The cabinet stays under <code>/app</code>.</p>
+  <ul class="facts">
+    <li>
+      <strong>Pages</strong>
+      <span>Add a page by rendering a Riot tag from <code>src/server/app.ts</code>.</span>
+    </li>
+    <li>
+      <strong>Cabinet</strong>
+      <span>The signed-in app stays under <code>/app</code>.</span>
+    </li>
+    <li>
+      <strong>API</strong>
+      <span>Routes are zod schemas on the Hono app. Docs are at <code>/api/docs</code>.</span>
+    </li>
+    <li>
+      <strong>Groups</strong>
+      <span>The list is a fixture on this server, not a third-party call.</span>
+    </li>
+  </ul>
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot';

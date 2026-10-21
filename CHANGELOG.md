@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2026-10-21
+
+### Fixed
+
+- Cabinet links stay on `/app/<screen>`. The drawer was pushing `/app/groups` through a router whose base was already `/app`, so the address bar became `/app/app/groups`. A doubled prefix now redirects to the single-prefix URL. Login `next`, an expired session, a deep-link reload, and the service worker use that same path. `robots.txt` still disallows `/app` (which covers `/app/app/...`). The sitemap stays the public pages only.
+
+### Changed
+
+- The Groups screen reads `GET /api/groups` through the typed Hono client. The route is in the OpenAPI document at `/api/docs`. The server returns `src/fixtures/groups.json`, and the pictures are files under `public/media/groups`. The full-stack template no longer calls JSONPlaceholder or any other host for demo data. The same response works offline in dev and in Docker.
+- Landing, login, and cabinet pages use one spacing scale, aligned columns, and cards. Loading, empty, and error states are part of the screen. Light and dark, and the 375, 768, and 1280 widths, share that layout.
+
 ## [3.1.3] - 2026-10-21
 
 ### Fixed
@@ -115,6 +126,7 @@ Rewrite of the 1.2 Webpack 4 starter. The demo is the same idea: a side drawer, 
 
 - Webpack 4, the old `scripts/webpack` setup, Less, jQuery, and Hammer.
 
+[3.2.0]: https://github.com/alexstep/create-riot-app/compare/v3.1.3...v3.2.0
 [3.1.3]: https://github.com/alexstep/create-riot-app/compare/v3.1.2...v3.1.3
 [3.1.2]: https://github.com/alexstep/create-riot-app/compare/v3.1.1...v3.1.2
 [3.1.1]: https://github.com/alexstep/create-riot-app/compare/v3.1.0...v3.1.1
