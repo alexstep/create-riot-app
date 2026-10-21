@@ -1,6 +1,6 @@
 {
   "name": "create-riot-app",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "type": "module",
   "license": "BSD-3-Clause",
   "repository": {
@@ -19,7 +19,8 @@
     "bin",
     "template",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "create": "bun ./bin/create-riot-app.ts",
