@@ -24,6 +24,10 @@
       img {
         width: 100%;
       }
+
+      img.is-broken {
+        visibility: hidden;
+      }
     }
 
     b {

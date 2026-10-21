@@ -2,7 +2,7 @@
   <div id="app">
     <topbar title={state.screen}></topbar>
     <drawer current={state.screen}></drawer>
-    <div each={item in screens} if={state.screen === item.name} is={item.name}></div>
+    <div each={item in screens} if={state.screen === item.name} key={item.name} is={item.name}></div>
   </div>
 
   <script lang="ts">
@@ -20,7 +20,7 @@
       onRoute(screen: Screen): void
     }
 
-    export default withTypes<App>({
+    export default withTypes<App>(() => ({
       screens,
       state: {
         screen: 'dashboard',
@@ -38,6 +38,6 @@
         this.stopRouter?.()
         this.stopRouter = null
       },
-    })
+    }))
   </script>
 </app>

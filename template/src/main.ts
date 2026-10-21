@@ -10,6 +10,7 @@ import './styles/components/drawer.css'
 import './styles/components/groups.css'
 import './styles/components/spinner.css'
 import './styles/components/screens.css'
+import './styles/interaction.css'
 import App from './components/app.riot'
 import Topbar from './components/topbar.riot'
 import Drawer from './components/drawer.riot'
@@ -17,6 +18,9 @@ import Icon from './components/icon.riot'
 import Spinner from './components/spinner.riot'
 applyStoredTheme()
 watchSystemTheme()
+
+// iOS Safari skips :active unless the document has a touch listener.
+document.addEventListener('touchstart', () => {}, { passive: true })
 
 register('topbar', Topbar)
 register('drawer', Drawer)

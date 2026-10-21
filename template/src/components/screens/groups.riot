@@ -5,13 +5,15 @@
     <div class="groups-list" if={!state.loading && state.groups.length}>
       <a
         each={group in state.groups}
+        key={group.id}
         href="/groups"
+        draggable="false"
         data-id={group.id}
         class={'ripple group' + (state.selectedId === group.id ? ' is-selected' : '')}
         onclick={selectGroup}
         onpointerenter={playHover}
       >
-        <div class="img-wrap"><img src={group.thumbnailUrl} alt="" onerror={hideImage} /></div>
+        <div class="img-wrap"><img src={group.thumbnailUrl} alt="" draggable="false" class={state.broken[group.id] ? 'is-broken' : ''} onerror={hideImage} /></div>
         <b>{group.title}</b>
         <span class="items" if={group.albumId}>album: {group.albumId}</span>
       </a>
@@ -19,7 +21,7 @@
 
     <div class="no-groups" if={!state.loading && !state.groups.length}>
       No content...<br /><br />
-      <a href="https://vk.com/groups" target="_blank" rel="noopener">Create</a>
+      <a href="https://vk.com/groups" draggable="false" target="_blank" rel="noopener">Create</a>
     </div>
   </div>
 
@@ -32,6 +34,7 @@
       loading: boolean
       groups: Photo[]
       selectedId: number | null
+      broken: Record<number, true>
     }
 
     interface Groups extends RiotComponent<object, State> {
@@ -42,11 +45,12 @@
       hideImage(event: Event): void
     }
 
-    export default withTypes<Groups>({
+    export default withTypes<Groups>(() => ({
       state: {
         loading: true,
         groups: [],
         selectedId: null,
+        broken: {},
       },
       loadTimer: 0,
       onMounted() {
@@ -74,8 +78,10 @@
       playHover,
       hideImage(event) {
         const img = event.currentTarget as HTMLImageElement
-        img.style.visibility = 'hidden'
+        const id = Number(img.closest('a')?.getAttribute('data-id'))
+        if (!Number.isFinite(id) || this.state.broken[id]) return
+        this.update({ broken: { ...this.state.broken, [id]: true } })
       },
-    })
+    }))
   </script>
 </groups>

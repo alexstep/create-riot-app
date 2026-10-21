@@ -59,7 +59,7 @@ The build is written to `template/dist`.
 
 ## What the demo includes
 
-- Top bar and a sliding drawer: button, dimmed overlay, 0.3s animation, and a swipe from the left edge on touch screens.
+- Top bar and a sliding drawer: button, dimmed overlay, 0.1s animation, and a swipe from the left edge on touch screens.
 - Sounds in `public/sounds`: `tick` when the menu opens, a menu item is chosen, or the settings button is pressed; `hover` on mouse enter; `card` when a list card is selected. Mp3 is used when the browser cannot play Ogg. A rejected autoplay does not show up in the console.
 - Screens: Dashboard, a list that loads the first ten photos from jsonplaceholder (spinner for about a second), Settings.
 - On a narrow viewport the list hides the top bar while scrolling, as the old demo did.
