@@ -1,11 +1,10 @@
 #spinner {
+  --spinner-width: 100px;
+  --spinner-green: #008744;
+  --spinner-blue: #0057e7;
+  --spinner-red: #d62d20;
+  --spinner-yellow: #ffa700;
   position: relative;
-
-  @green: #008744;
-  @blue: #0057e7;
-  @red: #d62d20;
-  @yellow: #ffa700;
-  @width: 100px;
 
   .text {
     position: absolute;
@@ -29,10 +28,10 @@
   .loader {
     position: relative;
     margin: 0 auto;
-    width: @width;
+    width: var(--spinner-width);
 
     &:before {
-      content: '';
+      content: "";
       display: block;
       padding-top: 100%;
     }
@@ -83,21 +82,21 @@
 }
 
 @keyframes color {
-  100%,
-  0% {
-    stroke: #d62d20;
+  0%,
+  100% {
+    stroke: var(--spinner-red);
   }
 
   40% {
-    stroke: #0057e7;
+    stroke: var(--spinner-blue);
   }
 
   66% {
-    stroke: #008744;
+    stroke: var(--spinner-green);
   }
 
   80%,
   90% {
-    stroke: #ffa700;
+    stroke: var(--spinner-yellow);
   }
 }
