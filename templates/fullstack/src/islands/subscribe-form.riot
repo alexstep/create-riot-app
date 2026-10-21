@@ -14,6 +14,7 @@
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot';
+    import { sendContact } from '../client/api';
 
     interface State {
       note: string;
@@ -26,17 +27,11 @@
         event.preventDefault();
         const form = event.currentTarget as HTMLFormElement;
         const data = new FormData(form);
-        const response = await fetch('/api/contact', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            email: String(data.get('email') ?? ''),
-            message: String(data.get('message') ?? ''),
-          }),
-        });
-        this.update({
-          note: response.ok ? 'Sent.' : 'Could not send.',
-        });
+        const ok = await sendContact(
+          String(data.get('email') ?? ''),
+          String(data.get('message') ?? ''),
+        );
+        this.update({ note: ok ? 'Sent.' : 'Could not send.' });
       },
     });
   </script>

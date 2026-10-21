@@ -74,7 +74,7 @@ The router is `OpenAPIHono` from `@hono/zod-openapi`. Schemas use zod 4 and `.op
 
 `/api/docs` is Scalar (`@scalar/hono-api-reference`). `customCss` maps the app tokens (`--page-bg`, `--card-text`, `--theme-color`, and the dark values) onto `--scalar-*` for the light page and `.dark-mode`. `/api/openapi.json` is produced by `app.doc`, with `info.version` from `package.json`, plus cookie and bearer security schemes. Docs are public when `NODE_ENV` is not `production`. In production they answer 404 until `DOCS_USER` and `DOCS_PASSWORD` are both set, and then HTTP basic auth protects them.
 
-The cabinet calls the API with `hc<AppType>`, where `AppType` is `typeof routes`. There is no generated `.d.ts`. Auth paths are `/api/login` and `/api/logout` rather than `/api/auth/*`: a shared prefix collapses those paths in the typed client.
+The browser talks to this server only through `src/client/api.ts`. That file is the data layer: today it calls `hc<AppType>`, where `AppType` is `typeof routes`, and the UI imports plain functions from it. There is no generated `.d.ts`. Auth paths are `/api/login` and `/api/logout` rather than `/api/auth/*`: a shared prefix collapses those paths in the typed client.
 
 Environment variables are checked with zod at boot. `.env.example` lists them. Nothing secret is committed. `PUBLIC_ORIGIN` is optional and, when it is `https`, turns on HSTS. A local `bun run start` on http does not send HSTS.
 

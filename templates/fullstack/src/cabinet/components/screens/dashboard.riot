@@ -16,12 +16,13 @@
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot';
-    import { client, currentEmail } from '../../api';
-
-    interface Item {
-      id: string;
-      title: string;
-    }
+    import {
+      createItem,
+      currentEmail,
+      deleteItem,
+      listItems,
+      type Item,
+    } from '../../../client/api';
 
     interface State {
       email: string;
@@ -32,33 +33,21 @@
       state: { email: '', items: [] },
       async onMounted() {
         const email = await currentEmail();
-        const response = await client.api.items.$get();
-        const body: unknown = response.ok ? await response.json() : null;
-        const items =
-          body &&
-          typeof body === 'object' &&
-          'items' in body &&
-          Array.isArray(body.items)
-            ? (body.items as Item[])
-            : [];
+        const items = await listItems();
         this.update({ email, items });
       },
       async addItem(event: Event) {
         event.preventDefault();
         const form = event.currentTarget as HTMLFormElement;
         const title = String(new FormData(form).get('title') ?? '');
-        const response = await client.api.items.$post({ json: { title } });
-        if (!response.ok) return;
-        const item = (await response.json()) as Item;
+        const item = await createItem(title);
+        if (!item) return;
         this.update({ items: this.state.items.concat(item) });
         form.reset();
       },
       async removeClick(event: Event) {
         const id = (event.currentTarget as HTMLButtonElement).dataset.id ?? '';
-        const response = await client.api.items[':id'].$delete({
-          param: { id },
-        });
-        if (!response.ok) return;
+        if (!(await deleteItem(id))) return;
         this.update({ items: this.state.items.filter((item) => item.id !== id) });
       },
     });

@@ -28,6 +28,7 @@ src/server/app.ts     Hono app: API, pages, static files, /app
 src/server/index.ts   Bun.serve and shutdown
 src/server/dev.ts     same app, loaded by Vite in development
 src/api/routes.ts     OpenAPI routes and AppType
+src/client/api.ts     browser calls to this server (the swappable data layer)
 src/pages/            server-rendered Riot tags
 src/islands/          custom elements used on those pages
 src/cabinet/          client-only app mounted at /app
@@ -45,17 +46,9 @@ Island: add a custom element under `src/islands`, register it with `define('x-ta
 
 Cabinet screen: add a screen to `src/cabinet/router.ts` and a tag under `src/cabinet/components/screens`. It is a normal client Riot app. Unauthenticated requests to `/app/*` redirect to `/login`.
 
-API route: add a zod schema (`.openapi('Name')`) and `createRoute` in `src/api/routes.ts`, then chain `.openapi(...)` on `routes`. `export type AppType = typeof routes` is what the client imports. Keep paths literal (`/items/{id}`, not a wildcard middleware) so `hc<AppType>` keeps real methods. Auth routes are `/api/login` and `/api/logout` for that reason.
+API route: add a zod schema (`.openapi('Name')`) and `createRoute` in `src/api/routes.ts`, then chain `.openapi(...)` on `routes`. `export type AppType = typeof routes` is what `src/client/api.ts` imports. Keep paths literal (`/items/{id}`, not a wildcard middleware) so `hc<AppType>` keeps real methods. Auth routes are `/api/login` and `/api/logout` for that reason.
 
-Call the API from the cabinet through `src/cabinet/api.ts`:
-
-```ts
-import { client } from './api';
-
-const response = await client.api.items.$get();
-```
-
-The client sends cookies (`credentials: 'include'`). A bearer token of the same signed session value also works.
+The browser talks to this server only through `src/client/api.ts`. Screens and islands call `login`, `listItems`, `sendContact`, and the other functions in that file. The Hono client stays inside the module, so replacing the data layer does not require edits in the tags. Cookies are sent with `credentials: 'include'`. A bearer token of the same signed session value also works.
 
 ## API docs and auth
 
