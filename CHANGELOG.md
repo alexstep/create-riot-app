@@ -5,8 +5,6 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-The GitHub Releases page still lists **1.2** (16 January 2019, Webpack 4) as the latest release. Tag `v2.0.0` is on npm and on git, and it has no GitHub Release. The sections below are the notes for those releases.
-
 ## [2.1.0] - 2026-10-21
 
 One release for the interaction polish and for linting `.riot` files. `2.0.1` was not published.
