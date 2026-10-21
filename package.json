@@ -1,6 +1,6 @@
 {
   "name": "create-riot-app",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/alexstep/create-riot-app.git"

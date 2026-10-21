@@ -76,13 +76,13 @@ async function runTests(
   return { status, output: `${stdout}\n${stderr}` };
 }
 
-async function cacheText(cache: string): Promise<string> {
+async function cacheHas(cache: string, needle: string): Promise<boolean> {
   const names = await readdir(cache);
-  const parts: string[] = [];
   for (const name of names) {
-    parts.push(await readFile(join(cache, name), 'latin1'));
+    const data = await readFile(join(cache, name));
+    if (data.includes(needle)) return true;
   }
-  return parts.join('\n');
+  return false;
 }
 
 const tagTest = `import { expect, test } from 'bun:test';
@@ -126,9 +126,8 @@ test('a second copy does not reuse absolute riot paths from a deleted one', asyn
 
     const firstRun = await runTests(first, cache);
     expect(firstRun.status, firstRun.output).toBe(0);
-    const cached = await cacheText(cache);
-    expect(cached).toContain('riot-file:src/');
-    expect(cached).not.toContain(first);
+    expect(await cacheHas(cache, 'riot-file:src/')).toBe(true);
+    expect(await cacheHas(cache, first)).toBe(false);
 
     await rm(first, { recursive: true, force: true });
 
@@ -137,6 +136,116 @@ test('a second copy does not reuse absolute riot paths from a deleted one', asyn
     expect(secondRun.output).not.toContain('ENOENT');
     expect(secondRun.output).not.toContain(first);
   } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+}, 60_000);
+
+// The loader shipped in 3.1.1. Its compiled output is what a machine that
+// already ran `bun test` still has in ~/.bun/install/cache/@t@.
+const loader311 = `import { readFileSync } from 'node:fs';
+import { dirname, isAbsolute, resolve } from 'node:path';
+import { compile } from '@riotjs/compiler';
+import { plugin } from 'bun';
+
+function rewriteRelativeImports(code: string, dir: string): string {
+  return code.replace(
+    /(from\\s+|import\\s*\\(\\s*|import\\s+)(['"])(\\.[^'"]+)\\2/g,
+    (_match, prefix: string, quote: string, spec: string) => {
+      const path = resolve(dir, spec);
+      return \`\${prefix}\${quote}\${path}\${quote}\`;
+    },
+  );
+}
+
+plugin({
+  name: 'riot',
+  setup(build) {
+    build.onResolve({ filter: /\\.riot$/ }, (args) => {
+      const from = args.importer
+        ? dirname(args.importer.replace(/^riot:/, ''))
+        : args.resolveDir || process.cwd();
+      const path = isAbsolute(args.path) ? args.path : resolve(from, args.path);
+      return { path, namespace: 'riot' };
+    });
+    build.onLoad({ filter: /.*/, namespace: 'riot' }, (args) => {
+      const result = compile(readFileSync(args.path, 'utf8'), {
+        file: args.path,
+      });
+      return {
+        contents: rewriteRelativeImports(result.code, dirname(args.path)),
+        loader: 'ts',
+      };
+    });
+  },
+});
+`;
+
+const poisonTags = `import { expect, test } from 'bun:test';
+import About from '../src/pages/about.riot';
+import Subscribe from '../src/islands/subscribe-form.riot';
+import Drawer from '../src/cabinet/components/drawer.riot';
+
+test('tags from an older loader', () => {
+  expect(About).toBeTruthy();
+  expect(Subscribe).toBeTruthy();
+  expect(Drawer).toBeTruthy();
+});
+`;
+
+test('bun run test ignores a global cache poisoned by the 3.1.1 loader', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'riot-poison-'));
+  const poisonDir = join(root, 'global-cache');
+  const older = join(root, 'older');
+  const current = join(root, 'current');
+  await mkdir(poisonDir, { recursive: true });
+  const sharedModules = join(template, 'node_modules');
+  const localCache = join(sharedModules, '.cache/bun-transpiler');
+  try {
+    await rm(localCache, { recursive: true, force: true });
+    await copyTemplate(older);
+    await writeFile(join(older, 'scripts/riot-loader.ts'), loader311);
+    await writeFile(join(older, 'test/poison-tags.test.ts'), poisonTags);
+    await symlink(sharedModules, join(older, 'node_modules'));
+
+    const seeded = await runTests(older, poisonDir);
+    expect(seeded.status, seeded.output).toBe(0);
+    expect(await cacheHas(poisonDir, older)).toBe(true);
+
+    await rm(older, { recursive: true, force: true });
+
+    await copyTemplate(current);
+    await writeFile(join(current, 'test/poison-tags.test.ts'), poisonTags);
+    await symlink(sharedModules, join(current, 'node_modules'));
+    const script = JSON.parse(
+      await readFile(join(current, 'package.json'), 'utf8'),
+    ) as { scripts?: { test?: string } };
+    expect(script.scripts?.test).toContain('scripts/run-tests.ts');
+    const poisonedBefore = (await readdir(poisonDir)).length;
+
+    const proc = Bun.spawn([process.execPath, 'run', 'test'], {
+      cwd: current,
+      stdout: 'pipe',
+      stderr: 'pipe',
+      env: childEnv({ BUN_RUNTIME_TRANSPILER_CACHE_PATH: poisonDir }),
+    });
+    const [stdout, stderr, status] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ]);
+    const output = `${stdout}\n${stderr}`;
+    expect(status, output).toBe(0);
+    expect(output).not.toContain('ENOENT');
+    expect(output).not.toContain(older);
+
+    expect((await readdir(poisonDir)).length).toBe(poisonedBefore);
+    const localNames = await readdir(localCache);
+    expect(localNames.some((name) => name.endsWith('.pile'))).toBe(true);
+    expect(await cacheHas(localCache, 'riot-file:src/')).toBe(true);
+    expect(await cacheHas(localCache, older)).toBe(false);
+    expect(await cacheHas(poisonDir, older)).toBe(true);
+  } finally {
+    await rm(localCache, { recursive: true, force: true });
     await rm(root, { recursive: true, force: true });
   }
 }, 60_000);
