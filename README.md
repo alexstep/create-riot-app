@@ -27,18 +27,20 @@ Riot 10 is the current stable line on npm (the last 9.x release is 9.4.11). Comp
 ## Create a project
 
 ```bash
-bunx create-riot-app my-app
+bunx create-riot-app@latest my-app
 cd my-app
 bun run dev
 ```
 
+`@latest` matters. `bunx` caches a package, and a later `bunx create-riot-app` can keep running that older copy.
+
 That is the full-stack template. The client-only app:
 
 ```bash
-bunx create-riot-app my-spa --template spa
+bunx create-riot-app@latest my-spa --template spa
 ```
 
-`bun create riot-app my-app` does the same thing as the default. `--no-install` copies files only. `--force` writes into a non-empty directory. Any other template name exits with `Unknown template "<name>". Use "fullstack" or "spa".`
+`bun create riot-app@latest my-app` does the same thing as the default. `--no-install` copies files only. `--force` writes into a non-empty directory. Any other template name exits with `Unknown template "<name>". Use "fullstack" or "spa".`
 
 From a checkout of this repository, without publishing:
 

@@ -1,6 +1,6 @@
 # Riot.js app
 
-The client-only template (`--template spa`): a top bar, a sliding menu, click sounds, and three screens. The runtime is Bun, the bundler is Vite, and the components are Riot 10 with TypeScript. The default `create-riot-app` template is the full-stack app, which serves this cabinet at `/app`.
+The client-only template (`bunx create-riot-app@latest my-spa --template spa`): a top bar, a sliding menu, click sounds, and three screens. `bunx` caches packages, so `@latest` avoids an older copy. The runtime is Bun, the bundler is Vite, and the components are Riot 10 with TypeScript. The default `create-riot-app` template is the full-stack app, which serves this cabinet at `/app`.
 
 ```bash
 bun install

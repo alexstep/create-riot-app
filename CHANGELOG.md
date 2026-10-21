@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.2] - 2026-10-21
+
+### Fixed
+
+- `bun test` in a new full-stack app could throw `ENOENT` for a `.riot` file that belonged to a project already deleted. The test loader rewrote tag imports to absolute paths, and Bun's content-addressed transpiler cache reused that output for identical source. Imports are now project-relative (`riot:src/...`, `riot-file:src/...`) and resolved from the current directory when the file loads. `bun run dev` and `bun run build` use Vite and do not run this loader.
+
+### Changed
+
+- Docs and the CLI help use `bunx create-riot-app@latest` and `bun create riot-app@latest`. `bunx` otherwise reuses a cached older package.
+- When npm has a newer release, the CLI prints one line. The lookup is skipped if it does not answer quickly or the network is down.
+
 ## [3.1.1] - 2026-10-21
 
 ### Fixed
@@ -39,12 +50,12 @@ The default scaffold is a full-stack Bun app. `2.1.0` was the client-only templa
 
 ### Breaking
 
-- `bunx create-riot-app my-app` now creates the full-stack app. Pass `--template spa` to get the client-only app that `2.x` created.
+- `bunx create-riot-app@latest my-app` now creates the full-stack app. Pass `--template spa` to get the client-only app that `2.x` created.
 
 ### Added
 
 - `templates/fullstack`. One Bun process serves a Hono API, server-rendered Riot pages (`/` and `/about`), and the client cabinet at `/app`.
-- `bunx create-riot-app my-app --template spa` scaffolds the previous client-only app. The default template name is `fullstack`. Unknown names are rejected.
+- `bunx create-riot-app@latest my-app --template spa` scaffolds the previous client-only app. The default template name is `fullstack`. Unknown names are rejected.
 - Server-rendered landing pages with title, description, canonical, and Open Graph tags, plus `sitemap.xml` and `robots.txt`. Interactive parts of those pages are custom-element islands (`@riotjs/custom-elements`).
 - Live updates over one Server-Sent Events stream with `Last-Event-ID` resume. Without SharedWorker, one tab takes a Web Lock and runs the same hub for the others over a BroadcastChannel.
 - OpenAPI routes (`@hono/zod-openapi`), Scalar docs at `/api/docs`, and a typed `hc` client. A SharedWorker hub is the only browser client of the API. The Records screen (`/app/records`) validates a profile form and uploads files to `tmp/uploads`. One SSE stream updates every open tab. A service worker caches the app shell and disables offline writes. A failed fetch shows that the server is unreachable. An expired session sends every open tab to `/login`.
@@ -84,7 +95,7 @@ Rewrite of the 1.2 Webpack 4 starter. The demo is the same idea: a side drawer, 
 
 - Bun for install, scripts, and the dev server. Vite 8 builds the app and serves history routes. Riot **10.1.6** (the current stable line; the last 9.x release is 9.4.11). TypeScript in `.ts` modules and in `.riot` scripts (`lang="ts"`).
 - Light, dark, and system themes. Colors are CSS custom properties. The default follows `prefers-color-scheme`. The Settings switch stores the choice in `localStorage` and sets `data-theme` on `<html>`.
-- `bunx create-riot-app my-app` and `bun create riot-app my-app`. The CLI copies the template, names `package.json` from the directory, restores `.gitignore`, installs dependencies, and prints the next commands.
+- `bunx create-riot-app@latest my-app` and `bun create riot-app@latest my-app`. The CLI copies the template, names `package.json` from the directory, restores `.gitignore`, installs dependencies, and prints the next commands.
 - CI on push to `master` and on pull requests: install, typecheck, production build, and a smoke test of the packed CLI. Visual regression stays local. A publish workflow runs on `v*` tags.
 
 ### Changed
@@ -98,6 +109,7 @@ Rewrite of the 1.2 Webpack 4 starter. The demo is the same idea: a side drawer, 
 
 - Webpack 4, the old `scripts/webpack` setup, Less, jQuery, and Hammer.
 
+[3.1.2]: https://github.com/alexstep/create-riot-app/compare/v3.1.1...v3.1.2
 [3.1.1]: https://github.com/alexstep/create-riot-app/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/alexstep/create-riot-app/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/alexstep/create-riot-app/compare/v2.1.0...v3.0.0

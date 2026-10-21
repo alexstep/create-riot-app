@@ -2,6 +2,8 @@
 
 One Bun process serves a JSON API, a few server-rendered pages, and a client-side cabinet. Riot draws the pages. Hono is the HTTP router. Vite builds the client and the server.
 
+Create it with `bunx create-riot-app@latest my-app` (`bunx` caches packages; `@latest` avoids an older copy).
+
 ```bash
 bun install
 bun run dev
@@ -84,7 +86,7 @@ Offline, a service worker caches the app shell only. The cache name includes the
 
 Development is one Vite process on port 3000. The `dev` script runs Vite's JavaScript entry with Bun. `@hono/vite-dev-server` loads `src/server/dev.ts` with the Bun adapter, so Hono handles the pages and `/api` while Vite serves modules. `.riot` files and raw `.svg` icons stay on Vite's side. If Hono answered those URLs, the login form would not run and the icons would be missing. `parseEnv` also reads `.env`, because a Node-hosted Vite process would not. Uploads are stored under `tmp/uploads`, and that directory is created on boot.
 
-`bun test` compiles `.riot` imports through `bunfig.toml` (`[test] preload`). The loader rewrites relative imports inside a tag to absolute paths, because Bun serves the compiled tag from a `riot:` URL. `@riotjs/ssr`'s `renderAsync` asks the tag for `onAsyncRendering`, and the compiled tags do not expose that hook, so handlers load any data first and call `render`. `test/hydrate.test.ts` renders a page, parses that HTML, and binds the tags without replacing the inputs.
+`bun test` compiles `.riot` imports through `bunfig.toml` (`[test] preload`). The loader keeps those imports project-relative. Bun's transpiler cache is shared and content-addressed, so an absolute path from a deleted project would be reused and then fail to open. `bun run dev` and `bun run build` use Vite (`riot-plugin.ts`), not this loader. `@riotjs/ssr`'s `renderAsync` asks the tag for `onAsyncRendering`, and the compiled tags do not expose that hook, so handlers load any data first and call `render`. `test/hydrate.test.ts` renders a page, parses that HTML, and binds the tags without replacing the inputs.
 
 ## Deploy
 
