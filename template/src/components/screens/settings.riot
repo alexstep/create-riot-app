@@ -43,11 +43,7 @@
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot';
     import { sound } from '../../sounds';
-    import {
-      getThemeChoice,
-      setThemeChoice,
-      type ThemeChoice,
-    } from '../../theme';
+    import { getThemeChoice, setThemeChoice, type ThemeChoice } from '../../theme';
 
     interface State {
       choice: ThemeChoice;
@@ -83,8 +79,7 @@
       },
       pick(event) {
         const choice = (event.currentTarget as HTMLElement).dataset.choice;
-        if (choice !== 'light' && choice !== 'dark' && choice !== 'system')
-          return;
+        if (choice !== 'light' && choice !== 'dark' && choice !== 'system') return;
         sound.tick();
         setThemeChoice(choice);
         this.update({ choice });

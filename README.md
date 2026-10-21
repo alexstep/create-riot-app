@@ -77,16 +77,20 @@ The default theme follows `prefers-color-scheme`. On Settings, the Light / Dark 
 | `bun run build` | Production build in `dist/` |
 | `bun run preview` | Serve the production build locally |
 | `bun run typecheck` | `tsc --noEmit` for `.ts` files |
-| `bun run lint` | ESLint for `.ts` files and for `<script lang="ts">` inside `.riot` |
-| `bun run format` | Prettier, including `.riot` |
+| `bun run lint` | Biome for `.ts`, `.css`, `.json`, and `.html`, plus `<script>` and `<style>` inside `.riot` |
+| `bun run format` | Biome write. Markup inside `.riot` is left as authored |
 
 ## Lint and format
 
-Riot does not ship a linter or formatter for `.riot` files. `eslint-config-riot` is the JavaScript style used inside Riot's own repositories (ESLint 10, plus fp and jsdoc). It does not parse tags. Biome does not parse `.riot` either.
+Biome 2.6.2 checks `.ts`, `.js`, `.css`, `.json`, and `.html` in the template and in `bin/`. It ignores `.riot` files. Parsing a tag as HTML fails: unquoted `{expr}` attributes are syntax errors, and `<script>` `import` / `export` is reported as being outside a module. Biome plugins cannot add a file type.
 
-`typescript-eslint` still imports the TypeScript 6 API. The template keeps that API on the `typescript` package name (`@typescript/typescript6`) and runs TypeScript 7 via `@typescript/native`, so `bun run typecheck` stays on 7. The template uses ESLint 9 flat config. `eslint.riot-processor.js` runs `@riotjs/parser`, lints the `<script lang="ts">` block as TypeScript, and maps the lines back to the `.riot` file. Template expressions such as `each`, `if`, and `{...}` are not linted. Prettier formats `.riot` through `prettier.riot-plugin.js`: expressions are masked, the file is formatted as HTML (so `<script lang="ts">` and `<style>` are formatted too), then the expressions are restored. Prettier's HTML parser cannot be used directly. It splits `each={item in items}` on spaces and rejects quotes inside `class={...}`.
+`scripts/biome-riot.ts` uses `@riotjs/parser` to find each `<script>` and `<style>` block, then runs Biome on that block. Diagnostics are printed with the `.riot` line and column. `--write` formats the block and splices it back at the same indentation. The tag markup is not formatted. An `each` without `key` is reported. `lang="ts"`, `export default`, `:host`, and CSS nesting are covered.
 
-`.vscode/settings.json` turns on format-on-save, associates `*.riot` with HTML for highlighting, and points Prettier and ESLint at the extensions in `.vscode/extensions.json`. The Prettier config still selects the Riot parser, so save does not run the HTML parser on tags.
+Biome 2.6.2's stdin mode does not return rule diagnostics, so the script writes each block to a temporary `*.riot.ts` or `*.riot.css` file and lints that path.
+
+`.vscode` recommends the Biome extension and formats `.ts` and `.css` on save. `.riot` is not formatted on save. Run `bun run format`, or the `format` task in `.vscode/tasks.json`.
+
+Unknown element selectors and untitled SVGs are not lint errors here: the tags are `app` and `drawer`, and the icons are decorative. Selector order is left as it is, because that order is the layout.
 
 Variables prefixed with `VITE_` are read from `.env`. The drawer avatar URL is `VITE_APP_AVATAR_URL`.
 

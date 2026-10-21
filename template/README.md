@@ -17,7 +17,7 @@ bun run build
 bun run preview
 ```
 
-`bun run lint` checks `.ts` files and the `<script lang="ts">` block of each `.riot` file. `bun run format` runs Prettier, including `.riot`. See the repository README for how that is wired. `.vscode` enables format-on-save.
+`bun run lint` runs Biome, and also checks `<script>` and `<style>` inside `.riot` files. `bun run format` writes those fixes. Tag markup is not reformatted. Format-on-save covers `.ts` and `.css` only. For `.riot`, run `bun run format` or the `format` task.
 
 The menu opens from the button on the left. On a phone it can be pulled in with a swipe from the left edge. Sounds live in `public/sounds`. The drawer avatar is `VITE_APP_AVATAR_URL` in `.env`.
 

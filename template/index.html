@@ -3,20 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <script>
+      var saved = null;
+      var dark = false;
+      var theme = 'light';
       try {
-        var saved = null;
         try {
           saved = localStorage.getItem('theme');
-        } catch (e) {}
-        var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        var theme =
-          saved === 'light' || saved === 'dark'
-            ? saved
-            : dark
-              ? 'dark'
-              : 'light';
+        } catch (_error) {}
+        dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        theme =
+          saved === 'light' || saved === 'dark' ? saved : dark ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', theme);
-      } catch (e) {
+      } catch (_error) {
         document.documentElement.setAttribute('data-theme', 'light');
       }
     </script>

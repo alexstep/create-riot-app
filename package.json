@@ -1,19 +1,19 @@
 {
   "name": "create-riot-app",
   "version": "2.1.0",
-  "type": "module",
-  "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/alexstep/create-riot-app.git"
   },
-  "homepage": "https://github.com/alexstep/create-riot-app#readme",
+  "bin": {
+    "create-riot-app": "./bin/create-riot-app.ts"
+  },
   "bugs": {
     "url": "https://github.com/alexstep/create-riot-app/issues"
   },
   "description": "Riot.js application starter. A create-react-app style CLI (bun create) and a demo with a drawer, sounds, and screens.",
-  "bin": {
-    "create-riot-app": "./bin/create-riot-app.ts"
+  "engines": {
+    "bun": ">=1.1.0"
   },
   "files": [
     "bin",
@@ -22,27 +22,21 @@
     "README.md",
     "CHANGELOG.md"
   ],
+  "homepage": "https://github.com/alexstep/create-riot-app#readme",
+  "license": "BSD-3-Clause",
   "scripts": {
     "create": "bun ./bin/create-riot-app.ts",
     "demo": "bun run --cwd template dev",
     "demo:build": "bun run --cwd template build",
     "demo:typecheck": "bun run --cwd template typecheck",
     "visual": "bun run --cwd visual test",
-    "lint": "eslint bin && bun run --cwd template lint",
-    "lint:fix": "eslint bin --fix && bun run --cwd template lint:fix",
-    "format": "prettier --write bin && bun run --cwd template format",
-    "format:check": "prettier --check bin && bun run --cwd template format:check"
+    "lint": "biome check bin && bun run --cwd template lint",
+    "lint:fix": "biome check --write bin && bun run --cwd template lint:fix",
+    "format": "biome format --write bin && bun run --cwd template format",
+    "format:check": "biome format bin && bun run --cwd template format:check"
   },
-  "engines": {
-    "bun": ">=1.1.0"
-  },
+  "type": "module",
   "devDependencies": {
-    "@eslint/js": "9.39.5",
-    "eslint": "9.39.5",
-    "eslint-config-prettier": "10.1.8",
-    "globals": "17.13.0",
-    "prettier": "3.9.10",
-    "typescript": "npm:@typescript/typescript6@6.0.2",
-    "typescript-eslint": "8.72.0"
+    "@biomejs/biome": "2.6.2"
   }
 }

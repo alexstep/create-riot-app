@@ -12,10 +12,11 @@ import './styles/components/spinner.css';
 import './styles/components/screens.css';
 import './styles/interaction.css';
 import App from './components/app.riot';
-import Topbar from './components/topbar.riot';
 import Drawer from './components/drawer.riot';
 import Icon from './components/icon.riot';
 import Spinner from './components/spinner.riot';
+import Topbar from './components/topbar.riot';
+
 applyStoredTheme();
 watchSystemTheme();
 

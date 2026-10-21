@@ -53,13 +53,11 @@ jobs:
           fi
           grep -q 'template/gitignore' <<< "${list}"
           for required in \
-            template/eslint.config.js \
-            template/eslint.riot-processor.js \
-            template/prettier.config.js \
-            template/prettier.riot-plugin.js \
+            template/biome.json \
+            template/scripts/biome-riot.ts \
             template/.vscode/settings.json \
             template/.vscode/extensions.json \
-            template/.prettierignore
+            template/.vscode/tasks.json
           do
             if ! grep -q "${required}" <<< "${list}"; then
               echo "::error::tarball is missing ${required}"

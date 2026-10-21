@@ -1,0 +1,13 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "format",
+      "type": "shell",
+      "command": "bun run format",
+      "group": "build",
+      "problemMatcher": [],
+      "detail": "Biome does not format .riot on save. This task formats TypeScript, CSS, and the script and style blocks inside .riot files."
+    }
+  ]
+}

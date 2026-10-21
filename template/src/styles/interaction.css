@@ -21,7 +21,7 @@ button,
 input,
 textarea,
 select,
-[contenteditable='true'] {
+[contenteditable="true"] {
   -webkit-user-select: text;
   user-select: text;
   -webkit-user-drag: auto;

@@ -20,7 +20,7 @@
     &:before,
     &:after,
     i {
-      content: '';
+      content: "";
       display: block;
       position: absolute;
       height: 2px;
@@ -121,7 +121,7 @@
 
     &:before {
       display: block;
-      content: '';
+      content: "";
       width: 100%;
       height: 100%;
       background: var(--header-overlay);

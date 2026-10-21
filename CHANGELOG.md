@@ -13,13 +13,10 @@ One release for the interaction polish and for linting `.riot` files. `2.0.1` wa
 
 ### Added
 
-- ESLint 9 (flat config) and Prettier for the template and for `bin/create-riot-app.ts`.
-- `.riot` scripts are linted. `eslint.riot-processor.js` uses `@riotjs/parser` to extract `<script lang="ts">` and reports errors on the `.riot` line.
-- `.riot` files are formatted. `prettier.riot-plugin.js` masks `{...}` expressions, formats the file as HTML (so `<script lang="ts">` and `<style>` are formatted too), then restores the expressions. Prettier's HTML parser is not used directly: it splits `each={item in items}` and rejects quotes inside `class={...}`.
-- Template expressions (`each`, `if`, `is`, `{...}`) are not linted.
-- `lint`, `lint:fix`, `format`, and `format:check` in the template. CI runs lint and `format:check`.
-- `.vscode` settings so format-on-save works. `*.riot` is associated with HTML for highlighting. The Prettier config still selects the Riot parser.
-- `typescript-eslint` uses the TypeScript 6 API (`@typescript/typescript6`). `bun run typecheck` still runs TypeScript 7 from `@typescript/native`.
+- Biome 2.6.2 for `.ts`, `.js`, `.css`, `.json`, and `.html` in the template and the CLI.
+- `scripts/biome-riot.ts` lints and formats `<script>` and `<style>` inside `.riot` files. `@riotjs/parser` finds the blocks, Biome checks each one, and diagnostics use the `.riot` line and column. Tag markup is not formatted. An `each` without `key` is reported.
+- `lint`, `lint:fix`, and `format`. CI runs lint and `format:check`.
+- The Biome VS Code extension. `.riot` is not part of format-on-save. `bun run format` or the `format` task covers those files.
 
 ### Changed
 

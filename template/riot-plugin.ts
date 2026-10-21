@@ -1,5 +1,5 @@
 import riot from 'rollup-plugin-riot';
-import { transformWithOxc, type Plugin } from 'vite';
+import { type Plugin, transformWithOxc } from 'vite';
 
 const HOT_RELOAD = `
 if (import.meta.hot) {
