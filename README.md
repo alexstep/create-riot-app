@@ -1,6 +1,6 @@
 # create-riot-app
 
-A Riot.js starter. The CLI copies a template into a new directory. The default template is one Bun process: a Hono API, server-rendered Riot pages, and a client cabinet. `--template spa` copies the client-only cabinet.
+A Riot.js starter for a full-stack app: readable tags, one Bun process, and a small client. It is an alternative to Next.js, with the routes written in the server file. The CLI copies a template into a new directory. The default template is that Bun process: a Hono API, server-rendered Riot pages, and a client cabinet. `--template spa` copies the client-only cabinet.
 
 The repository has two layers:
 
@@ -78,7 +78,7 @@ The browser talks to this server only through `src/client/api.ts`. That file is 
 
 Environment variables are checked with zod at boot. `.env.example` lists them. Nothing secret is committed. `PUBLIC_ORIGIN` is optional and, when it is `https`, turns on HSTS. A local `bun run start` on http does not send HSTS.
 
-`Dockerfile` builds the client and the server and runs `bun run start` as one process. Pass `SESSION_SECRET` and `DEMO_PASSWORD` when you start the container.
+`templates/fullstack/Dockerfile` builds on `oven/bun:1.4.3` in three stages (frozen production install, Vite and server build, slim runtime). The container runs as `bun`, reads `PORT`, and answers `GET /api/health`. Pass `SESSION_SECRET` and `DEMO_PASSWORD` when you start it. Set `DOCS_USER` and `DOCS_PASSWORD` as well when `/api/docs` should be on. `templates/spa/Dockerfile` builds the client and serves `dist/` with Bun. See each template README for the `docker build` and `docker run` commands.
 
 `@riotjs/ssr` `renderAsync` throws unless the mounted tag implements `onAsyncRendering`. Compiled tags do not expose that method, so a handler loads data and then calls `render`. Custom elements use shadow DOM: CSS variables inherit, and each island keeps the rules it needs in its own `<style>`.
 

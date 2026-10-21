@@ -6,6 +6,7 @@ if (!process.env.NODE_ENV) process.env.NODE_ENV = 'production';
 const env = parseEnv();
 const app = createApp(env);
 const server = Bun.serve({
+  hostname: '0.0.0.0',
   port: env.PORT,
   fetch: app.fetch,
 });

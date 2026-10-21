@@ -113,6 +113,7 @@ export function createApp(env: AppEnv = parseEnv()) {
       customCss: scalarCss,
     }),
   );
+  app.get('/api/health', (c) => c.json({ ok: true }));
 
   app.route('/', api);
 

@@ -22,3 +22,10 @@ bun run preview
 The menu opens from the button on the left. On a phone it can be pulled in with a swipe from the left edge. Sounds live in `public/sounds`. The drawer avatar is `VITE_APP_AVATAR_URL` in `.env`.
 
 The default theme follows `prefers-color-scheme`. On Settings, the Light / Dark / System switch stores the choice in `localStorage` and sets `data-theme` on `<html>`.
+
+The image builds the client and serves `dist/` with Bun. Hashed files under `/assets/` are immutable. Other routes fall back to `index.html`.
+
+```bash
+docker build -t riot-spa .
+docker run --rm -p 4173:4173 -e PORT=4173 riot-spa
+```

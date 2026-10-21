@@ -17,7 +17,9 @@ The default scaffold is a full-stack Bun app. `2.1.0` was the client-only templa
 - `bunx create-riot-app my-app --template spa` scaffolds the previous client-only app. The default template name is `fullstack`. Unknown names are rejected.
 - OpenAPI routes (`@hono/zod-openapi`), Scalar docs at `/api/docs`, and a typed `hc` client in the cabinet.
 - Demo auth: signed httpOnly cookie, bearer token of the same value, in-memory sessions, login rate limit, and CSRF protection for cookie auth.
-- `bun test` covers server HTML, auth, validation, and the OpenAPI document. `Dockerfile` runs the production build as one process.
+- `bun test` covers server HTML, auth, validation, and the OpenAPI document.
+- `GET /api/health` for process checks.
+- Multi-stage `Dockerfile` on `oven/bun` for the full-stack app (frozen lockfile, client and server build, slim non-root runtime, `HEALTHCHECK` on `/api/health`). The spa template has a small static image.
 
 ### Changed
 

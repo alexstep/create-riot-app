@@ -135,6 +135,12 @@ describe('auth and api', () => {
     expect(typeof body.error).toBe('string');
   });
 
+  test('health is public', async () => {
+    const response = await app.request('http://localhost/api/health');
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+  });
+
   test('unknown api paths are JSON 404 and do not return HTML', async () => {
     const response = await app.request('http://localhost/api/missing');
     expect(response.status).toBe(404);

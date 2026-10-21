@@ -68,15 +68,30 @@ Development is one Vite process on port 3000. The `dev` script runs Vite's JavaS
 
 ## Deploy
 
-Ship the Bun process. `bun run build` writes `dist/client` and `dist/server`. `bun run start` runs `dist/server/index.js`. Set `SESSION_SECRET`, `DEMO_PASSWORD`, and, when the site has a public https origin, `PUBLIC_ORIGIN` (canonical URLs, and HSTS only then).
+Ship the Bun process. `bun run build` writes `dist/client` and `dist/server`. `bun run start` runs `dist/server/index.js` on `PORT` (3000) and listens on every interface. Set `SESSION_SECRET`, `DEMO_PASSWORD`, and, when the site has a public https origin, `PUBLIC_ORIGIN` (canonical URLs, and HSTS only then). The process exits if the environment does not match the schema.
 
-`Dockerfile` builds that image. Pass the environment at runtime. The image does not contain a secret.
+`GET /api/health` returns `{ "ok": true }` with no session. Use it for a process check.
+
+`Dockerfile` is three stages on `oven/bun:1.4.3`: production dependencies with a frozen lockfile, the Vite client build and the server build, then `oven/bun:1.4.3-slim`. The last stage runs as the `bun` user and serves the pages, the API, Scalar, and `dist/client`. Hashed files under `/assets/` stay `immutable`. HTML stays `no-cache`. The image has no secret. `HEALTHCHECK` calls `/api/health`.
 
 ```bash
 docker build -t riot-app .
 docker run --rm -p 3000:3000 \
+  -e PORT=3000 \
   -e SESSION_SECRET=replace-me-with-a-long-random-string \
   -e DEMO_PASSWORD=demo \
+  riot-app
+```
+
+Scalar stays off in that container until both docs variables are set. Then basic auth protects `/api/docs` and `/api/openapi.json`:
+
+```bash
+docker run --rm -p 3000:3000 \
+  -e PORT=3000 \
+  -e SESSION_SECRET=replace-me-with-a-long-random-string \
+  -e DEMO_PASSWORD=demo \
+  -e DOCS_USER=docs \
+  -e DOCS_PASSWORD=replace-me \
   riot-app
 ```
 
