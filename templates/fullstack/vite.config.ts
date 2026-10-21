@@ -12,6 +12,29 @@ export default defineConfig(({ isSsrBuild }: ConfigEnv) => ({
           devServer({
             entry: 'src/server/dev.ts',
             adapter: bunAdapter(),
+            // `exclude` replaces the plugin defaults, so this list keeps them.
+            // `.riot` and `.svg` are modules. Without them here, Hono answers
+            // the request with "Not found", the login form never hydrates,
+            // and cabinet icons do not load.
+            exclude: [
+              /.*\.css$/,
+              /.*\.ts$/,
+              /.*\.tsx$/,
+              /.*\.mdx?$/,
+              /^\/@.+$/,
+              /\?t=\d+$/,
+              /^\/favicon\.ico$/,
+              /^\/static\/.+/,
+              /^\/node_modules\/.*/,
+              /^\/\.vite\/.*/,
+              /.*\.svelte$/,
+              /.*\.vue$/,
+              /.*\.js$/,
+              /.*\.jsx$/,
+              /.*\.mjs$/,
+              /.*\.riot$/,
+              /.*\.svg$/,
+            ],
           }),
         ]),
   ],

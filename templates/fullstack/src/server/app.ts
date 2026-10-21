@@ -13,7 +13,7 @@ import { MAX_BODY_BYTES } from '../contract/schemas';
 import About from '../pages/about.riot';
 import Home from '../pages/home.riot';
 import Login from '../pages/login.riot';
-import { type AppEnv, parseEnv } from './env';
+import { type AppEnv, demoLoginPassword, parseEnv } from './env';
 import { renderPage } from './html';
 import { csrfOk } from './security';
 import {
@@ -227,19 +227,20 @@ export function createApp(
     ),
   );
 
+  const loginPassword = demoLoginPassword(env) ?? '';
   app.get('/login', (c) =>
     renderPage(
       c,
       env,
       'login',
       Login,
-      {},
+      { password: loginPassword },
       {
         title: 'Log in',
         description: 'Demo sign-in for the cabinet.',
         path: '/login',
       },
-      { 'login-form': {} },
+      { 'login-form': { password: loginPassword } },
     ),
   );
 

@@ -93,7 +93,9 @@
       syncInert(): void;
     }
 
-    const avatar = import.meta.env.VITE_APP_AVATAR_URL || '';
+    const avatar =
+      import.meta.env.VITE_APP_AVATAR_URL ||
+      'https://avatars1.githubusercontent.com/u/1881684?v=3&s=100';
 
     export default withTypes<Drawer>(() => ({
       menu: screens,

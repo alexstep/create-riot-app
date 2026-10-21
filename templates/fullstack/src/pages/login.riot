@@ -1,12 +1,21 @@
 <login>
   <h1>Log in</h1>
-  <p>Any email, and the demo password from the environment.</p>
-  <login-form></login-form>
+  <p if="{props.password}">
+    Any email. Password: <code>{props.password}</code>
+  </p>
+  <p if="{!props.password}">
+    Any email, and the demo password from the environment.
+  </p>
+  <login-form password="{props.password}"></login-form>
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot';
 
-    export default withTypes<RiotComponent>({
+    interface Props {
+      password?: string;
+    }
+
+    export default withTypes<RiotComponent<Props>>({
       state: {},
     });
   </script>

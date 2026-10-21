@@ -27,5 +27,9 @@ if (subscribe instanceof HTMLElement) {
 
 const login = document.querySelector('login-form');
 if (login instanceof HTMLElement) {
-  hydrate(LoginForm)(login, {});
+  const props = state['login-form'];
+  hydrate(LoginForm)(login, {
+    password: '',
+    ...(props && typeof props === 'object' ? props : {}),
+  });
 }
