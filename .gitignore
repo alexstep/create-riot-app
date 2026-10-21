@@ -2,6 +2,8 @@ node_modules
 dist
 template/node_modules
 template/dist
+visual/actual
+visual/diff
 .DS_Store
 *.log
 .env.local

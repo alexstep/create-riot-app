@@ -3,7 +3,7 @@
     <a onclick={toggleDrawer} href="#toggle_drawer" class="toggle-drawer" draggable="false" aria-label="Menu"><i></i></a>
 
     <div id="drawer">
-      <header>
+      <header style="background-image:url()">
         <a
           if={state.user}
           class="user-info"
@@ -20,19 +20,19 @@
       </header>
 
       <ul class="menu-items">
-        <li class={props.screen === 'dashboard' ? 'selected' : ''}>
+        <li>
           <a onclick={menuItemClick} href="/dashboard" onpointerenter={playHover}>
             <icon src="dashboard.svg"></icon>
             Dashboard
           </a>
         </li>
-        <li class={props.screen === 'groups' ? 'selected' : ''}>
+        <li>
           <a onclick={menuItemClick} href="/groups" onpointerenter={playHover}>
             <icon src="group.svg"></icon>
             List
           </a>
         </li>
-        <li class={props.screen === 'settings' ? 'selected' : ''}>
+        <li>
           <a onclick={menuItemClick} href="/settings" onpointerenter={playHover}>
             <icon src="settings.svg"></icon>
             Settings
@@ -55,10 +55,6 @@
     import { sound } from '../sounds'
     import { initSwipe } from '../swipe'
 
-    interface Props {
-      screen: string
-    }
-
     interface User {
       id: number
       photoUrl: string
@@ -71,7 +67,7 @@
       user: User
     }
 
-    interface Drawer extends RiotComponent<Props, State> {
+    interface Drawer extends RiotComponent<Record<string, never>, State> {
       stopSwipe: (() => void) | null
       toggleDrawer(event?: Event): void
       menuItemClick(event: Event): void

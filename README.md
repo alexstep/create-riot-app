@@ -86,3 +86,20 @@ bun run preview
 | `bun run typecheck` | `tsc --noEmit` для `.ts` |
 
 Переменные с префиксом `VITE_` читаются из `.env`. Адрес аватара в шапке drawer — `VITE_APP_AVATAR_URL`.
+
+## Визуальный тест
+
+`visual/test.ts` снимает восемь экранов (desktop 1280×800 и mobile 390×844: главная, открытый drawer, список, настройки) через Playwright и сравнивает их с эталонами старого демо в `visual/baselines` библиотекой pixelmatch. Анимации на снимках выключены. Отдельно проверяются анимация drawer (0.3s и промежуточные кадры), звук `tick` и отсутствие ошибок в консоли.
+
+```bash
+cd visual && bun install
+bunx playwright install chromium
+cd ..
+bun run visual
+```
+
+Эталоны переснимаются со запущенного сервера так:
+
+```bash
+cd visual && bun test.ts --update --url http://127.0.0.1:9999
+```

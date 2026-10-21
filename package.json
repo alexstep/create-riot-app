@@ -11,7 +11,8 @@
     "create": "bun ./bin/create-riot-app.ts",
     "demo": "bun run --cwd template dev",
     "demo:build": "bun run --cwd template build",
-    "demo:typecheck": "bun run --cwd template typecheck"
+    "demo:typecheck": "bun run --cwd template typecheck",
+    "visual": "bun run --cwd visual test"
   },
   "engines": {
     "bun": ">=1.1.0"

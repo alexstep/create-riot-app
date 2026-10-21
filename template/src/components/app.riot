@@ -1,7 +1,7 @@
 <app>
   <div id="app">
     <topbar title={state.screen}></topbar>
-    <drawer screen={state.screen}></drawer>
+    <drawer></drawer>
     <dashboard if={state.screen === 'dashboard'}></dashboard>
     <groups if={state.screen === 'groups'}></groups>
     <settings if={state.screen === 'settings'}></settings>

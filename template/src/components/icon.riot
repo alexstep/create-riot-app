@@ -1,5 +1,5 @@
 <icon>
-  <span class="icon-svg"></span>
+  <span></span>
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot'
@@ -15,8 +15,11 @@
 
     export default withTypes<Icon>({
       paint() {
-        const slot = this.$('.icon-svg')
-        if (slot) slot.innerHTML = iconSvg(this.props.src)
+        const src = this.props.src
+        if (this.root.getAttribute('data-src') === src && this.root.querySelector('svg')) return
+        // Same shape as the old svg-inline-loader output: the svg is the only child.
+        this.root.innerHTML = iconSvg(src).replace(/\s(?:width|height)="[^"]*"/g, '')
+        this.root.setAttribute('data-src', src)
       },
       onMounted() {
         this.paint()
