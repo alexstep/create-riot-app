@@ -11,11 +11,12 @@
       aria-expanded={state.open ? 'true' : 'false'}
     ><i></i></a>
 
-    <div id="drawer" role="navigation" aria-label="Main">
+    <div id="drawer" role="navigation" aria-label="Main" aria-hidden={state.open ? 'false' : 'true'}>
       <header style="background-image:url()">
         <a
           if={state.user}
           class="user-info"
+          draggable="false"
           target="_blank"
           rel="noopener"
           href={'https://vk.com/id' + state.user.id}
@@ -29,14 +30,14 @@
       </header>
 
       <ul class="menu-items">
-        <li each={item in menu} class={props.current === item.name ? 'selected' : ''}>
-          <a onclick={menuItemClick} href={item.href} onpointerenter={playHover}>
+        <li each={item in menu} key={item.name} class={props.current === item.name ? 'selected' : ''}>
+          <a onclick={menuItemClick} href={item.href} draggable="false" onpointerenter={playHover}>
             <icon src={item.icon}></icon>
             {item.label}
           </a>
         </li>
         <li class="logout">
-          <a onclick={menuItemClick} href="/dashboard" onpointerenter={playHover}>
+          <a onclick={menuItemClick} href="/dashboard" draggable="false" onpointerenter={playHover}>
             <icon src="logout.svg"></icon>
             Exit
           </a>
@@ -72,14 +73,14 @@
       toggleDrawer(event?: Event): void
       menuItemClick(event: Event): void
       playHover(event: PointerEvent): void
-      syncA11y(): void
+      syncInert(): void
     }
 
     const avatar = import.meta.env.VITE_APP_AVATAR_URL || ''
 
-    export default withTypes<Drawer>({
+    export default withTypes<Drawer>(() => ({
       menu: screens,
-      closeDelay: 300,
+      closeDelay: 100,
       state: {
         open: false,
         user: {
@@ -91,14 +92,11 @@
       },
       stopSwipe: null,
       onKey() {},
-      syncA11y() {
+      syncInert() {
         const drawer = this.$('#drawer')
-        const toggle = this.$('.toggle-drawer')
-        if (drawer instanceof HTMLElement) {
-          drawer.inert = !this.state.open
-          drawer.setAttribute('aria-hidden', this.state.open ? 'false' : 'true')
-        }
-        toggle?.setAttribute('aria-expanded', this.state.open ? 'true' : 'false')
+        // `inert` is a boolean property. Riot's attribute parser does not
+        // treat it as boolean, so an expression would leave the attribute set.
+        if (drawer instanceof HTMLElement) drawer.inert = !this.state.open
       },
       onMounted() {
         const wrapper = this.$('.drawer-wrap')
@@ -125,10 +123,10 @@
           this.update({ open: false })
         }
         window.addEventListener('keydown', this.onKey)
-        this.syncA11y()
+        this.syncInert()
       },
       onUpdated() {
-        this.syncA11y()
+        this.syncInert()
       },
       onBeforeUnmount() {
         this.stopSwipe?.()
@@ -153,6 +151,6 @@
         }, this.closeDelay)
       },
       playHover,
-    })
+    }))
   </script>
 </drawer>

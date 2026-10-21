@@ -136,7 +136,6 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  -webkit-user-select: none;
   overflow: hidden;
 }
 
@@ -145,10 +144,8 @@ body {
 }
 
 * {
-  -webkit-touch-callout: none;
   -webkit-text-size-adjust: none;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-  -webkit-user-select: none;
 }
 
 input[type="checkbox"] {
@@ -164,9 +161,7 @@ input::-webkit-input-placeholder {
   outline: none;
 }
 
-.no-select,
-html,
-body {
+.no-select {
   -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
   -webkit-focus-ring-color: rgba(255, 255, 255, 0);
   outline: none;

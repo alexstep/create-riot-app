@@ -35,7 +35,8 @@ html[data-theme="light"] {
   --topbar-height: 58px;
   --drawer-width: 240px;
   --drawer-handler-width: 50px;
-  --drawer-speed: 0.3s;
+  /* Open and close are 0.1s (three times the previous 0.3s). Easing stays ease-out. */
+  --drawer-speed: 0.1s;
   --header-height: 170px;
 }
 

@@ -21,7 +21,7 @@ export function readDrawerMetrics(): { width: number; handler: number; speedMs: 
   return {
     width: px('--drawer-width', 240),
     handler: px('--drawer-handler-width', 50),
-    speedMs: Number.isFinite(speedMs) ? speedMs : 300,
+    speedMs: Number.isFinite(speedMs) ? speedMs : 100,
   }
 }
 

@@ -181,8 +181,23 @@ async function checkBehavior(browser: Browser, url: string) {
   await gotoApp(page, url)
 
   const duration = await page.evaluate(() => getComputedStyle(document.querySelector('#drawer')!).transitionDuration)
-  if (!/0\.3s|300ms/.test(duration)) {
-    throw new Error(`#drawer is missing the 0.3s animation, got: ${duration}`)
+  if (!/0\.1s|100ms/.test(duration)) {
+    throw new Error(`#drawer is missing the 0.1s animation, got: ${duration}`)
+  }
+
+  const selection = await page.evaluate(() => ({
+    heading: getComputedStyle(document.querySelector('#screen_dashboard h1')!).userSelect,
+    topbar: getComputedStyle(document.querySelector('#topbar')!).userSelect,
+    menuDrag: document.querySelector('#drawer .menu-items a')?.getAttribute('draggable'),
+  }))
+  if (selection.heading === 'none') {
+    throw new Error('Dashboard heading is not selectable')
+  }
+  if (selection.topbar !== 'none') {
+    throw new Error(`Top bar should not be selectable, got ${selection.topbar}`)
+  }
+  if (selection.menuDrag !== 'false') {
+    throw new Error(`Menu links should not be draggable, got ${selection.menuDrag}`)
   }
 
   await page.locator('.toggle-drawer').click()
@@ -214,6 +229,16 @@ async function checkBehavior(browser: Browser, url: string) {
     undefined,
     { timeout: 15000 },
   )
+  const listDrag = await page.evaluate(() => {
+    const img = document.querySelector('.groups-list img')
+    return {
+      attr: img?.getAttribute('draggable') ?? '',
+      css: img ? getComputedStyle(img).getPropertyValue('-webkit-user-drag') : '',
+    }
+  })
+  if (listDrag.attr !== 'false' || listDrag.css !== 'none') {
+    throw new Error(`List images should not be draggable: ${JSON.stringify(listDrag)}`)
+  }
   const afterNav = await calls()
   if (afterNav.filter((src) => src.includes('tick')).length < 2) {
     throw new Error(`Choosing a menu item did not play tick: ${afterNav.join(', ')}`)
