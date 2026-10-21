@@ -4,7 +4,7 @@ A Riot.js starter for a full-stack app: readable tags, one Bun process, and a sm
 
 The repository has two layers:
 
-- `bin/create-riot-app.ts` copies a template, names `package.json` from the directory, restores `.gitignore`, and installs dependencies.
+- `bin/create-riot-app.ts` copies a template, names `package.json` from the directory, restores `.gitignore`, writes `.env` from `.env.example` when that file is missing, and installs dependencies.
 - `templates/fullstack` and `templates/spa` are those projects.
 
 ## Stack
@@ -29,7 +29,6 @@ Riot 10 is the current stable line on npm (the last 9.x release is 9.4.11). Comp
 ```bash
 bunx create-riot-app my-app
 cd my-app
-cp .env.example .env
 bun run dev
 ```
 
@@ -70,7 +69,7 @@ bun run test     # app.request() against the Hono app
 
 The cabinet at `/app` stays a client app. The service worker stores one document for every `/app/*` URL, and the client router picks the screen. Rendering each screen on the server would make that cache show the wrong screen until JavaScript runs, and it would not make the cabinet bundle smaller.
 
-`/login` accepts any email and `DEMO_PASSWORD`. The session cookie is `httpOnly`, `SameSite=Lax`, and `Secure` in production. `SESSION_SECRET` signs it. The same signed value works as a bearer token. Login allows 5 attempts per minute. `hono/csrf` rejects a cross-site form post. After login, `/app/*` is the cabinet (drawer, screens, themes, sounds) from `app.html`. Without a session, `/app/*` redirects to `/login?next=` (the cabinet path) and `/api/me` is 401. Logout clears the cookie. A session that expires in an open tab sends every tab to that same login URL.
+`/login` accepts any email and `DEMO_PASSWORD`. In development the page shows that password (the scaffolded default is `demo`) and fills it in. The session cookie is `httpOnly`, `SameSite=Lax`, and `Secure` in production. `SESSION_SECRET` signs it. The same signed value works as a bearer token. Login allows 5 attempts per minute. `hono/csrf` rejects a cross-site form post. After login, `/app/*` is the cabinet (drawer, screens, themes, sounds) from `app.html`. Without a session, `/app/*` redirects to `/login?next=` (the cabinet path) and `/api/me` is 401. Logout clears the cookie. A session that expires in an open tab sends every tab to that same login URL.
 
 Add a server-rendered page in `src/pages` and a `renderPage` route in `src/server/app.ts`. Add a cabinet screen in `src/cabinet/router.ts`. Add an API route by chaining `.openapi()` in `src/api/routes.ts`. Colors are the custom properties in `src/cabinet/styles/theme.css`, imported by both the landing CSS and the cabinet.
 
@@ -80,7 +79,7 @@ The router is `OpenAPIHono` from `@hono/zod-openapi`. Schemas use zod 4 and `.op
 
 The browser talks to this server only through `src/client/api.ts`. A SharedWorker is the only client of that API: it deduplicates requests, broadcasts GET snapshots to every tab, holds the httpOnly session, and keeps one event stream. The Records screen (`/app/records`) is a profile form (field errors from `{ error, fields }`) and file uploads saved under `tmp/uploads`. Offline mode caches the app shell and disables writes. If the browser is online but the server does not answer, the same screen says the server is unreachable. Details are in `templates/fullstack/README.md`.
 
-Environment variables are checked with zod at boot. `.env.example` lists them. Nothing secret is committed. `PUBLIC_ORIGIN` is required when `NODE_ENV` is `production`. When that origin is `https`, responses include HSTS. A local `bun run start` on http does not send HSTS.
+Environment variables are checked with zod at boot. `.env.example` lists them. Nothing secret is committed. The CLI copies that file to `.env`. Outside production, a missing `SESSION_SECRET` or `DEMO_PASSWORD` falls back to demo defaults (password `demo`, and a dev-only session secret) and the process prints one notice. `bun run start` sets `NODE_ENV` to `production` when it is unset, same as the Docker image, and does not use those defaults. The generated `.env` already has `SESSION_SECRET`, `DEMO_PASSWORD`, and `PUBLIC_ORIGIN=http://localhost:3000`, so `bun run build && bun run start` works right after scaffolding. If any of those are missing, the process prints the list and exits. When `PUBLIC_ORIGIN` is `https`, responses include HSTS. A local `bun run start` on http does not send HSTS.
 
 `templates/fullstack/Dockerfile` builds on `oven/bun:1.4.3` in three stages (frozen production install, Vite and server build, slim runtime). The container runs as `bun`, reads `PORT`, and answers `GET /api/health`. Pass `SESSION_SECRET`, `DEMO_PASSWORD`, and `PUBLIC_ORIGIN` when you start it; production refuses to boot without `PUBLIC_ORIGIN`. Set `DOCS_USER` and `DOCS_PASSWORD` as well when `/api/docs` should be on. See the full-stack README for `docker build` and `docker run`. The client-only template is served with `bun run preview`.
 

@@ -3,12 +3,11 @@
 One Bun process serves a JSON API, a few server-rendered pages, and a client-side cabinet. Riot draws the pages. Hono is the HTTP router. Vite builds the client and the server.
 
 ```bash
-cp .env.example .env
 bun install
 bun run dev
 ```
 
-Open <http://localhost:3000>. `/` and `/about` are rendered on the server. `/login` signs you in (any email, password from `DEMO_PASSWORD`). `/app/dashboard`, `/app/groups`, `/app/settings`, and `/app/records` are the cabinet.
+Open <http://localhost:3000>. `/` and `/about` are rendered on the server. `/login` signs you in (any email; in development the page shows `DEMO_PASSWORD`, which is `demo` unless you change `.env`). `/app/dashboard`, `/app/groups`, `/app/settings`, and `/app/records` are the cabinet. `create-riot-app` writes `.env` from `.env.example`. If that file is missing, development still boots with those demo defaults and prints one notice.
 
 ```bash
 bun run test
@@ -79,17 +78,17 @@ Live updates are one `GET /api/events` stream in the hub. Events are zod objects
 
 Offline, a service worker caches the app shell only. The cache name includes the build hash. HTML is network-first. `/api` and POST requests are not intercepted. When a new worker is waiting, the page shows "A new version is ready. Reload". GET topics that the hub already stored stay in Cache Storage. Writes while offline are refused, and the Records screen says the saved data may be stale. The same banner appears when the browser is online but a fetch or the event stream fails, and it clears when the server answers again. There is no database in the browser.
 
-Copy `.env.example` to `.env`. The process refuses to boot when the schema does not match. Do not put real secrets in source.
+`.env.example` lists the variables. Outside production, missing `SESSION_SECRET` and `DEMO_PASSWORD` use demo defaults and one notice is printed. Production does not. Do not put real secrets in source.
 
 ## Dev and production
 
-Development is one Vite process on port 3000. The `dev` script runs Vite's JavaScript entry with Bun. `@hono/vite-dev-server` loads `src/server/dev.ts` with the Bun adapter, so Hono handles the pages and `/api` while Vite serves modules. `parseEnv` also reads `.env`, because a Node-hosted Vite process would not.
+Development is one Vite process on port 3000. The `dev` script runs Vite's JavaScript entry with Bun. `@hono/vite-dev-server` loads `src/server/dev.ts` with the Bun adapter, so Hono handles the pages and `/api` while Vite serves modules. `.riot` files and raw `.svg` icons stay on Vite's side. If Hono answered those URLs, the login form would not run and the icons would be missing. `parseEnv` also reads `.env`, because a Node-hosted Vite process would not. Uploads are stored under `tmp/uploads`, and that directory is created on boot.
 
 `bun test` compiles `.riot` imports through `bunfig.toml` (`[test] preload`). The loader rewrites relative imports inside a tag to absolute paths, because Bun serves the compiled tag from a `riot:` URL. `@riotjs/ssr`'s `renderAsync` asks the tag for `onAsyncRendering`, and the compiled tags do not expose that hook, so handlers load any data first and call `render`. `test/hydrate.test.ts` renders a page, parses that HTML, and binds the tags without replacing the inputs.
 
 ## Deploy
 
-Ship the Bun process. `bun run build` writes `dist/client` and `dist/server`. `bun run start` runs `dist/server/index.js` on `PORT` (3000) and listens on every interface. Set `SESSION_SECRET`, `DEMO_PASSWORD`, and `PUBLIC_ORIGIN`. Production refuses to boot without `PUBLIC_ORIGIN`. HSTS is sent only when that origin is `https`. The process exits if the environment does not match the schema.
+Ship the Bun process. `bun run build` writes `dist/client` and `dist/server`. `bun run start` runs `dist/server/index.js` on `PORT` (3000) and listens on every interface. It sets `NODE_ENV` to `production` when that variable is unset, and then it requires `SESSION_SECRET`, `DEMO_PASSWORD`, and `PUBLIC_ORIGIN`. Demo defaults are not used. A project created by the CLI already has them in `.env`, including `PUBLIC_ORIGIN=http://localhost:3000`, so a local build and start works. If one is missing or the port is taken, the process prints a short message and exits. HSTS is sent only when that origin is `https`.
 
 `GET /api/health` returns `{ "ok": true }` with no session. Use it for a process check.
 

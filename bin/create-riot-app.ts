@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 import { spawn } from 'node:child_process';
+import { statSync } from 'node:fs';
 import {
   cp,
   mkdir,
@@ -140,13 +141,27 @@ await cp(templateDir, dest, {
     const rel = relative(templateDir, source);
     if (!rel) return true;
     const parts = rel.split(sep);
-    return (
-      !parts.includes('node_modules') &&
-      !parts.includes('dist') &&
-      !parts.includes('.npmignore')
-    );
+    if (
+      parts.includes('node_modules') ||
+      parts.includes('dist') ||
+      parts.includes('.npmignore')
+    ) {
+      return false;
+    }
+    // `--force` into a directory that already has .env must keep that file.
+    if (basename(source) === '.env') {
+      try {
+        statSync(join(dest, rel));
+        return false;
+      } catch {
+        return true;
+      }
+    }
+    return true;
   },
 });
+
+await ensureEnvFile(dest);
 
 const pkgPath = join(dest, 'package.json');
 const pkg = JSON.parse(await readFile(pkgPath, 'utf8')) as {
@@ -184,11 +199,53 @@ Next:
   bun run preview  # serve the production build
 `);
 } else {
+  const password = await demoPasswordOf(dest);
+  const signIn = password
+    ? `\nSign in with any email and password "${password}".\n`
+    : '\n';
   console.log(`
 Next:
   cd ${folder}
-  cp .env.example .env
   bun run dev      # http://localhost:3000
   bun run build && bun run start
-`);
+${signIn}`);
+}
+
+async function ensureEnvFile(project: string): Promise<void> {
+  const example = join(project, '.env.example');
+  const target = join(project, '.env');
+  try {
+    await stat(example);
+  } catch {
+    return;
+  }
+  try {
+    await stat(target);
+    return;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  }
+  await cp(example, target);
+}
+
+async function demoPasswordOf(project: string): Promise<string | null> {
+  let text: string;
+  try {
+    text = await readFile(join(project, '.env'), 'utf8');
+  } catch {
+    return null;
+  }
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('DEMO_PASSWORD=')) continue;
+    let value = trimmed.slice('DEMO_PASSWORD='.length).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    return value || null;
+  }
+  return null;
 }

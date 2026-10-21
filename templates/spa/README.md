@@ -19,7 +19,7 @@ bun run preview
 
 `bun run lint` runs Biome, and also checks `<script>` and `<style>` inside `.riot` files. `bun run format` writes those fixes. Tag markup is not reformatted. Format-on-save covers `.ts` and `.css` only. For `.riot`, run `bun run format` or the `format` task.
 
-The menu opens from the button on the left. On a phone it can be pulled in with a swipe from the left edge. Sounds live in `public/sounds`. The drawer avatar is `VITE_APP_AVATAR_URL` in `.env`.
+The menu opens from the button on the left. On a phone it can be pulled in with a swipe from the left edge. Sounds live in `public/sounds`. The drawer avatar is `VITE_APP_AVATAR_URL` in `.env`. The template ships that file. If the variable is unset, the same default image is used, so `bun run dev` does not need any setup.
 
 The default theme follows `prefers-color-scheme`. On Settings, the Light / Dark / System switch stores the choice in `localStorage` and sets `data-theme` on `<html>`.
 

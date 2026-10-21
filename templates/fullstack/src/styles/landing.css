@@ -49,3 +49,7 @@ main p {
   font-size: 18px;
   line-height: 1.5;
 }
+
+main code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}

@@ -86,6 +86,7 @@ jobs:
           grep -q '"name": "full"' "${work}/full/package.json"
           bunx --package "${PWD}/${tarball}" create-riot-app "${work}/spa-app" --template spa
           test -f "${work}/spa-app/index.html"
+          test -f "${work}/spa-app/.env"
           test ! -e "${work}/spa-app/src/server"
           cd "${work}/spa-app"
           bun install
@@ -94,7 +95,9 @@ jobs:
           bun run typecheck
           bun run build
           cd "${work}/full"
-          cp .env.example .env
+          test -f .env
+          grep -q 'DEMO_PASSWORD=demo' .env
+          grep -q 'PUBLIC_ORIGIN=' .env
           bun install
           bun run lint
           bun run format:check

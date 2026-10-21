@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.1] - 2026-10-21
+
+### Fixed
+
+- A new full-stack app starts with `bun run dev` when `.env` was never created. Outside production, missing `SESSION_SECRET` and `DEMO_PASSWORD` use demo defaults (password `demo`, and a dev-only session secret). The process prints one notice. The login page shows that password in development and fills it in.
+- Production, including `bun run start` and the Docker image, still refuses to boot without `SESSION_SECRET`, `DEMO_PASSWORD`, and `PUBLIC_ORIGIN`. The process prints those names and exits, instead of a stack trace. `bun run start` stays production mode. The CLI writes `.env` from `.env.example`, and that file already sets `PUBLIC_ORIGIN=http://localhost:3000` and the demo secrets, so `bun run build && bun run start` works immediately after scaffolding.
+- The CLI creates `.env` from `.env.example` when `.env` is absent, including on `--force` when a `.env` is already there (that file is left as-is). The printed next steps no longer include `cp .env.example .env`.
+- The upload directory `tmp/uploads` is created on boot. A failure names the path. If `PORT` is already taken, `bun run start` says so.
+- The client-only template still runs with no extra setup. `VITE_APP_AVATAR_URL` falls back to the image in `.env` when the variable is unset.
+- In development, Vite compiles `.riot` files and raw `.svg` icons. The dev server was answering those URLs with "Not found", so the login form never hydrated and cabinet icons did not load.
+
 ## [3.1.0] - 2026-10-21
 
 ### Added
@@ -87,6 +98,7 @@ Rewrite of the 1.2 Webpack 4 starter. The demo is the same idea: a side drawer, 
 
 - Webpack 4, the old `scripts/webpack` setup, Less, jQuery, and Hammer.
 
+[3.1.1]: https://github.com/alexstep/create-riot-app/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/alexstep/create-riot-app/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/alexstep/create-riot-app/compare/v2.1.0...v3.0.0
 [2.1.0]: https://github.com/alexstep/create-riot-app/compare/v2.0.0...v2.1.0

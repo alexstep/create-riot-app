@@ -103,7 +103,14 @@ export class UploadStore {
   version = 0;
 
   constructor(readonly dir: string) {
-    mkdirSync(this.dir, { recursive: true });
+    try {
+      mkdirSync(this.dir, { recursive: true });
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `Could not create the upload directory (${this.dir}): ${detail}`,
+      );
+    }
     try {
       const raw = readFileSync(path.join(this.dir, 'manifest.json'), 'utf8');
       const parsed: unknown = JSON.parse(raw);

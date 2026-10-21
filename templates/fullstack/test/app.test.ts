@@ -62,8 +62,12 @@ describe('pages', () => {
     expect(html).toContain('<login-form>');
     expect(html).toContain('value="ada@example.com"');
     expect(html).toContain('type="password"');
+    expect(html).toContain('Any email. Password:');
+    expect(html).toContain('<code>demo</code>');
     const state = /id="riot-state">([^<]*)<\/script>/.exec(html)?.[1] ?? '';
-    expect(JSON.parse(state)).toEqual({ 'login-form': {} });
+    expect(JSON.parse(state)).toEqual({
+      'login-form': { password: 'demo' },
+    });
   });
 
   test('about has its own title', async () => {

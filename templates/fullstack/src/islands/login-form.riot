@@ -6,7 +6,12 @@
     </label>
     <label>
       Password
-      <input name="password" type="password" required />
+      <input
+        name="password"
+        type="password"
+        required
+        value="{props.password || ''}"
+      />
     </label>
     <button type="submit">Log in</button>
     <p if="{state.error}">{state.error}</p>
@@ -16,11 +21,15 @@
     import { withTypes, type RiotComponent } from 'riot';
     import { login } from '../client/api';
 
+    interface Props {
+      password?: string;
+    }
+
     interface State {
       error: string;
     }
 
-    export default withTypes<RiotComponent<object, State>>(() => ({
+    export default withTypes<RiotComponent<Props, State>>(() => ({
       state: { error: '' },
       async send(event: Event) {
         event.preventDefault();
