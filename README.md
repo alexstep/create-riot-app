@@ -1,115 +1,108 @@
-# ⏏ create-riot-app
-[![travis](https://travis-ci.org/alexstep/create-riot-app.svg?branch=master)](https://travis-ci.org/alexstep/create-riot-app-ejected/)
-[![Code Climate](https://codeclimate.com/github/alexstep/create-riot-app-ejected.png)](https://codeclimate.com/github/alexstep/create-riot-app-ejected)
-[![npm](https://img.shields.io/npm/v/npm.svg)]()
-[![Dependencies](https://david-dm.org/alexstep/create-riot-app-ejected/dev-status.svg)](https://david-dm.org/alexstep/create-riot-app-ejected?type=dev)
-[![Join the chat at https://gitter.im/create-riot-app/](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/create-riot-app/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# create-riot-app
 
-[RiotJS](https://github.com/riot/riot) startkit, based on [create-react-app](https://github.com/facebookincubator/create-react-app) and  [react-scripts](https://github.com/facebookincubator/create-react-app/tree/master/packages/react-scripts).
+A Riot.js starter, in the spirit of Create React App. The CLI scaffolds a demo with a side drawer, sounds, and three screens. The dev server and production build run on Bun.
 
-[DEMO](https://ipfs.infura.io/ipfs/QmeYf7fabpUcEtUzb3Xsf5SJPbGGigPE9GTkwhrSS6cgDG/)
+The repository has two layers:
 
-Package included simple app example, webpack dev server with **riot hot reload** and less, sass, stylus support. ES6 features available too. Jest with riot support for testing. ES6 and eslint in riot tag.
+- `bin/create-riot-app.ts` copies the template into a new directory.
+- `template/` is the demo itself. A generated project is a copy of it.
 
-Just read https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md but replace all "react" word to "riot" :)
+## Stack
 
-[![See the video](https://j.gifs.com/VmEVBB.gif)](https://www.youtube.com/watch?v=dU2TsHzQA60)
+| | |
+| --- | --- |
+| Runtime and packages | [Bun](https://bun.sh) |
+| UI | [Riot.js 10.1.6](https://riot.js.org) |
+| Tag compiler | `@riotjs/compiler` 10.0.5 via `rollup-plugin-riot` |
+| Router | `@riotjs/route` 10 |
+| Dev server and build | [Vite](https://vite.dev) 8, with fast refresh and a production build |
+| Language | TypeScript where Riot supports it (`lang="ts"` in components and plain `.ts` modules) |
+| Styles | Native CSS: nesting, custom properties, `hsl(from …)` |
 
-## Features
-* Hot .tag reload
-* Realtime code linting
-* Async/await (ES2017).
-* Exponentiation Operator (ES2016).
-* Object Rest/Spread Properties (stage 3 proposal).
-* Dynamic import() (stage 3 proposal)
-* Jest for .tag testing
-* Generate all favicons and manifest.json
-* Pre-commit testing
+Riot 10 is the current stable line on npm (the last 9.x release is 9.4.11; 10.0.0 replaced it in August 2025). Components are still `.riot` files with `export default`. Riot does not publish a dedicated Vite plugin: the official compiler is a Rollup plugin, and Vite runs that plugin. Vite is used instead of `bun.build` because Bun has no equivalent dev server with hot reload for `.riot` files, while Vite provides both fast refresh and `vite build`.
 
-## Requirements
-nodejs 10
-and optionaly docker-compose, for deploy to ipfs
+## Create a project
 
-## ⚡ Start dev-server
-```
-git clone --depth=1 https://github.com/alexstep/create-riot-dapp my-riot-app
-cd my-riot-app
-rm -rf .git
+From this repository:
+
+```bash
+bun ./bin/create-riot-app.ts my-app
+cd my-app
 ```
 
-```
-npm install
-npm start
-```
-go to http://localhost:9999
+The same template through Bun's built-in `bun create` (it installs dependencies itself):
 
-### Note
-Riot route base url set in ./src/view/app.view.js line 47
-
-
-## ⚛ Favicons and meta-information
-Edit "meta" section in package.json ([see manifest format description](https://developer.mozilla.org/en-US/docs/Web/Manifest))
-Put your app icon in ./src/favicon_source.svg or .png or other image format
-and run
-```
-npm run meta:generate
-```
-manifest.json , browserconfig.xml, favicons and other meta-files will be generated and put to ./public/static/meta/ folder.
-
-Also you can change some options in ./scripts/tools/metainfo/config.js
-
-
-
-## ⚗ Build for production
-```
-npm run build
+```bash
+bun create ./template my-app
+cd my-app
 ```
 
-Check build result
-```
-npm run check_build
-```
+After the package is published to npm, the equivalent is:
 
-
-## ☁ Deploy
-
-
-### Firebase
-```
-npm run deploy
-```
-For example you can deploy app to [firebase](firebase.google.com)
-```
-npm install -g firebase-tools
-firebase login
-firebase init
-firebase deploy
+```bash
+bun create riot-app my-app
+# same thing: bunx create-riot-app my-app
 ```
 
-### Your server
-Change settings in scripts/tools/deploy_ssh
-Add this file to .gitignore
+The CLI installs dependencies itself. `--no-install` copies files only. `--force` writes into a non-empty directory.
+
+## Run the demo from this repository
+
+```bash
+cd template
+bun install
+bun run dev
 ```
-npm run deploy:ssh
+
+Dev server: <http://localhost:5173>. Routes: `/dashboard`, `/groups`, `/settings`. The dev server and `vite preview` serve `index.html` for those paths, so a reload stays on the same screen.
+
+Typecheck and production build:
+
+```bash
+bun run typecheck
+bun run build
+bun run preview
 ```
-[About tool](https://www.npmjs.com/package/ssh-deploy-release)
 
+The build is written to `template/dist`.
 
-# IPFS
+## What the demo includes
+
+- Top bar and a sliding drawer: button, dimmed overlay, 0.3s animation, and a swipe from the left edge on touch screens.
+- Sounds in `public/sounds`: `tick` when the menu opens, a menu item is chosen, or the settings button is pressed; `hover` on mouse enter; `card` when a list card is selected. Mp3 is used when the browser cannot play Ogg. A rejected autoplay does not show up in the console.
+- Screens: Dashboard, a list that loads the first ten photos from jsonplaceholder (spinner for about a second), Settings.
+- On a narrow viewport the list hides the top bar while scrolling, as the old demo did.
+- Icons, favicons, and the manifest live in `public/` and `src/icons`.
+
+Application logic is TypeScript (`src/router.ts`, `src/sounds.ts`, `src/swipe.ts`, `src/api.ts`). Screens are `.riot` components with `lang="ts"`. Styles live in `src/styles` and are imported once. There is no jQuery and no Hammer.
+
+The default theme follows `prefers-color-scheme`. On Settings, the Light / Dark / System switch stores the choice in `localStorage` and sets `data-theme` on `<html>`.
+
+## Template scripts
+
+| Command | What it does |
+| --- | --- |
+| `bun run dev` | Vite dev server with hot reload |
+| `bun run build` | Production build in `dist/` |
+| `bun run preview` | Serve the production build locally |
+| `bun run typecheck` | `tsc --noEmit` for `.ts` files |
+
+Variables prefixed with `VITE_` are read from `.env`. The drawer avatar URL is `VITE_APP_AVATAR_URL`.
+
+## Visual test
+
+`visual/test.ts` captures eight screens (desktop 1280×800 and mobile 390×844: home, open drawer, list, settings) in light and dark themes. The page list comes from the drawer menu. Light screens are compared with the legacy demo in `visual/baselines`. Dark screens are compared with `visual/baselines/dark`. On light captures the `[data-theme-control]` block is hidden, because that switch did not exist in the old demo; the rest of the layout must match. List photos are a local fixture, not the live API. Animations are disabled for screenshots. The same run checks the drawer animation, touch taps, the `tick` sound, the theme switch, and that the console has no errors. Chromium is launched with font hinting disabled so the legacy system font stack stays stable.
+
+```bash
+cd visual && bun install
+bunx playwright install chromium
+cd ..
+bun run visual
 ```
-npm run deploy:ipfs
+
+Recapture baselines from a running server with:
+
+```bash
+cd visual && bun test.ts --update --url http://127.0.0.1:9999
+cd visual && bun test.ts --update-dark --url http://127.0.0.1:5173
 ```
-Publish ./dist folder to [IPFS](https://ipfs.io) by defaults.
-Need insatlled docker-composes/tools/deploy_ipfs/docker-compose.yml
-
-
-### ⚙ Configuration options
-
-Modify the ```.env``` file in the root of the generated project, and add any of the configuration options below 👇 to enable that feature.
-
-
-## ☺ Contribute
-
-Fork and send pull-request. Thank you!
-
-

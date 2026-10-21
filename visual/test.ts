@@ -1,0 +1,458 @@
+import { readFileSync } from 'node:fs'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import pixelmatch from 'pixelmatch'
+import { chromium, type Browser, type Page } from 'playwright'
+import { PNG } from 'pngjs'
+
+const root = dirname(fileURLToPath(import.meta.url))
+const baselinesDir = join(root, 'baselines')
+const actualDir = join(root, 'actual')
+const diffDir = join(root, 'diff')
+
+const VIEWPORTS = {
+  desktop: { width: 1280, height: 800 },
+  mobile: { width: 390, height: 844 },
+} as const
+
+// Anti-aliased text is ignored by pixelmatch. Anything above this share of
+// the viewport is a real layout regression.
+const MAX_MISMATCH = 0.002
+
+const args = process.argv.slice(2)
+const update = args.includes('--update')
+const updateDark = args.includes('--update-dark')
+const urlIndex = args.indexOf('--url')
+const givenUrl = urlIndex >= 0 ? args[urlIndex + 1] : undefined
+
+if (update && !givenUrl) {
+  console.error('--update requires --url pointing at a running server.')
+  process.exit(1)
+}
+
+const AUDIO_HOOK = `
+  window.__audioCalls = []
+  const __origPlay = HTMLAudioElement.prototype.play
+  HTMLAudioElement.prototype.play = function () {
+    window.__audioCalls.push(this.currentSrc || this.src || '')
+    return __origPlay.apply(this, arguments)
+  }
+`
+
+const FREEZE_CSS = `*,*::before,*::after{animation-duration:0s !important;animation-delay:0s !important;transition-duration:0s !important;transition-delay:0s !important;scroll-behavior:auto !important;}`
+
+const thumb = readFileSync(join(root, 'fixtures/thumb.png'))
+const PHOTOS = Array.from({ length: 10 }, (_, index) => ({
+  albumId: 1,
+  id: index + 1,
+  title: `Fixture photo ${index + 1}`,
+  url: 'https://example.test/fixtures/thumb.png',
+  thumbnailUrl: 'https://example.test/fixtures/thumb.png',
+}))
+
+async function installRoutes(page: Page): Promise<void> {
+  await page.route('**/jsonplaceholder.typicode.com/**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(PHOTOS),
+    }),
+  )
+  await page.route('**/fixtures/thumb.png', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'image/png',
+      body: thumb,
+    }),
+  )
+}
+
+type ViewportName = keyof typeof VIEWPORTS
+
+const consoleErrors: string[] = []
+
+function track(page: Page) {
+  page.on('console', (message) => {
+    if (message.type() === 'error') consoleErrors.push(message.text())
+  })
+  page.on('pageerror', (error) => {
+    consoleErrors.push(error.message)
+  })
+}
+
+async function settle(page: Page) {
+  await page.evaluate(async () => {
+    await document.fonts.ready
+    await Promise.all(
+      [...document.images].map((img) =>
+        img.decode?.().catch(() => undefined) ?? Promise.resolve(),
+      ),
+    )
+    const avatar = document.querySelector('.avatar')
+    if (!(avatar instanceof HTMLElement)) return
+    const match = getComputedStyle(avatar).backgroundImage.match(/url\(["']?(.*?)["']?\)/)
+    const src = match?.[1]
+    if (!src) return
+    await new Promise<void>((resolve) => {
+      const image = new Image()
+      image.onload = () => resolve()
+      image.onerror = () => resolve()
+      image.src = src
+    })
+  })
+}
+
+async function clickAny(page: Page, selectors: string[]) {
+  for (const selector of selectors) {
+    const locator = page.locator(selector).first()
+    if ((await locator.count()) > 0) {
+      await locator.click()
+      return
+    }
+  }
+  throw new Error(`Element not found: ${selectors.join(' | ')}`)
+}
+
+async function openDrawer(page: Page) {
+  if (await page.locator('.drawer-wrap.show').count()) return
+  await page.locator('.toggle-drawer').click()
+  await page.locator('.drawer-wrap.show').waitFor({ timeout: 4000 })
+}
+
+async function gotoApp(page: Page, url: string) {
+  await page.goto(url, { waitUntil: 'load' })
+  await page.locator('#topbar h1').waitFor()
+  await settle(page)
+}
+
+async function freezeMotion(page: Page) {
+  await page.addStyleTag({ content: FREEZE_CSS })
+}
+
+async function showGroups(page: Page) {
+  await openDrawer(page)
+  await clickAny(page, ['a[href="/groups/"]', 'a[href="/groups"]'])
+  await page.waitForFunction(
+    () => document.querySelector('#topbar h1')?.textContent?.trim().toLowerCase() === 'groups',
+  )
+  await page.waitForFunction(
+    () =>
+      document.querySelectorAll('.groups-list .group').length >= 1 ||
+      document.querySelector('.no-groups'),
+    undefined,
+    { timeout: 15000 },
+  )
+  await page.locator('.drawer-wrap:not(.show)').waitFor()
+  await settle(page)
+}
+
+async function showSettings(page: Page) {
+  await openDrawer(page)
+  await clickAny(page, ['a[href="/settings/"]', 'a[href="/settings"]'])
+  await page.getByRole('button', { name: 'Some option' }).waitFor()
+  await page.locator('.drawer-wrap:not(.show)').waitFor()
+  await settle(page)
+}
+
+async function capture(page: Page, scene: string): Promise<Buffer> {
+  if (scene === 'dashboard') {
+    await page.locator('#screen_dashboard h1').waitFor()
+  }
+  if (scene === 'drawer') {
+    await openDrawer(page)
+    await page.locator('.user-info .name').waitFor()
+  }
+  if (scene === 'groups') await showGroups(page)
+  if (scene === 'settings') await showSettings(page)
+  await settle(page)
+  return page.screenshot({ animations: 'disabled', caret: 'hide' })
+}
+
+async function checkBehavior(browser: Browser, url: string) {
+  const page = await browser.newPage({
+    viewport: VIEWPORTS.desktop,
+    deviceScaleFactor: 1,
+    colorScheme: 'light',
+  })
+  track(page)
+  await page.addInitScript(AUDIO_HOOK)
+  await installRoutes(page)
+  await gotoApp(page, url)
+
+  const duration = await page.evaluate(() => getComputedStyle(document.querySelector('#drawer')!).transitionDuration)
+  if (!/0\.3s|300ms/.test(duration)) {
+    throw new Error(`#drawer is missing the 0.3s animation, got: ${duration}`)
+  }
+
+  await page.locator('.toggle-drawer').click()
+  const frames: string[] = []
+  for (let i = 0; i < 8; i++) {
+    frames.push(
+      await page.evaluate(() => getComputedStyle(document.querySelector('#drawer')!).transform),
+    )
+    await page.waitForTimeout(40)
+  }
+  const distinct = new Set(frames)
+  if (distinct.size < 2) {
+    throw new Error(`Drawer did not animate, frames: ${frames.join(' | ')}`)
+  }
+  await page.locator('.drawer-wrap.show').waitFor()
+
+  const calls = async () => page.evaluate(() => (window as unknown as { __audioCalls: string[] }).__audioCalls)
+  const afterOpen = await calls()
+  if (!afterOpen.some((src) => src.includes('tick'))) {
+    throw new Error(`Opening the drawer did not play tick: ${afterOpen.join(', ') || 'none'}`)
+  }
+
+  await clickAny(page, ['a[href="/groups/"]', 'a[href="/groups"]'])
+  await page.waitForFunction(
+    () => document.querySelector('#topbar h1')?.textContent?.trim().toLowerCase() === 'groups',
+  )
+  await page.waitForFunction(
+    () => document.querySelectorAll('.groups-list .group').length >= 1 || document.querySelector('.no-groups'),
+    undefined,
+    { timeout: 15000 },
+  )
+  const afterNav = await calls()
+  if (afterNav.filter((src) => src.includes('tick')).length < 2) {
+    throw new Error(`Choosing a menu item did not play tick: ${afterNav.join(', ')}`)
+  }
+
+  await openDrawer(page)
+  await clickAny(page, ['a[href="/settings/"]', 'a[href="/settings"]'])
+  await page.locator('[data-choice="dark"]').click()
+  await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark' && localStorage.getItem('theme') === 'dark')
+  await page.reload({ waitUntil: 'load' })
+  await page.locator('[data-choice="system"]').waitFor()
+  await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark')
+  await page.locator('[data-choice="system"]').click()
+  await page.waitForFunction(() => document.documentElement.dataset.theme === 'light' && localStorage.getItem('theme') === null)
+
+  await page.close()
+}
+
+async function checkTouch(browser: Browser, appUrl: string): Promise<void> {
+  const context = await browser.newContext({
+    hasTouch: true,
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 1,
+    colorScheme: 'light',
+  })
+  const page = await context.newPage()
+  track(page)
+  await page.addInitScript(AUDIO_HOOK)
+  await page.addInitScript(`try { localStorage.setItem('theme', 'light') } catch (e) {}`)
+  await installRoutes(page)
+  await gotoApp(page, appUrl)
+
+  await page.locator('.toggle-drawer').tap()
+  await page.locator('.drawer-wrap.show').waitFor({ timeout: 4000 })
+  await page.locator('#drawer a[href="/groups"]').tap()
+  await page.waitForFunction(
+    () => document.querySelector('#topbar h1')?.textContent?.trim().toLowerCase() === 'groups',
+  )
+
+  await page.evaluate(() => {
+    const wrap = document.querySelector('.drawer-wrap')
+    if (!wrap) throw new Error('drawer missing')
+    const down = (id: number, x: number) => {
+      wrap.dispatchEvent(new PointerEvent('pointerdown', {
+        pointerId: id,
+        pointerType: 'touch',
+        clientX: x,
+        clientY: 140,
+        bubbles: true,
+        cancelable: true,
+      }))
+    }
+    down(7, 12)
+    down(8, 20)
+    window.dispatchEvent(new PointerEvent('pointercancel', {
+      pointerId: 7,
+      pointerType: 'touch',
+      bubbles: true,
+      cancelable: true,
+    }))
+  })
+  if (await page.locator('.drawer-wrap.pan').count()) {
+    throw new Error('Drawer stayed in .pan after pointercancel')
+  }
+  await context.close()
+}
+
+async function menuScreens(page: Page): Promise<string[]> {
+  await openDrawer(page)
+  const hrefs = await page.locator('#drawer .menu-items a').evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute('href') ?? ''),
+  )
+  const names: string[] = []
+  for (const href of hrefs) {
+    const name = href.replace(/^\/+|\/+$/g, '')
+    if (!name || names.includes(name)) continue
+    names.push(name)
+  }
+  if (await page.locator('.drawer-wrap.show').count()) {
+    await page.keyboard.press('Escape')
+    await page.locator('.drawer-wrap:not(.show)').waitFor()
+  }
+  return names
+}
+
+function nameOf(viewport: ViewportName, scene: string) {
+  return `${viewport}-${scene}.png`
+}
+
+async function compareOne(baselineRoot: string, actualRoot: string, diffRoot: string, viewport: ViewportName, scene: string, actual: Buffer) {
+  const name = nameOf(viewport, scene)
+  await writeFile(join(actualRoot, name), actual)
+  const baselinePath = join(baselineRoot, name)
+  let baseline: Buffer
+  try {
+    baseline = await readFile(baselinePath)
+  } catch {
+    throw new Error(`Missing baseline ${name}. Capture it with: bun test.ts --update --url <server>`)
+  }
+  const expected = PNG.sync.read(baseline)
+  const received = PNG.sync.read(actual)
+  if (expected.width !== received.width || expected.height !== received.height) {
+    return {
+      name,
+      mismatch: 1,
+      strict: 1,
+      pixels: expected.width * expected.height,
+      note: `size ${received.width}x${received.height} vs ${expected.width}x${expected.height}`,
+    }
+  }
+  const diff = new PNG({ width: expected.width, height: expected.height })
+  const pixels = pixelmatch(expected.data, received.data, diff.data, expected.width, expected.height, {
+    threshold: 0.1,
+    includeAA: false,
+  })
+  const strict = pixelmatch(expected.data, received.data, undefined, expected.width, expected.height, {
+    threshold: 0,
+    includeAA: true,
+  })
+  await writeFile(join(diffRoot, name), PNG.sync.write(diff))
+  const total = expected.width * expected.height
+  return {
+    name,
+    mismatch: pixels / total,
+    strict: strict / total,
+    pixels,
+    note: '',
+  }
+}
+
+let devServer: ReturnType<typeof Bun.spawn> | undefined
+
+async function ensureServer(): Promise<string> {
+  if (givenUrl) return givenUrl
+  const probe = await fetch('http://127.0.0.1:5173/').then((r) => r.ok).catch(() => false)
+  if (probe) return 'http://127.0.0.1:5173/'
+  devServer = Bun.spawn(['bun', 'run', '--cwd', join(root, '..', 'template'), 'dev', '--host', '127.0.0.1', '--port', '5173'], {
+    stdout: 'ignore',
+    stderr: 'pipe',
+    env: { ...process.env, PATH: `${process.env.HOME}/.bun/bin:${process.env.PATH}` },
+  })
+  for (let i = 0; i < 40; i++) {
+    const ok = await fetch('http://127.0.0.1:5173/').then((r) => r.ok).catch(() => false)
+    if (ok) return 'http://127.0.0.1:5173/'
+    await new Promise((resolve) => setTimeout(resolve, 250))
+  }
+  throw new Error('Vite dev server did not start on :5173')
+}
+
+const url = await ensureServer()
+await mkdir(baselinesDir, { recursive: true })
+await mkdir(actualDir, { recursive: true })
+await mkdir(diffDir, { recursive: true })
+
+const browser = await chromium.launch({
+  headless: true,
+  // The demo keeps the legacy font stack, which falls through to the browser
+  // sans-serif. These flags keep hinting stable without swapping that face.
+  args: ['--font-render-hinting=none', '--disable-lcd-text'],
+})
+
+const HIDE_THEME_CONTROL = '[data-theme-control]{display:none !important}'
+
+async function runShots(theme: 'light' | 'dark', writeBaseline: boolean) {
+  const baselineRoot = theme === 'dark' ? join(baselinesDir, 'dark') : baselinesDir
+  const actualRoot = theme === 'dark' ? join(actualDir, 'dark') : actualDir
+  const diffRoot = theme === 'dark' ? join(diffDir, 'dark') : diffDir
+  await mkdir(baselineRoot, { recursive: true })
+  await mkdir(actualRoot, { recursive: true })
+  await mkdir(diffRoot, { recursive: true })
+  const rows: { name: string; mismatch: number; strict: number; pixels: number; note: string }[] = []
+
+  for (const viewport of Object.keys(VIEWPORTS) as ViewportName[]) {
+    const page = await browser.newPage({
+      viewport: VIEWPORTS[viewport],
+      deviceScaleFactor: 1,
+      colorScheme: theme,
+    })
+    track(page)
+    await page.addInitScript(AUDIO_HOOK)
+    await page.addInitScript(`try { localStorage.setItem('theme', '${theme}') } catch (e) {}`)
+    await installRoutes(page)
+    await gotoApp(page, url)
+    await freezeMotion(page)
+    if (theme === 'light') await page.addStyleTag({ content: HIDE_THEME_CONTROL })
+    const names = await menuScreens(page)
+    const scenes = names.flatMap((name, index) => index === 0 ? [name, 'drawer'] : [name])
+    for (const scene of scenes) {
+      const png = await capture(page, scene)
+      const name = `${theme} ${nameOf(viewport, scene)}`
+      if (writeBaseline) {
+        await writeFile(join(baselineRoot, nameOf(viewport, scene)), png)
+        console.log(`baseline ${name}`)
+      } else {
+        const row = await compareOne(baselineRoot, actualRoot, diffRoot, viewport, scene, png)
+        rows.push({ ...row, name })
+      }
+    }
+    await page.close()
+  }
+  return rows
+}
+
+try {
+  if (!update) {
+    console.log(`Behavior: ${url}`)
+    await checkBehavior(browser, url)
+    await checkTouch(browser, url)
+    console.log('Touch: hamburger and menu taps work.')
+  }
+
+  const lightRows = await runShots('light', update)
+  const darkRows = await runShots('dark', updateDark)
+  const rows = [...lightRows, ...darkRows]
+
+  if (consoleErrors.length) {
+    console.error('Console errors:')
+    for (const line of consoleErrors) console.error('  ' + line)
+    throw new Error(`Console errors: ${consoleErrors.length}`)
+  }
+  console.log('Console: no errors. Drawer animation, tick sound, and theme switch checked.')
+
+  if (!update) {
+    console.log('')
+    console.log('| Screen | Threshold 0.1 | Strict | Pixels |')
+    console.log('| --- | ---: | ---: | ---: |')
+    let failed = false
+    for (const row of rows) {
+      const percent = (row.mismatch * 100).toFixed(3)
+      const strict = (row.strict * 100).toFixed(3)
+      console.log(`| ${row.name} | ${percent}% | ${strict}% | ${row.pixels}${row.note ? ` (${row.note})` : ''} |`)
+      if (row.mismatch > MAX_MISMATCH) failed = true
+    }
+    if (failed) {
+      console.error(`Some screens differ by more than ${MAX_MISMATCH * 100}%`)
+      process.exitCode = 1
+    }
+  }
+} finally {
+  await browser.close()
+  devServer?.kill()
+}

@@ -1,0 +1,30 @@
+{
+  "name": "riot-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Riot.js demo: drawer, sounds, and three screens",
+  "engines": {
+    "bun": ">=1.1.0"
+  },
+  "scripts": {
+    "dev": "bun --bun vite",
+    "build": "bun --bun vite build",
+    "preview": "bun --bun vite preview",
+    "typecheck": "bun --bun tsc --noEmit"
+  },
+  "dependencies": {
+    "@riotjs/route": "10.0.0",
+    "riot": "10.1.6"
+  },
+  "devDependencies": {
+    "@riotjs/compiler": "10.0.5",
+    "@riotjs/hot-reload": "10.0.0",
+    "rollup-plugin-riot": "10.0.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.5"
+  },
+  "bun-create": {
+    "start": "bun run dev"
+  }
+}

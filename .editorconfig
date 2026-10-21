@@ -1,10 +1,8 @@
-# Файл с настройками для редактора.
+# Editor settings.
 #
-# Если вы разрабатываете в редакторе от JetBrains, BBEdit, Coda или SourceLair
-# этот файл уже поддерживается и не нужно производить никаких дополнительных действий.
+# JetBrains IDEs, BBEdit, Coda, and SourceLair read this file with no extra setup.
 #
-# Если вы ведёте разработку в другом редакторе, зайдите на http://editorconfig.org
-# и в разделе "Download a Plugin" скачайте дополнение для вашего редактора.
+# For other editors, install the plugin listed at http://editorconfig.org.
 root = true
 
 [*]
