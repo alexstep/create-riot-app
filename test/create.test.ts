@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
-const repo = resolve(import.meta.dir, '../../..');
+const repo = resolve(import.meta.dir, '..');
 const cli = join(repo, 'bin/create-riot-app.ts');
 const fullstackModules = join(repo, 'templates/fullstack/node_modules');
 const spaModules = join(repo, 'templates/spa/node_modules');
