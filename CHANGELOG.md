@@ -9,10 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The default scaffold is a full-stack Bun app. `2.1.0` was the client-only template.
 
+### Breaking
+
+- `bunx create-riot-app my-app` now creates the full-stack app. Pass `--template spa` to get the client-only app that `2.x` created.
+
 ### Added
 
 - `templates/fullstack`. One Bun process serves a Hono API, server-rendered Riot pages (`/` and `/about`), and the client cabinet at `/app`.
 - `bunx create-riot-app my-app --template spa` scaffolds the previous client-only app. The default template name is `fullstack`. Unknown names are rejected.
+- Server-rendered landing pages with title, description, canonical, and Open Graph tags, plus `sitemap.xml` and `robots.txt`. Interactive parts of those pages are custom-element islands (`@riotjs/custom-elements`).
+- Live updates over one Server-Sent Events stream with `Last-Event-ID` resume. Without SharedWorker, one tab takes a Web Lock and runs the same hub for the others over a BroadcastChannel.
 - OpenAPI routes (`@hono/zod-openapi`), Scalar docs at `/api/docs`, and a typed `hc` client. A SharedWorker hub is the only browser client of the API. The Records screen (`/app/records`) validates a profile form and uploads files to `tmp/uploads`. One SSE stream updates every open tab. A service worker caches the app shell and disables offline writes. A failed fetch shows that the server is unreachable. An expired session sends every open tab to `/login`.
 - Demo auth: signed httpOnly cookie, bearer token of the same value, in-memory sessions, login rate limit, and CSRF protection for cookie auth.
 - `bun test` covers server HTML, auth, validation, and the OpenAPI document.

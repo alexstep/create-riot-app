@@ -78,7 +78,7 @@ The browser talks to this server only through `src/client/api.ts`. A SharedWorke
 
 Environment variables are checked with zod at boot. `.env.example` lists them. Nothing secret is committed. `PUBLIC_ORIGIN` is required when `NODE_ENV` is `production`. When that origin is `https`, responses include HSTS. A local `bun run start` on http does not send HSTS.
 
-`templates/fullstack/Dockerfile` builds on `oven/bun:1.4.3` in three stages (frozen production install, Vite and server build, slim runtime). The container runs as `bun`, reads `PORT`, and answers `GET /api/health`. Pass `SESSION_SECRET` and `DEMO_PASSWORD` when you start it. Set `DOCS_USER` and `DOCS_PASSWORD` as well when `/api/docs` should be on. See the full-stack README for `docker build` and `docker run`. The client-only template is served with `bun run preview`.
+`templates/fullstack/Dockerfile` builds on `oven/bun:1.4.3` in three stages (frozen production install, Vite and server build, slim runtime). The container runs as `bun`, reads `PORT`, and answers `GET /api/health`. Pass `SESSION_SECRET`, `DEMO_PASSWORD`, and `PUBLIC_ORIGIN` when you start it; production refuses to boot without `PUBLIC_ORIGIN`. Set `DOCS_USER` and `DOCS_PASSWORD` as well when `/api/docs` should be on. See the full-stack README for `docker build` and `docker run`. The client-only template is served with `bun run preview`.
 
 `@riotjs/ssr` `renderAsync` throws unless the mounted tag implements `onAsyncRendering`. Compiled tags do not expose that method, so a handler loads data and then calls `render`. Custom elements use shadow DOM: CSS variables inherit, and each island keeps the rules it needs in its own `<style>`.
 
