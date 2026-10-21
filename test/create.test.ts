@@ -43,6 +43,7 @@ describe('create-riot-app', () => {
     expect(result.status, result.stderr).toBe(0);
     expect(result.stdout).not.toContain('cp .env.example');
     expect(result.stdout).toContain('password "demo"');
+    expect(result.stdout).toContain('bun run test');
     await symlink(fullstackModules, join(dest, 'node_modules'), 'dir');
   });
 

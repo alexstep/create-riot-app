@@ -116,18 +116,19 @@ ${fouc}
 <link rel="stylesheet" href="${escapeHtml(assets.css)}">
 <style riot>${islandCss.replaceAll('</', '<\\/')}</style>
 </head>
-<body>
+<body class="site">
 <header class="site-header">
   <a class="brand" href="/">Riot app</a>
-  <nav>
-    <a href="/">Home</a>
-    <a href="/about">About</a>
-    ${theme}
-    <a href="/login">Log in</a>
-  </nav>
 </header>
-${themeLabel}
 <main>${body}</main>
+<footer class="site-footer">
+  <nav>
+    <a href="/about">About</a>
+    <a href="https://github.com/alexstep/create-riot-app" rel="noopener">GitHub</a>
+  </nav>
+  ${theme}
+</footer>
+${themeLabel}
 <script type="application/json" id="riot-state">${safeJson(state)}</script>
 <script type="module" src="${escapeHtml(assets.islands)}"></script>
 </body>

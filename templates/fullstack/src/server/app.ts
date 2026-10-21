@@ -9,6 +9,7 @@ import { secureHeaders } from 'hono/secure-headers';
 import { attachLive, defaultUploadDir, mountEvents } from '../api/live';
 import { routes } from '../api/routes';
 import { sessionIdFrom } from '../api/session';
+import { normalizeCabinetPath } from '../cabinet/paths';
 import { MAX_BODY_BYTES } from '../contract/schemas';
 import About from '../pages/about.riot';
 import Home from '../pages/home.riot';
@@ -92,9 +93,7 @@ function spaHtml(env: AppEnv): string {
 const contactHint = 'Send a note. It stays in memory on this server.';
 
 function loginLocation(path: string): string {
-  const next =
-    path === '/app' || path.startsWith('/app/') ? path : '/app/dashboard';
-  return `/login?next=${encodeURIComponent(next)}`;
+  return `/login?next=${encodeURIComponent(normalizeCabinetPath(path))}`;
 }
 
 export function createApp(
@@ -197,7 +196,7 @@ export function createApp(
       Home,
       {
         title: 'A Riot app on one server',
-        lead: 'Landing pages are rendered on the server. The cabinet is a client app after you log in.',
+        lead: 'Readable Riot tags, a typed Hono API, and a client cabinet. One Bun process serves all three.',
         hint: contactHint,
       },
       {
@@ -257,6 +256,8 @@ export function createApp(
 
   app.get('/app', (c) => c.redirect('/app/dashboard'));
   app.get('/app/*', (c) => {
+    const canonical = normalizeCabinetPath(c.req.path);
+    if (canonical !== c.req.path) return c.redirect(canonical);
     const html = spaHtml(env);
     const etag = `W/"${Bun.hash(html).toString(16)}"`;
     c.header('ETag', etag);

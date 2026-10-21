@@ -2,6 +2,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { errorBody } from '../contract/schemas';
+import groupsFile from '../fixtures/groups.json' with { type: 'json' };
 import {
   handleProfileGet,
   handleProfilePut,
@@ -43,6 +44,19 @@ const ItemBody = z
   .openapi('ItemInput');
 const Item = z.object({ id: z.string(), title: z.string() }).openapi('Item');
 const ItemList = z.object({ items: z.array(Item) }).openapi('ItemList');
+const Group = z
+  .object({
+    id: z.string().regex(/^[a-z0-9-]+$/),
+    title: z.string().min(1),
+    members: z.number().int().nonnegative(),
+    summary: z.string(),
+    image: z.string().regex(/^\/media\/groups\/[a-z0-9-]+\.svg$/),
+  })
+  .openapi('Group');
+const GroupList = z
+  .object({ groups: z.array(Group).min(1) })
+  .openapi('GroupList');
+const groupsFixture = GroupList.parse(groupsFile);
 const Hello = z
   .object({ message: z.string(), email: z.string().email().nullable() })
   .openapi('Hello');
@@ -208,6 +222,22 @@ const createItem = createRoute({
   },
 });
 
+const listGroups = createRoute({
+  method: 'get',
+  path: '/groups',
+  tags: ['groups'],
+  middleware: [authed()] as const,
+  security: [{ cookieAuth: [] }, { bearerAuth: [] }],
+  responses: {
+    200: {
+      description:
+        'Built-in groups for the signed-in user. Served from a local fixture.',
+      content: { 'application/json': { schema: GroupList } },
+    },
+    401: jsonError,
+  },
+});
+
 const deleteItem = createRoute({
   method: 'delete',
   path: '/items/{id}',
@@ -263,6 +293,11 @@ export const routes = new OpenAPIHono({
     const id = crypto.randomUUID();
     deps().contacts.push({ id, email: body.email, message: body.message });
     return c.json({ id, email: body.email }, 200);
+  })
+  .openapi(listGroups, (c) => {
+    const user = signedIn(c);
+    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+    return c.json(groupsFixture, 200);
   })
   .openapi(listItems, (c) => {
     const user = signedIn(c);

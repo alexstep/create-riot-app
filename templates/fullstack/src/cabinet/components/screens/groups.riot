@@ -1,58 +1,72 @@
 <groups>
-  <div class="screen screen-groups" id="screen_groups" data-topbar="scroll">
-    <spinner if="{state.loading}" text="Loading items..."></spinner>
+  <div class="screen screen-groups" id="screen_groups">
+    <div class="page">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">From this server</p>
+          <h1>Groups</h1>
+          <p class="muted">Sample groups from the API. No outside service.</p>
+        </div>
+      </header>
 
-    <div class="groups-list" if="{!state.loading && state.groups.length}">
-      <a
-        each="{group in state.groups}"
-        key="{group.id}"
-        href="/app/groups"
-        draggable="false"
-        data-id="{group.id}"
-        class="{'ripple group' + (state.selectedId === group.id ? ' is-selected' : '')}"
-        onclick="{selectGroup}"
-        onpointerenter="{playHover}"
-      >
-        <div class="img-wrap"
-          ><img
-            src="{group.thumbnailUrl}"
-            alt=""
-            draggable="false"
-            class="{state.broken[group.id] ? 'is-broken' : ''}"
-            onerror="{hideImage}"
-        /></div>
-        <b>{group.title}</b>
-        <span class="items" if="{group.albumId}">album: {group.albumId}</span>
-      </a>
-    </div>
+      <spinner if="{state.loading}" text="Loading groups..."></spinner>
 
-    <div class="no-groups" if="{!state.loading && !state.groups.length}">
-      No content...<br /><br />
-      <a
-        href="https://vk.com/groups"
-        draggable="false"
-        target="_blank"
-        rel="noopener"
-        >Create</a
-      >
+      <p class="banner is-error" role="alert" if="{!state.loading && state.error}">
+        {state.error}
+        <button type="button" class="ghost" onclick="{retry}">Try again</button>
+      </p>
+
+      <div class="group-grid" if="{!state.loading && state.groups.length}">
+        <button
+          each="{group in state.groups}"
+          key="{group.id}"
+          type="button"
+          draggable="false"
+          data-id="{group.id}"
+          class="{'group-card' + (state.selectedId === group.id ? ' is-selected' : '')}"
+          aria-pressed="{state.selectedId === group.id ? 'true' : 'false'}"
+          onclick="{selectGroup}"
+          onpointerenter="{playHover}"
+        >
+          <span class="group-media">
+            <img
+              src="{group.image}"
+              alt=""
+              draggable="false"
+              class="{state.broken[group.id] ? 'is-broken' : ''}"
+              onerror="{hideImage}"
+            />
+          </span>
+          <span class="group-copy">
+            <span class="group-title">{group.title}</span>
+            <span class="group-summary">{group.summary}</span>
+            <span class="group-meta">{group.members} members</span>
+          </span>
+        </button>
+      </div>
+
+      <p class="empty" if="{!state.loading && !state.error && !state.groups.length}">
+        No groups yet.
+      </p>
     </div>
   </div>
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot';
-    import { getPhotos, type Photo } from '../../../client/api';
+    import { listGroups, type Group } from '../../../client/api';
     import { playHover, sound } from '../../sounds';
 
     interface State {
       loading: boolean;
-      groups: Photo[];
-      selectedId: number | null;
-      broken: Record<number, true>;
+      error: string;
+      groups: Group[];
+      selectedId: string | null;
+      broken: Record<string, true>;
     }
 
     interface Groups extends RiotComponent<object, State> {
-      loadTimer: number;
       load(): Promise<void>;
+      retry(): void;
       selectGroup(event: Event): void;
       playHover(event: PointerEvent): void;
       hideImage(event: Event): void;
@@ -61,38 +75,41 @@
     export default withTypes<Groups>(() => ({
       state: {
         loading: true,
+        error: '',
         groups: [],
         selectedId: null,
         broken: {},
       },
-      loadTimer: 0,
       onMounted() {
-        this.loadTimer = window.setTimeout(() => {
-          void this.load();
-        }, 1000);
-      },
-      onBeforeUnmount() {
-        window.clearTimeout(this.loadTimer);
+        void this.load();
       },
       async load() {
+        this.update({ loading: true, error: '' });
         try {
-          const groups = await getPhotos(10);
-          this.update({ groups, loading: false });
+          const groups = await listGroups();
+          this.update({ groups, loading: false, error: '' });
         } catch {
-          this.update({ groups: [], loading: false });
+          this.update({
+            groups: [],
+            loading: false,
+            error: 'Could not load groups.',
+          });
         }
       },
+      retry() {
+        void this.load();
+      },
       selectGroup(event) {
-        event.preventDefault();
-        const id = Number((event.currentTarget as HTMLElement).dataset.id);
+        const id = (event.currentTarget as HTMLElement).dataset.id ?? '';
+        if (!id) return;
         sound.card();
-        if (Number.isFinite(id)) this.update({ selectedId: id });
+        this.update({ selectedId: this.state.selectedId === id ? null : id });
       },
       playHover,
       hideImage(event) {
         const img = event.currentTarget as HTMLImageElement;
-        const id = Number(img.closest('a')?.getAttribute('data-id'));
-        if (!Number.isFinite(id) || this.state.broken[id]) return;
+        const id = img.closest('button')?.getAttribute('data-id') ?? '';
+        if (!id || this.state.broken[id]) return;
         this.update({ broken: { ...this.state.broken, [id]: true } });
       },
     }));

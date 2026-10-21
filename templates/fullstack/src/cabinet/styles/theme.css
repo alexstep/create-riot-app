@@ -32,6 +32,18 @@ html[data-theme="light"] {
   --switch-bg: #fff;
   --switch-border: #c5c9ce;
   --switch-text: #333;
+  --line: #e4e7ec;
+  --danger: #9f1239;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --radius: 12px;
+  --content: 1040px;
+  --content-narrow: 720px;
   --topbar-height: 58px;
   --drawer-width: 240px;
   --drawer-handler-width: 50px;
@@ -69,6 +81,8 @@ html[data-theme="dark"] {
   --switch-bg: #222833;
   --switch-border: #3c4654;
   --switch-text: #e7eaee;
+  --line: #313844;
+  --danger: #ffb4c4;
 }
 
 html[data-theme="dark"] #app {

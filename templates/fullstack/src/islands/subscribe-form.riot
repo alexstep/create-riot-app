@@ -42,15 +42,22 @@
 
   <style>
     :host .hint {
-      margin: 0 0 8px;
-      font-size: 16px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
     }
 
     :host form {
       display: grid;
-      gap: 12px;
-      max-width: 360px;
-      margin-top: 24px;
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
     }
 
     input,
@@ -58,13 +65,30 @@
       font: inherit;
     }
 
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      border: 1px solid var(--switch-border);
+      border-radius: 8px;
+      background: var(--switch-bg);
+      color: var(--card-text);
+    }
+
     button {
       width: fit-content;
       background: var(--main-bg);
       color: var(--text-on-main);
       border: 0;
-      padding: 8px 14px;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-weight: 600;
       cursor: pointer;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
     }
   </style>
 </subscribe-form>

@@ -1,10 +1,52 @@
 <about>
-  <h1>About</h1>
-  <p>
-    This server renders the landing pages, serves a JSON API, and hands the signed-in cabinet to a
-    client-side Riot app. One Bun process does all three.
-  </p>
-  <p>Add a page by rendering a Riot tag from <code>src/server/app.ts</code>. The cabinet stays under <code>/app</code>.</p>
+  <section class="hero hero-plain">
+    <p class="eyebrow">How it fits together</p>
+    <h1>About</h1>
+    <p class="lead">
+      This server renders the landing pages, serves a JSON API, and hands the signed-in cabinet to a
+      client-side Riot app. One Bun process does all three.
+    </p>
+  </section>
+
+  <section class="band">
+    <h2>Where a change goes</h2>
+    <ul class="feature-grid">
+      <li>
+        <h3>Pages</h3>
+        <p>Add a Riot tag under src/pages and render it from src/server/app.ts. The first response includes the markup.</p>
+      </li>
+      <li>
+        <h3>Islands</h3>
+        <p>Interactive pieces are custom elements. The client hydrates the nodes that are already there.</p>
+      </li>
+      <li>
+        <h3>Cabinet</h3>
+        <p>The signed-in app stays under /app. One cached document serves every screen.</p>
+      </li>
+      <li>
+        <h3>API</h3>
+        <p>Routes are zod schemas on the Hono app. Docs are at /api/docs. The groups list is a fixture on this server.</p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="band">
+    <h2>The same shape</h2>
+    <div class="samples">
+      <figure>
+        <figcaption>A page tag</figcaption>
+        <pre class="code"><code><span class="tok-tag">&lt;about&gt;</span>
+  <span class="tok-tag">&lt;h1&gt;</span>About<span class="tok-tag">&lt;/h1&gt;</span>
+<span class="tok-tag">&lt;/about&gt;</span></code></pre>
+      </figure>
+      <figure>
+        <figcaption>A route</figcaption>
+        <pre class="code"><code>app.get(<span class="tok-str">'/about'</span>, (c) =&gt;
+  renderPage(c, env, <span class="tok-str">'about'</span>, About)
+)</code></pre>
+      </figure>
+    </div>
+  </section>
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot';

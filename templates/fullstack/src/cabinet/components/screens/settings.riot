@@ -1,42 +1,58 @@
 <settings>
   <div class="screen screen-settings" id="screen_settings">
-    <button type="button" draggable="false" onclick="{onOption}"
-      >Some option</button
-    >
-    <div
-      class="theme-switch"
-      data-theme-control
-      role="group"
-      aria-label="Theme"
-    >
-      <span>Theme</span>
-      <button
-        type="button"
-        draggable="false"
-        data-choice="light"
-        class="{state.choice === 'light' ? 'is-active' : ''}"
-        aria-pressed="{state.choice === 'light' ? 'true' : 'false'}"
-        onclick="{pick}"
-        >Light</button
-      >
-      <button
-        type="button"
-        draggable="false"
-        data-choice="dark"
-        class="{state.choice === 'dark' ? 'is-active' : ''}"
-        aria-pressed="{state.choice === 'dark' ? 'true' : 'false'}"
-        onclick="{pick}"
-        >Dark</button
-      >
-      <button
-        type="button"
-        draggable="false"
-        data-choice="system"
-        class="{state.choice === 'system' ? 'is-active' : ''}"
-        aria-pressed="{state.choice === 'system' ? 'true' : 'false'}"
-        onclick="{pick}"
-        >System</button
-      >
+    <div class="page narrow">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Preferences</p>
+          <h1>Settings</h1>
+          <p class="muted">Stored in this browser.</p>
+        </div>
+      </header>
+
+      <section class="card">
+        <h2>Appearance</h2>
+        <p class="muted">Light, dark, or match the system.</p>
+        <div
+          class="theme-switch"
+          data-theme-control
+          role="group"
+          aria-label="Theme"
+        >
+          <button
+            type="button"
+            draggable="false"
+            data-choice="light"
+            class="{state.choice === 'light' ? 'is-active' : ''}"
+            aria-pressed="{state.choice === 'light' ? 'true' : 'false'}"
+            onclick="{pick}"
+            >Light</button
+          >
+          <button
+            type="button"
+            draggable="false"
+            data-choice="dark"
+            class="{state.choice === 'dark' ? 'is-active' : ''}"
+            aria-pressed="{state.choice === 'dark' ? 'true' : 'false'}"
+            onclick="{pick}"
+            >Dark</button
+          >
+          <button
+            type="button"
+            draggable="false"
+            data-choice="system"
+            class="{state.choice === 'system' ? 'is-active' : ''}"
+            aria-pressed="{state.choice === 'system' ? 'true' : 'false'}"
+            onclick="{pick}"
+            >System</button
+          >
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Sounds</h2>
+        <p class="muted">A short tick when you press a control.</p>
+        <button type="button" class="ghost" draggable="false" onclick="{onOption}">Play tick</button>
+      </section>
     </div>
   </div>
 

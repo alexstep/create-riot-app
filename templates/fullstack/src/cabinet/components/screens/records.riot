@@ -1,7 +1,7 @@
 <records>
   <div class="screen screen-data">
-  <div class="data-layer">
-    <header class="top">
+  <div class="page narrow">
+    <header class="page-head">
       <div>
         <p class="eyebrow">Riot + Hono</p>
         <h1>Records</h1>
@@ -11,10 +11,10 @@
 
     <p class="banner" role="status" if={state.notice}>{state.notice}</p>
 
-    <section class="panel">
+    <section class="card">
       <h2>Profile</h2>
       <p class="version" if={state.version}>Version {state.version}</p>
-      <form onsubmit={save}>
+      <form class="stack" onsubmit={save}>
         <label>
           Name
           <input name="name" value={state.name} oninput={edit} disabled={state.offline} autocomplete="name" />
@@ -35,7 +35,7 @@
       </form>
     </section>
 
-    <section class="panel">
+    <section class="card">
       <h2>Files</h2>
       <div
         class={'drop' + (state.over ? ' is-over' : '')}
@@ -57,7 +57,7 @@
       <p class="empty" if={state.files.length === 0}>No files yet.</p>
     </section>
 
-    <section class="panel">
+    <section class="card">
       <h2>Hub log</h2>
       <p class="hint">Open this page in two more tabs. A profile save or a curl PUT should add one network line, then an event, on every tab.</p>
       <ol class="log">
@@ -65,78 +65,6 @@
       </ol>
     </section>
   </div>
-
-  <style>
-    .data-layer {
-      display: grid;
-      gap: 16px;
-      max-width: 720px;
-    }
-    .panel {
-      background: var(--card-bg);
-      color: var(--card-text);
-      padding: 16px;
-      border-radius: 4px;
-    }
-    label {
-      display: grid;
-      gap: 4px;
-      margin-bottom: 12px;
-    }
-    input,
-    textarea,
-    button {
-      font: inherit;
-    }
-    .error {
-      color: #9f1239;
-    }
-    .banner {
-      background: var(--header-bg);
-      padding: 8px 12px;
-    }
-    .drop {
-      border: 1px dashed var(--muted);
-      padding: 16px;
-    }
-    .drop.is-over {
-      background: var(--card-selected);
-    }
-    .top {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .eyebrow {
-      margin: 0;
-      color: var(--muted);
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-    h1 {
-      margin: 4px 0 0;
-      font-size: 32px;
-      font-weight: 600;
-      line-height: 1.1;
-    }
-    .transport {
-      margin: 0 0 4px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    button:disabled,
-    input:disabled,
-    textarea:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-    }
-    .log {
-      max-height: 180px;
-      overflow: auto;
-    }
-  </style>
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot';

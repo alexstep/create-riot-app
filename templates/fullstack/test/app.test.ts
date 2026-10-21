@@ -38,7 +38,8 @@ describe('pages', () => {
     expect(html).toContain('rel="canonical" href="http://localhost/"');
     expect(html).toContain('<theme-toggle>');
     expect(html).toContain('<button type="button">Theme</button>');
-    expect(html).toContain('<a href="/login">Log in</a>');
+    expect(html).toContain('href="/login">Log in</a>');
+    expect(html).not.toContain('>Home</a>');
     expect(html).toContain('<subscribe-form');
     expect(html).toContain('name="email"');
     expect(html).toContain('Send a note. It stays in memory on this server.');
@@ -88,6 +89,24 @@ describe('pages', () => {
     ).text();
     expect(site).toContain('http://localhost/about');
     expect(site).not.toContain('/login');
+    for (const path of [
+      '/app/dashboard',
+      '/app/groups',
+      '/app/settings',
+      '/app/records',
+      '/app/app',
+    ]) {
+      expect(site).not.toContain(path);
+    }
+    const blocked = robots
+      .split('\n')
+      .filter((line) => line.startsWith('Disallow:'))
+      .map((line) => line.slice('Disallow:'.length).trim());
+    const blocks = (path: string) =>
+      blocked.some((rule) => rule !== '' && path.startsWith(rule));
+    expect(blocks('/app/groups')).toBe(true);
+    expect(blocks('/app/app/groups')).toBe(true);
+    expect(blocks('/')).toBe(false);
   });
 });
 
@@ -194,8 +213,57 @@ describe('auth and api', () => {
     expect(spec.paths?.['/api/me']).toBeTruthy();
     expect(spec.paths?.['/api/items']).toBeTruthy();
     expect(spec.paths?.['/api/login']).toBeTruthy();
+    expect(spec.paths?.['/api/groups']).toBeTruthy();
     const info = spec as { info?: { version?: string } };
     expect(info.info?.version).toBe('1.0.0');
+  });
+
+  test('groups come from the local fixture and a doubled prefix redirects', async () => {
+    const anon = await app.request('http://localhost/api/groups');
+    expect(anon.status).toBe(401);
+
+    const loginRedirect = await app.request('http://localhost/app/app/groups');
+    expect(loginRedirect.status).toBe(302);
+    expect(loginRedirect.headers.get('location')).toBe(
+      '/login?next=%2Fapp%2Fgroups',
+    );
+
+    const id = await login();
+    const groups = await app.request('http://localhost/api/groups', {
+      headers: { cookie: `session=${id}` },
+    });
+    expect(groups.status).toBe(200);
+    const body = (await groups.json()) as {
+      groups: { id: string; title: string; image: string; members: number }[];
+    };
+    expect(body.groups.map((group) => group.title)).toContain('Harbor');
+    expect(body.groups.length).toBeGreaterThan(0);
+    const payload = JSON.stringify(body);
+    expect(payload).not.toContain('jsonplaceholder');
+    expect(payload).not.toContain('http://');
+    expect(payload).not.toContain('https://');
+    for (const group of body.groups) {
+      expect(group.image.startsWith('/media/groups/')).toBe(true);
+      expect(group.image.endsWith('.svg')).toBe(true);
+      expect(group.members).toBeGreaterThan(0);
+    }
+
+    const doubled = await app.request('http://localhost/app/app/groups', {
+      headers: { cookie: `session=${id}` },
+    });
+    expect(doubled.status).toBe(302);
+    expect(doubled.headers.get('location')).toBe('/app/groups');
+
+    const canonical = await app.request('http://localhost/app/groups', {
+      headers: { cookie: `session=${id}` },
+    });
+    expect(canonical.status).toBe(200);
+
+    const unknown = await app.request('http://localhost/app/nope', {
+      headers: { cookie: `session=${id}` },
+    });
+    expect(unknown.status).toBe(302);
+    expect(unknown.headers.get('location')).toBe('/app/dashboard');
   });
 
   test('items require a session', async () => {

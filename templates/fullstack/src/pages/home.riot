@@ -1,7 +1,90 @@
 <home>
-  <h1>{props.title}</h1>
-  <p>{props.lead}</p>
-  <subscribe-form hint="{props.hint}"></subscribe-form>
+  <section class="hero">
+    <p class="eyebrow">Bun, Riot, and Hono</p>
+    <h1>{props.title}</h1>
+    <p class="lead">{props.lead}</p>
+    <a class="cta" href="/login">Log in</a>
+    <div class="command">
+      <p class="command-label">Create a project</p>
+      <pre><code>bunx create-riot-app@latest my-app</code></pre>
+    </div>
+  </section>
+
+  <section class="band">
+    <h2>What you get</h2>
+    <ul class="feature-grid">
+      <li>
+        <h3>Readable Riot tags</h3>
+        <p>A page is a small file: markup, a typed script, and scoped style.</p>
+      </li>
+      <li>
+        <h3>Bun and Hono</h3>
+        <p>One process serves pages, the API, and the cabinet. Dev and production use the same app.</p>
+      </li>
+      <li>
+        <h3>Server render, then hydrate</h3>
+        <p>The first HTML already has the page. The client binds those nodes instead of drawing a second copy.</p>
+      </li>
+      <li>
+        <h3>Custom-element islands</h3>
+        <p>Theme, contact, and login are real elements in the document, with their style inlined before paint.</p>
+      </li>
+      <li>
+        <h3>One typed API</h3>
+        <p>A zod route is the contract. Hono RPC calls it, and Scalar shows it at /api/docs.</p>
+      </li>
+      <li>
+        <h3>A hub for every tab</h3>
+        <p>A SharedWorker is the only browser client of the API and shares snapshots across tabs.</p>
+      </li>
+      <li>
+        <h3>Offline shell</h3>
+        <p>A service worker caches the cabinet document and refuses writes until the network returns.</p>
+      </li>
+      <li>
+        <h3>Live updates</h3>
+        <p>One Server-Sent Events stream resumes with Last-Event-ID and refreshes every open tab.</p>
+      </li>
+      <li>
+        <h3>File uploads</h3>
+        <p>The Records screen sends files with progress and stores them under tmp/uploads.</p>
+      </li>
+      <li>
+        <h3>Tiny scripts</h3>
+        <p>The landing script is 2.09 kB gzip. The cabinet script is 14.29 kB gzip.</p>
+      </li>
+      <li>
+        <h3>One Dockerfile</h3>
+        <p>A multi-stage oven/bun image runs the same process, with a health check on /api/health.</p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="band">
+    <h2>A tag and a route</h2>
+    <div class="samples">
+      <figure>
+        <figcaption>hello.riot</figcaption>
+        <pre class="code"><code><span class="tok-tag">&lt;hello&gt;</span>
+  <span class="tok-tag">&lt;p&gt;</span>&#123; props.name &#125;<span class="tok-tag">&lt;/p&gt;</span>
+<span class="tok-tag">&lt;/hello&gt;</span></code></pre>
+      </figure>
+      <figure>
+        <figcaption>src/api/routes.ts</figcaption>
+        <pre class="code"><code><span class="tok-key">const</span> hello = createRoute(&#123;
+  method: <span class="tok-str">'get'</span>,
+  path: <span class="tok-str">'/hello'</span>,
+&#125;)</code></pre>
+      </figure>
+    </div>
+  </section>
+
+  <section class="band contact">
+    <h2>Contact</h2>
+    <div class="card">
+      <subscribe-form hint="{props.hint}"></subscribe-form>
+    </div>
+  </section>
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot';

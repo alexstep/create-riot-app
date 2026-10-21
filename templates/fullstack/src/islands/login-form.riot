@@ -19,6 +19,7 @@
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot';
+    import { cabinetReturnPath } from '../cabinet/paths';
     import { login } from '../client/api';
 
     interface Props {
@@ -44,13 +45,7 @@
           return;
         }
         const next = new URLSearchParams(window.location.search).get('next') ?? '';
-        const dest =
-          (next === '/app' || next.startsWith('/app/')) &&
-          !next.includes('\\') &&
-          !next.includes('://')
-            ? next
-            : '/app/dashboard';
-        window.location.assign(dest);
+        window.location.assign(cabinetReturnPath(next));
       },
     }));
   </script>
@@ -58,8 +53,14 @@
   <style>
     :host form {
       display: grid;
-      gap: 12px;
-      max-width: 360px;
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
     }
 
     input,
@@ -67,13 +68,31 @@
       font: inherit;
     }
 
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      border: 1px solid var(--switch-border);
+      border-radius: 8px;
+      background: var(--switch-bg);
+      color: var(--card-text);
+    }
+
     button {
       width: fit-content;
       background: var(--main-bg);
       color: var(--text-on-main);
       border: 0;
-      padding: 8px 14px;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-weight: 600;
       cursor: pointer;
+    }
+
+    p {
+      margin: 0;
+      color: var(--danger);
+      font-size: 14px;
     }
   </style>
 </login-form>

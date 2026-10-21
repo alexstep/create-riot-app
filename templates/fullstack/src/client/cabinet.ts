@@ -1,3 +1,4 @@
+import { cabinetReturnPath } from '../cabinet/paths';
 import type { FileMeta, Profile } from '../contract/schemas';
 import {
   type Client,
@@ -46,7 +47,9 @@ export async function startCabinet(origin = location.origin): Promise<Cabinet> {
     sessionLost = true;
     if (location.pathname.startsWith('/login')) return;
     const back = `${location.pathname}${location.search}`;
-    location.assign(`/login?next=${encodeURIComponent(returnPath(back))}`);
+    location.assign(
+      `/login?next=${encodeURIComponent(cabinetReturnPath(back))}`,
+    );
   });
   return {
     client,
@@ -69,14 +72,6 @@ export async function startCabinet(origin = location.origin): Promise<Cabinet> {
       return downloadUrl(client, id);
     },
   };
-}
-
-function returnPath(path: string): string {
-  const ok =
-    (path === '/app' || path.startsWith('/app/')) &&
-    !path.includes('\\') &&
-    !path.includes('://');
-  return ok ? path : '/app/dashboard';
 }
 
 function toView(state: Snapshot, sessionLost: boolean): CabinetView {

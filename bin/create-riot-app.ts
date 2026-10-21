@@ -212,6 +212,7 @@ Next:
 Next:
   cd ${folder}
   bun run dev      # http://localhost:3000
+  bun run test     # not a bare bun test
   bun run build && bun run start
 ${signIn}`);
 }

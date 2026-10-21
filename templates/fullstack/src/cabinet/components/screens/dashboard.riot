@@ -1,17 +1,34 @@
 <dashboard>
   <div class="screen screen-dashboard" id="screen_dashboard">
-    <h1>Dashboard !!!</h1>
-    <p class="signed-in" if="{state.email}">Signed in as {state.email}</p>
-    <form class="item-form" onsubmit="{addItem}">
-      <input name="title" placeholder="New item" required />
-      <button type="submit">Add</button>
-    </form>
-    <ul class="items">
-      <li each="{item in state.items}" key="{item.id}">
-        <span>{item.title}</span>
-        <button type="button" data-id="{item.id}" onclick="{removeClick}">Remove</button>
-      </li>
-    </ul>
+    <div class="page narrow">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Cabinet</p>
+          <h1>Dashboard</h1>
+          <p class="muted" if="{state.email}">Signed in as {state.email}</p>
+        </div>
+      </header>
+
+      <p class="status" if="{state.loading}">Loading items...</p>
+      <p class="banner is-error" role="alert" if="{!state.loading && state.error}">{state.error}</p>
+
+      <section class="card" if="{!state.loading && !state.error}">
+        <h2>Items</h2>
+        <p class="muted">Stored for this session on the server.</p>
+        <form class="composer" onsubmit="{addItem}">
+          <input name="title" placeholder="New item" required autocomplete="off" />
+          <button type="submit">Add</button>
+        </form>
+        <p class="form-error" if="{state.formError}">{state.formError}</p>
+        <p class="empty" if="{!state.items.length}">No items yet. Add one above.</p>
+        <ul class="item-list" if="{state.items.length}">
+          <li each="{item in state.items}" key="{item.id}">
+            <span>{item.title}</span>
+            <button type="button" class="ghost" data-id="{item.id}" onclick="{removeClick}">Remove</button>
+          </li>
+        </ul>
+      </section>
+    </div>
   </div>
 
   <script lang="ts">
@@ -27,28 +44,43 @@
     interface State {
       email: string;
       items: Item[];
+      loading: boolean;
+      error: string;
+      formError: string;
     }
 
     export default withTypes<RiotComponent<object, State>>({
-      state: { email: '', items: [] },
+      state: { email: '', items: [], loading: true, error: '', formError: '' },
       async onMounted() {
-        const email = await currentEmail();
-        const items = await listItems();
-        this.update({ email, items });
+        try {
+          const email = await currentEmail();
+          const items = await listItems();
+          this.update({ email, items, loading: false, error: '' });
+        } catch {
+          this.update({ loading: false, error: 'Could not load items.' });
+        }
       },
       async addItem(event: Event) {
         event.preventDefault();
         const form = event.currentTarget as HTMLFormElement;
         const title = String(new FormData(form).get('title') ?? '');
         const item = await createItem(title);
-        if (!item) return;
-        this.update({ items: this.state.items.concat(item) });
+        if (!item) {
+          this.update({ formError: 'Could not add that item.' });
+          return;
+        }
+        this.update({
+          items: this.state.items.concat(item),
+          formError: '',
+        });
         form.reset();
       },
       async removeClick(event: Event) {
         const id = (event.currentTarget as HTMLButtonElement).dataset.id ?? '';
         if (!(await deleteItem(id))) return;
-        this.update({ items: this.state.items.filter((item) => item.id !== id) });
+        this.update({
+          items: this.state.items.filter((item) => item.id !== id),
+        });
       },
     });
   </script>

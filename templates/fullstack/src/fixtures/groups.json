@@ -1,0 +1,46 @@
+{
+  "groups": [
+    {
+      "id": "harbor",
+      "title": "Harbor",
+      "members": 24,
+      "summary": "Notes from the pier. This group lives on this server.",
+      "image": "/media/groups/harbor.svg"
+    },
+    {
+      "id": "north-line",
+      "title": "North line",
+      "members": 11,
+      "summary": "The morning route, shared with the cabinet.",
+      "image": "/media/groups/north-line.svg"
+    },
+    {
+      "id": "glasshouse",
+      "title": "Glasshouse",
+      "members": 42,
+      "summary": "Plants, light, and a short weekly note.",
+      "image": "/media/groups/glasshouse.svg"
+    },
+    {
+      "id": "archive",
+      "title": "Archive",
+      "members": 8,
+      "summary": "Filed records the server already knows.",
+      "image": "/media/groups/archive.svg"
+    },
+    {
+      "id": "lantern",
+      "title": "Lantern",
+      "members": 17,
+      "summary": "After-dark reading. Nothing leaves this origin.",
+      "image": "/media/groups/lantern.svg"
+    },
+    {
+      "id": "workshop",
+      "title": "Workshop",
+      "members": 31,
+      "summary": "Small builds that stay on this machine.",
+      "image": "/media/groups/workshop.svg"
+    }
+  ]
+}

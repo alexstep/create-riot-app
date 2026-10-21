@@ -12,7 +12,7 @@
 #drawer,
 .drawer-overlay,
 button,
-.groups-list .group {
+.group-card {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
@@ -32,7 +32,7 @@ select,
   .toggle-drawer,
   #drawer .menu-items a,
   #drawer .user-info,
-  .groups-list .group
+  .group-card
 ) {
   transition: transform 0.1s linear;
 }
@@ -42,7 +42,7 @@ select,
   .toggle-drawer,
   #drawer .menu-items a,
   #drawer .user-info,
-  .groups-list .group
+  .group-card
 ):active {
   transform: scale(0.98);
 }
@@ -53,7 +53,7 @@ select,
     .toggle-drawer,
     #drawer .menu-items a,
     #drawer .user-info,
-    .groups-list .group
+    .group-card
   ) {
     transition: none;
   }
@@ -63,7 +63,7 @@ select,
     .toggle-drawer,
     #drawer .menu-items a,
     #drawer .user-info,
-    .groups-list .group
+    .group-card
   ):active {
     transform: none;
   }
