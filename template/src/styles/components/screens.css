@@ -3,10 +3,38 @@
   text-align: center;
 }
 
-#screen_settings button {
+#screen_settings > button {
   margin: 20%;
   text-align: center;
   padding: 10px 20px;
+}
+
+.theme-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 16px 32px;
+  color: var(--switch-text);
+  font-size: 14px;
+
+  button {
+    margin: 0;
+    padding: 6px 12px;
+    border: 1px solid var(--switch-border);
+    border-radius: 2px;
+    background: var(--switch-bg);
+    color: var(--switch-text);
+    font: inherit;
+    cursor: pointer;
+
+    &.is-active {
+      background: var(--main-bg);
+      border-color: var(--main-bg);
+      color: var(--text-on-main);
+    }
+  }
 }
 
 .no-groups {

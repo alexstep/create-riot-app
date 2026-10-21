@@ -23,6 +23,7 @@ const MAX_MISMATCH = 0.002
 
 const args = process.argv.slice(2)
 const update = args.includes('--update')
+const updateDark = args.includes('--update-dark')
 const urlIndex = args.indexOf('--url')
 const givenUrl = urlIndex >= 0 ? args[urlIndex + 1] : undefined
 
@@ -125,7 +126,7 @@ async function showGroups(page: Page) {
 async function showSettings(page: Page) {
   await openDrawer(page)
   await clickAny(page, ['a[href="/settings/"]', 'a[href="/settings"]'])
-  await page.locator('#screen_settings button').waitFor()
+  await page.getByRole('button', { name: 'Some option' }).waitFor()
   await page.locator('.drawer-wrap:not(.show)').waitFor()
   await settle(page)
 }
@@ -148,6 +149,7 @@ async function checkBehavior(browser: Browser, url: string) {
   const page = await browser.newPage({
     viewport: VIEWPORTS.desktop,
     deviceScaleFactor: 1,
+    colorScheme: 'light',
   })
   track(page)
   await page.addInitScript(AUDIO_HOOK)
@@ -192,6 +194,16 @@ async function checkBehavior(browser: Browser, url: string) {
     throw new Error(`Клик по пункту меню не запустил tick: ${afterNav.join(', ')}`)
   }
 
+  await openDrawer(page)
+  await clickAny(page, ['a[href="/settings/"]', 'a[href="/settings"]'])
+  await page.locator('[data-choice="dark"]').click()
+  await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark' && localStorage.getItem('theme') === 'dark')
+  await page.reload({ waitUntil: 'load' })
+  await page.locator('[data-choice="system"]').waitFor()
+  await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark')
+  await page.locator('[data-choice="system"]').click()
+  await page.waitForFunction(() => !document.documentElement.hasAttribute('data-theme') && localStorage.getItem('theme') === null)
+
   await page.close()
 }
 
@@ -199,10 +211,10 @@ function nameOf(viewport: ViewportName, scene: Scene) {
   return `${viewport}-${scene}.png`
 }
 
-async function compareOne(viewport: ViewportName, scene: Scene, actual: Buffer) {
+async function compareOne(baselineRoot: string, actualRoot: string, diffRoot: string, viewport: ViewportName, scene: Scene, actual: Buffer) {
   const name = nameOf(viewport, scene)
-  await writeFile(join(actualDir, name), actual)
-  const baselinePath = join(baselinesDir, name)
+  await writeFile(join(actualRoot, name), actual)
+  const baselinePath = join(baselineRoot, name)
   let baseline: Buffer
   try {
     baseline = await readFile(baselinePath)
@@ -229,7 +241,7 @@ async function compareOne(viewport: ViewportName, scene: Scene, actual: Buffer) 
     threshold: 0,
     includeAA: true,
   })
-  await writeFile(join(diffDir, name), PNG.sync.write(diff))
+  await writeFile(join(diffRoot, name), PNG.sync.write(diff))
   const total = expected.width * expected.height
   return {
     name,
@@ -269,33 +281,54 @@ const browser = await chromium.launch({
   args: ['--font-render-hinting=none', '--disable-lcd-text'],
 })
 
-try {
-  console.log(`Поведение: ${url}`)
-  await checkBehavior(browser, url)
+const HIDE_THEME_CONTROL = '[data-theme-control]{display:none !important}'
 
+async function runShots(theme: 'light' | 'dark', writeBaseline: boolean) {
+  const baselineRoot = theme === 'dark' ? join(baselinesDir, 'dark') : baselinesDir
+  const actualRoot = theme === 'dark' ? join(actualDir, 'dark') : actualDir
+  const diffRoot = theme === 'dark' ? join(diffDir, 'dark') : diffDir
+  await mkdir(baselineRoot, { recursive: true })
+  await mkdir(actualRoot, { recursive: true })
+  await mkdir(diffRoot, { recursive: true })
   const rows: { name: string; mismatch: number; strict: number; pixels: number; note: string }[] = []
+
   for (const viewport of Object.keys(VIEWPORTS) as ViewportName[]) {
     const page = await browser.newPage({
       viewport: VIEWPORTS[viewport],
       deviceScaleFactor: 1,
+      colorScheme: theme,
     })
     track(page)
+    await page.addInitScript(AUDIO_HOOK)
+    await page.addInitScript(`try { localStorage.setItem('theme', '${theme}') } catch (e) {}`)
     for (const scene of SCENES) {
       if (scene === 'dashboard') {
         await gotoApp(page, url)
         await freezeMotion(page)
+        if (theme === 'light') await page.addStyleTag({ content: HIDE_THEME_CONTROL })
       }
       const png = await capture(page, scene)
-      const name = nameOf(viewport, scene)
-      if (update) {
-        await writeFile(join(baselinesDir, name), png)
+      const name = `${theme} ${nameOf(viewport, scene)}`
+      if (writeBaseline) {
+        await writeFile(join(baselineRoot, nameOf(viewport, scene)), png)
         console.log(`эталон ${name}`)
       } else {
-        rows.push(await compareOne(viewport, scene, png))
+        const row = await compareOne(baselineRoot, actualRoot, diffRoot, viewport, scene, png)
+        rows.push({ ...row, name })
       }
     }
     await page.close()
   }
+  return rows
+}
+
+try {
+  console.log(`Поведение: ${url}`)
+  await checkBehavior(browser, url)
+
+  const lightRows = await runShots('light', update)
+  const darkRows = await runShots('dark', updateDark)
+  const rows = [...lightRows, ...darkRows]
 
   if (consoleErrors.length) {
     console.error('Ошибки консоли:')

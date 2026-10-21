@@ -1,0 +1,104 @@
+/* Light tokens match the legacy demo exactly. Dark tokens live on
+   [data-theme="dark"] and, when the user has not chosen, on the system scheme. */
+
+:root {
+  --page-bg: #fff;
+  --main-bg: #5181b8;
+  --text-on-main: #fff;
+  --header-bg: hsl(from var(--main-bg) h s calc(l + 30));
+  --header-overlay: rgba(0, 0, 0, 0.7);
+  --drawer-bg: #fff;
+  --drawer-text: #0a0e14;
+  --icon-color: #abafb4;
+  --selected-bg: #f0f1f2;
+  --selected-icon: #658fbf;
+  --selected-text: #4c7eb7;
+  --card-bg: #fff;
+  --card-text: #333;
+  --groups-canvas: #f0f0f0;
+  --card-hover: #f9f9f9;
+  --card-selected: #e7eef6;
+  --avatar-fallback: #aaf;
+  --muted: #aaa;
+  --card-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  --card-hover-shadow: 1px 1px 0px rgba(0, 0, 0, 0.1);
+  --topbar-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  --overlay: rgba(0, 0, 0, 0.7);
+  --drawer-shadow: 0 0 20px #000;
+  --spinner-text: #777;
+  --switch-bg: #fff;
+  --switch-border: #c5c9ce;
+  --switch-text: #333;
+  --topbar-height: 58px;
+  --drawer-width: 240px;
+  --drawer-speed: 0.3s;
+  --header-height: 205px;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --page-bg: #14171c;
+  --main-bg: #3d6d9e;
+  --text-on-main: #f4f7fb;
+  --header-bg: #1b2838;
+  --header-overlay: rgba(0, 0, 0, 0.45);
+  --drawer-bg: #1c2128;
+  --drawer-text: #e7eaee;
+  --icon-color: #aeb6c0;
+  --selected-bg: #2a3340;
+  --selected-icon: #8eb4e0;
+  --selected-text: #c5d8ef;
+  --card-bg: #222833;
+  --card-text: #e7eaee;
+  --groups-canvas: #101318;
+  --card-hover: #2a3140;
+  --card-selected: #243246;
+  --avatar-fallback: #314056;
+  --muted: #9aa3ad;
+  --card-shadow: 1px 1px 2px rgba(0, 0, 0, 0.35);
+  --card-hover-shadow: 1px 1px 0px rgba(0, 0, 0, 0.4);
+  --topbar-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
+  --overlay: rgba(0, 0, 0, 0.72);
+  --drawer-shadow: 0 0 20px #000;
+  --spinner-text: #b0b6bf;
+  --switch-bg: #222833;
+  --switch-border: #3c4654;
+  --switch-text: #e7eaee;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page-bg: #14171c;
+    --main-bg: #3d6d9e;
+    --text-on-main: #f4f7fb;
+    --header-bg: #1b2838;
+    --header-overlay: rgba(0, 0, 0, 0.45);
+    --drawer-bg: #1c2128;
+    --drawer-text: #e7eaee;
+    --icon-color: #aeb6c0;
+    --selected-bg: #2a3340;
+    --selected-icon: #8eb4e0;
+    --selected-text: #c5d8ef;
+    --card-bg: #222833;
+    --card-text: #e7eaee;
+    --groups-canvas: #101318;
+    --card-hover: #2a3140;
+    --card-selected: #243246;
+    --avatar-fallback: #314056;
+    --muted: #9aa3ad;
+    --card-shadow: 1px 1px 2px rgba(0, 0, 0, 0.35);
+    --card-hover-shadow: 1px 1px 0px rgba(0, 0, 0, 0.4);
+    --topbar-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
+    --overlay: rgba(0, 0, 0, 0.72);
+    --drawer-shadow: 0 0 20px #000;
+    --spinner-text: #b0b6bf;
+    --switch-bg: #222833;
+    --switch-border: #3c4654;
+    --switch-text: #e7eaee;
+  }
+}
+
+html[data-theme="dark"] #app {
+  color: var(--card-text);
+}

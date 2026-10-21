@@ -1,15 +1,3 @@
-:root {
-  --drawer-width: 240px;
-  --drawer-speed: 0.3s;
-  --drawer-bg: #ffffff;
-  --header-height: 205px;
-  --drawer-text: #0a0e14;
-  --icon-color: #abafb4;
-  --selected-bg: #f0f1f2;
-  --selected-icon: #658fbf;
-  --selected-text: #4c7eb7;
-}
-
 .drawer-wrap {
   position: absolute;
   z-index: 9;
@@ -37,7 +25,7 @@
       position: absolute;
       height: 2px;
       width: 18px;
-      background: #fff;
+      background: var(--text-on-main);
       left: 18px;
       top: 22px;
     }
@@ -63,7 +51,7 @@
     z-index: 10;
     top: 0;
     left: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: var(--overlay);
     width: 100vw;
     height: 100vh;
     transition: opacity var(--drawer-speed) linear;
@@ -82,7 +70,7 @@
     background: var(--drawer-bg);
     transform: translate3d(-320px, 0, 0);
     transition: transform var(--drawer-speed) ease-out;
-    box-shadow: 0 0 20px #000;
+    box-shadow: var(--drawer-shadow);
     margin-left: -20px;
 
     .menu-items {
@@ -121,7 +109,7 @@
 
 #drawer {
   header {
-    background: var(--main-bg-light) no-repeat;
+    background: var(--header-bg) no-repeat;
     background-size: cover;
     width: 100%;
     height: 170px;
@@ -132,7 +120,7 @@
       content: "";
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.7);
+      background: var(--header-overlay);
     }
 
     .user-info {
@@ -153,7 +141,7 @@
       }
 
       em {
-        color: #fff;
+        color: var(--text-on-main);
         display: block;
         position: absolute;
         top: 60px;

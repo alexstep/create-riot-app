@@ -1,5 +1,7 @@
 import { component, register, type RiotComponent, type RiotComponentWrapper } from 'riot'
+import { applyStoredTheme } from './theme'
 import './styles/reset.css'
+import './styles/theme.css'
 import './styles/ripple.css'
 import './styles/base.css'
 import './styles/app.css'
@@ -16,6 +18,8 @@ import Spinner from './components/spinner.riot'
 import Dashboard from './components/screens/dashboard.riot'
 import Groups from './components/screens/groups.riot'
 import Settings from './components/screens/settings.riot'
+
+applyStoredTheme()
 
 function install(name: string, wrapper: RiotComponentWrapper<RiotComponent>): void {
   register(name, wrapper)

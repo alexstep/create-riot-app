@@ -1,15 +1,14 @@
 #topbar {
-  --topbar-bg: var(--main-bg);
   position: relative;
   z-index: 9;
   width: 100%;
   height: var(--topbar-height);
-  background: var(--topbar-bg);
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  background: var(--main-bg);
+  box-shadow: var(--topbar-shadow);
 
   h1 {
     text-transform: capitalize;
-    color: var(--text-color);
+    color: var(--text-on-main);
     padding: 17px 0 0 60px;
     font-size: 21px;
     white-space: nowrap;

@@ -1,11 +1,3 @@
-:root {
-  --topbar-height: 58px;
-  --main-bg: #5181b8;
-  --text-color: #ffffff;
-  /* Less lighten(color, 30%): lightness + 30 in HSL. */
-  --main-bg-light: hsl(from var(--main-bg) h s calc(l + 30));
-}
-
 /* Riot mounts these as custom tags. Without a hyphen they default to inline. */
 app,
 topbar,
@@ -33,10 +25,14 @@ body {
   }
 }
 
+html {
+  background: var(--page-bg);
+}
+
 #app {
   min-height: 100vh;
   height: 100%;
-  background: #fff;
+  background: var(--page-bg);
   position: relative;
 }
 

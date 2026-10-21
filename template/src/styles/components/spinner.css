@@ -13,7 +13,7 @@
     right: 0;
     display: block;
     text-align: center;
-    color: #777;
+    color: var(--spinner-text);
   }
 
   .showbox {

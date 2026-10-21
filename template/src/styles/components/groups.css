@@ -7,12 +7,12 @@
     vertical-align: top;
     padding: 10px 30px;
     height: 80px;
-    color: #333;
+    color: var(--card-text);
     text-decoration: none;
     clear: both;
 
     .img-wrap {
-      background: #aaf;
+      background: var(--avatar-fallback);
       display: inline-block;
       overflow: hidden;
       border-radius: 50%;
@@ -36,7 +36,7 @@
     }
 
     .items {
-      color: #aaa;
+      color: var(--muted);
       font-size: 11px;
       position: absolute;
       bottom: 10px;
@@ -44,7 +44,7 @@
     }
 
     &.is-selected {
-      background: #e7eef6;
+      background: var(--card-selected);
     }
   }
 }
@@ -52,16 +52,16 @@
 #screen_groups {
   @media only screen and (min-width: 680px) {
     .groups-list {
-      background: #f0f0f0;
+      background: var(--groups-canvas);
       min-height: 100vh;
       text-align: center;
 
       .group {
         text-align: left;
-        background: #fff;
+        background: var(--card-bg);
         margin: 10px;
         border-radius: 1px;
-        box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--card-shadow);
         padding: 20px;
         height: 200px;
         width: 320px;
@@ -73,12 +73,12 @@
         }
 
         &:hover {
-          background: #f9f9f9;
-          box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.1);
+          background: var(--card-hover);
+          box-shadow: var(--card-hover-shadow);
         }
 
         &.is-selected {
-          background: #e7eef6;
+          background: var(--card-selected);
         }
       }
     }

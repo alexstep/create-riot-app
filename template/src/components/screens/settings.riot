@@ -1,20 +1,57 @@
 <settings>
   <div class="screen screen-settings" id="screen_settings">
     <button type="button" onclick={onOption}>Some option</button>
+    <div class="theme-switch" data-theme-control role="group" aria-label="Тема">
+      <span>Тема</span>
+      <button type="button" data-choice="light" class={state.choice === 'light' ? 'is-active' : ''} aria-pressed={state.choice === 'light' ? 'true' : 'false'} onclick={pick}>Светлая</button>
+      <button type="button" data-choice="dark" class={state.choice === 'dark' ? 'is-active' : ''} aria-pressed={state.choice === 'dark' ? 'true' : 'false'} onclick={pick}>Тёмная</button>
+      <button type="button" data-choice="system" class={state.choice === 'system' ? 'is-active' : ''} aria-pressed={state.choice === 'system' ? 'true' : 'false'} onclick={pick}>Система</button>
+    </div>
   </div>
 
   <script lang="ts">
     import { withTypes, type RiotComponent } from 'riot'
     import { sound } from '../../sounds'
+    import { getThemeChoice, setThemeChoice, type ThemeChoice } from '../../theme'
 
-    interface Settings extends RiotComponent {
+    interface State {
+      choice: ThemeChoice
+    }
+
+    interface Settings extends RiotComponent<object, State> {
       onOption(): void
+      pick(event: Event): void
+      sync(): void
+      onThemeChange: () => void
     }
 
     export default withTypes<Settings>({
-      state: {},
+      state: {
+        choice: 'system',
+      },
+      onThemeChange() {},
+      onBeforeMount() {
+        this.state = { choice: getThemeChoice() }
+        this.onThemeChange = () => this.sync()
+      },
+      onMounted() {
+        window.addEventListener('themechange', this.onThemeChange)
+      },
+      onBeforeUnmount() {
+        window.removeEventListener('themechange', this.onThemeChange)
+      },
+      sync() {
+        this.update({ choice: getThemeChoice() })
+      },
       onOption() {
         sound.tick()
+      },
+      pick(event) {
+        const choice = (event.currentTarget as HTMLElement).dataset.choice
+        if (choice !== 'light' && choice !== 'dark' && choice !== 'system') return
+        sound.tick()
+        setThemeChoice(choice)
+        this.update({ choice })
       },
     })
   </script>
