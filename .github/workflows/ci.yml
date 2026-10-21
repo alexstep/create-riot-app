@@ -112,8 +112,9 @@ jobs:
           done
           curl -fsS http://127.0.0.1:3000/ | grep -q 'Riot app'
           curl -fsS http://127.0.0.1:3000/about | grep -q '<title>About</title>'
-          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/api/me)" = "401"
-          curl -fsS http://127.0.0.1:3000/api/me | grep -q '"error"'
+          me="$(curl -sS -w '\n%{http_code}' http://127.0.0.1:3000/api/me)"
+          test "$(printf '%s' "${me}" | tail -n 1)" = "401"
+          printf '%s' "${me}" | grep -q '"error"'
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/api/missing)" = "404"
           curl -fsS http://127.0.0.1:3000/robots.txt | grep -q sitemap.xml
           kill "${server_pid}"
